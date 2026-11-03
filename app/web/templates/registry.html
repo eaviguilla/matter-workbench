@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Hidden names · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section>
+  <h2>Hidden names</h2>
+  <p class="muted">The real names, emails and addresses hidden for this client, each with the code Claude sees in its place. Edits apply to new text. Earlier chat text keeps its codes and now restores the edited value.</p>
+  <table class="registry">
+    <thead><tr><th>Hidden name</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr class="{{ 'merged' if r.merged_into }}">
+        <td>
+          <form method="post" action="/clients/{{ cid }}/registry/save" class="forms">
+            {{ m.csrf_field(csrf) }}
+            <input type="hidden" name="type" value="{{ r.type }}"><input type="hidden" name="n" value="{{ r.n }}">
+            {% for part, ph, value in r.forms %}
+            <div class="formrow">
+              <label for="v-{{ r.type }}{{ r.n }}{{ part }}">{{ {'full': 'Full name' if r.type == 'PERSON' else {'EMAIL': 'Email', 'ADDRESS': 'Address'}[r.type], 'first': 'First name', 'last': 'Last name', 'nick': 'Nickname'}[part] }}</label>
+              <input id="v-{{ r.type }}{{ r.n }}{{ part }}" name="value_{{ part }}" value="{{ value }}" required autocomplete="off"{% if r.merged_into %} readonly{% endif %}>
+              <code title="What Claude sees">{{ ph }}</code>
+            </div>
+            {% endfor %}
+            {% if r.only_in %}<p class="muted onlyin">{{ r.only_in }}. It is not hidden in any other transcript.</p>{% endif %}
+            {% if r.added_from %}<p class="muted onlyin">{{ r.added_from }}.</p>{% endif %}
+            {% if r.is_code %}<p class="error" role="alert">This entry holds a hidden-name code instead of a real name. It was saved by mistake. Unscrub it.</p>{% endif %}
+            {% if r.merged_into %}<p class="muted">This name is merged into {{ r.type }}_{{ r.merged_into }}.</p>
+            {% else %}
+            <div class="formfoot">
+              {% if r.type == 'PERSON' %}<label class="check"><input type="checkbox" name="office" value="1"{% if r.office %} checked{% endif %}><span>Office staff</span></label>{% endif %}
+              <button type="submit" class="secondary">Save</button>
+            </div>
+            {% endif %}
+          </form>
+        </td>
+        <td class="rowactions">
+          {% if not r.merged_into %}
+          <form method="post" action="/clients/{{ cid }}/registry/merge" class="mergeform">
+            {{ m.csrf_field(csrf) }}
+            <input type="hidden" name="type" value="{{ r.type }}"><input type="hidden" name="n" value="{{ r.n }}">
+            <label class="sr" for="mg-{{ r.type }}{{ r.n }}">Merge {{ r.lead }} into</label>
+            <select id="mg-{{ r.type }}{{ r.n }}" name="into" required><option value="">Merge into…</option>
+              {% for o in rows if o.type == r.type and o.n != r.n and not o.merged_into %}<option value="{{ o.n }}">{{ o.lead }} {{ o.placeholder }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="secondary">Merge</button>
+          </form>
+          {% endif %}
+          <form method="post" action="/clients/{{ cid }}/registry/delete" class="deleteform" data-confirm="Unscrub {{ r.lead }}? Its real words are put back in the saved transcripts and outputs. From the next copy it goes to Claude as written, and it is not hidden again. Chat text already copied with its code will show as unknown.">
+            {{ m.csrf_field(csrf) }}
+            <input type="hidden" name="type" value="{{ r.type }}"><input type="hidden" name="n" value="{{ r.n }}">
+            <button type="submit" class="danger">Unscrub</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="2" class="muted">Nothing yet. Hidden names appear here after the first transcript.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+<section>
+  <h2>Add a hidden name</h2>
+  <form method="post" action="/clients/{{ cid }}/registry/add" class="row">
+    {{ m.csrf_field(csrf) }}
+    <label class="sr" for="add-type">Type</label>
+    <select id="add-type" name="type"><option value="PERSON">Person</option><option value="EMAIL">Email</option><option value="ADDRESS">Address</option></select>
+    <label class="sr" for="add-value">Value</label>
+    <input id="add-value" name="value" placeholder="Exact text as written" required autocomplete="off">
+    <button type="submit">Add</button>
+  </form>
+</section>
+{% endblock %}

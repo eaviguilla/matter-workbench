@@ -1,0 +1,46 @@
+{% macro segs(items) -%}
+{%- for t, ty in items -%}{%- if ty -%}<mark class="tag tag-{{ ty|lower }}">{{ t }}</mark>{%- else -%}{{ t }}{%- endif -%}{%- endfor -%}
+{%- endmacro %}
+
+{% macro csrf_field(token) -%}<input type="hidden" name="csrf" value="{{ token }}">{%- endmacro %}
+
+{% macro layout_help() -%}
+<p class="muted">Any layout works. Speaker lines such as a bullet with a name and time, "[0:01] Name:" or "Name: text" are recognized and their names are scrubbed for certain. Anything else is read as plain text. The original is scrubbed here and is not stored.</p>
+{%- endmacro %}
+
+{% macro legend() -%}
+<p class="legend" aria-label="Key to the underlines in the text"><span class="legend-title">Key</span> <span class="tag tag-person">Person</span> <span class="tag tag-email">Email</span> <span class="tag tag-address">Address</span></p>
+{%- endmacro %}
+
+{% macro pick_outputs(choices, ticked) -%}
+<fieldset class="pick">
+  <legend>Ask Claude for</legend>
+  {% for slug, name in choices %}
+  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span></label>
+  {% endfor %}
+</fieldset>
+{%- endmacro %}
+
+{% macro directions_field(idp, directions) -%}
+<label for="{{ idp }}-directions">Specific directions for Claude <span class="muted">(optional)</span></label>
+<textarea id="{{ idp }}-directions" name="directions" rows="2" data-keep data-directions spellcheck="false" placeholder="For example: keep the note under 100 words, or mention the 20 November deadline.">{{ directions }}</textarea>
+<p class="muted hint">Real names are hidden before anything is copied.</p>
+{%- endmacro %}
+
+{% macro copy_box(tx_id, choices, ticked, locked, idp, after, directions="", ok=[]) -%}
+<div data-copy-box data-confirmed='{{ ok|tojson }}' data-after-copy="{{ after }}" data-preview-url="/transcripts/{{ tx_id }}/scrub-preview" data-hide-url="/transcripts/{{ tx_id }}/hide-word" class="requestbar">
+  {{ pick_outputs(choices, ticked) }}
+  <div class="directions">
+    <label for="{{ idp }}-directions">Specific directions for Claude <span class="muted">(optional)</span></label>
+    <p class="lastsent muted" data-last-sent hidden>Last sent: <span data-last-text></span> <button type="button" class="textbtn" data-use-again>Use again</button></p>
+    <textarea id="{{ idp }}-directions" rows="2" data-keep data-directions spellcheck="false" placeholder="For example: keep the note under 100 words, or mention the 20 November deadline.">{{ directions }}</textarea>
+    <p class="muted hint">Real names are hidden before anything is copied.</p>
+    <div class="flagbox" data-copy-flags hidden></div>
+    <p class="status-msg" data-box-msg role="status" hidden></p>
+  </div>
+  <p class="actions">
+    <button type="button" data-copy-url="/transcripts/{{ tx_id }}/copy"{% if locked %} data-locked{% endif %}{% if locked or not ticked %} disabled{% endif %}>Copy for Claude</button>
+    <span class="status-msg" data-status{% if locked or not ticked %} data-reason="1"{% endif %}>{% if locked %}Finish the review first{% elif not ticked %}Tick at least one output{% endif %}</span>
+  </p>
+</div>
+{%- endmacro %}

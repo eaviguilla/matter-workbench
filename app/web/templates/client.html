@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ cid }} · Matter Workbench{% endblock %}
+{% block mainclass %}{{ 'wide' if view == 'outputs' and sel else '' }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+{% if just_saved %}
+<p class="savedline" role="status"><strong>Transcript saved.</strong> Names, emails and addresses are hidden and the original was not kept. <a href="/clients/{{ cid }}?manage=1#manage">Rename the client</a></p>
+{% endif %}
+{% if sel %}
+<section class="picker" aria-label="Choose a transcript">
+  <div class="pickrow">
+    {% if selector.older %}<a class="arrow" href="{{ selector.older }}" data-leave-guard aria-label="Older transcript" title="Older transcript"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    {% else %}<span class="arrow off" aria-disabled="true" aria-label="Older transcript, none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></span>{% endif %}
+    <div class="pickmain">
+    {% if selector.total > 1 %}
+    <label class="sr" for="tx-filter">Filter transcripts by title or date</label>
+    <div class="filterrow">
+      <input id="tx-filter" type="search" class="txfilter" data-tx-filter="#tx-select" placeholder="Filter by title or date" autocomplete="off">
+      <span class="fcount" data-tx-count role="status" aria-live="polite"></span>
+    </div>
+    {% endif %}
+    <form method="get" action="/clients/{{ cid }}" class="pickform" data-nav-form>
+      <label class="sr" for="tx-select">Transcript</label>
+      <select id="tx-select" name="tx" data-nav-select data-current="{{ sel.id }}">
+        {% for o in selector.options %}<option value="{{ o.id }}" data-id="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+      </select>
+      <noscript><button type="submit" class="secondary">Show</button></noscript>
+    </form>
+    </div>
+    {% if selector.newer %}<a class="arrow" href="{{ selector.newer }}" data-leave-guard aria-label="Newer transcript" title="Newer transcript"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+    {% else %}<span class="arrow off" aria-disabled="true" aria-label="Newer transcript, none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>{% endif %}
+    <span class="poslabel">{{ selector.position }} of {{ selector.total }}</span>
+  </div>
+  <div class="titlerow">
+    <span class="status status-{{ sel.status }}" data-tx-status>{{ sel.state }}</span>
+    <details class="titleedit"{% if title_typed is not none %} open{% endif %}>
+      <summary>Edit title</summary>
+      <form method="post" action="/transcripts/{{ sel.id }}/title" class="titleform">
+        {{ m.csrf_field(csrf) }}
+        <input type="hidden" name="view" value="{{ view }}">
+        {% for k, v in keep_params %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+        <div class="inline">
+          <label class="sr" for="title-input">Transcript title</label>
+          <input id="title-input" name="title" maxlength="120" value="{{ title_typed if title_typed is not none else sel.title_shown }}" placeholder="For example: Lease follow-up" autocomplete="off">
+          <button type="submit" class="secondary">Save title</button>
+        </div>
+      </form>
+      <p class="muted">Shown on this computer only. It is saved as typed and never sent to Claude.</p>
+    </details>
+    <a class="deletelink" href="/transcripts/{{ sel.id }}/delete">Delete transcript</a>
+  </div>
+</section>
+<nav class="viewswitch" aria-label="Show outputs or transcript">
+  <a href="{{ href_outputs }}" class="{{ 'on' if view == 'outputs' }}"{% if view == 'outputs' %} aria-current="page"{% endif %}>Outputs</a>
+  <a href="{{ href_transcript }}" class="{{ 'on' if view == 'transcript' }}"{% if view == 'transcript' %} aria-current="page"{% endif %}>Transcript</a>
+</nav>
+{% if view == 'outputs' %}{% include "_outputs_view.html" %}{% else %}{% include "_transcript_view.html" %}{% endif %}
+{% else %}
+<section class="firstrun">
+  <h2>No transcripts yet for {{ full_name }}</h2>
+  <p>Paste a transcript to begin. Names, emails and addresses are hidden before anything is copied to Claude, and the original is not kept.</p>
+  <p class="actions"><a class="button" href="/clients/{{ cid }}/intake">Add transcript</a></p>
+</section>
+{% endif %}
+<div class="more">
+<details{% if manage_open or summary_open %} open{% endif %}>
+  <summary>More</summary>
+  <details class="inner"{% if summary_open %} open{% endif %}>
+    <summary>Running summary</summary>
+    <p class="muted">When this client's chat in claude.ai gets long, ask Claude for a summary, import it, and paste it first in a new chat.</p>
+    <p class="actions"><button type="button" data-copy-text="#summary-prompt">Copy the summary request</button> <a class="button secondary" href="/clients/{{ cid }}/import?kind=summary">Import a summary</a> <span class="status-msg" data-status></span></p>
+    <pre id="summary-prompt" class="hidden-text">{{ summary_prompt }}</pre>
+    {% for sm in summaries %}
+    <details class="inner"><summary>{% if sm.created_at %}Summary of {{ sm.created_at|long_day }}{% else %}Summary {{ loop.index }}{% endif %}</summary>
+      <pre class="text" id="sum-{{ sm.id }}">{{ sm.scrubbed_text }}</pre>
+      <p><button type="button" data-copy-text="#sum-{{ sm.id }}">Copy summary</button></p>
+    </details>
+    {% endfor %}
+  </details>
+  <details class="inner">
+    <summary>Message to Claude</summary>
+    <p><a href="/clients/{{ cid }}/outgoing">Write a message to Claude</a> about this client when it is not about one output. To change a single output, use the box under that output.</p>
+  </details>
+  <details class="inner manage" id="manage"{% if manage_open %} open{% endif %}>
+    <summary>Manage client: rename, export, archive</summary>
+    <form method="post" action="/clients/{{ cid }}/rename" class="inline">
+      {{ m.csrf_field(csrf) }}
+      <label for="rename-first">First name</label>
+      <input id="rename-first" name="first_name" value="{{ client.first_name }}" required autocomplete="off">
+      <button type="submit" class="secondary">Rename</button>
+    </form>
+    <p class="muted">Changes the name shown here. The ID {{ cid }} stays the same so earlier chats still match.</p>
+    <form method="post" action="/clients/{{ cid }}/export" data-confirm="This file contains real names. Save it only where you control access.">
+      {{ m.csrf_field(csrf) }}
+      <button type="submit" class="secondary">Download history with real names (.md)</button>
+    </form>
+    <form method="post" action="/clients/{{ cid }}/archive" data-confirm="{{ 'Restore this client?' if client.archived else 'Archive this client? You can restore it later.' }}">
+      {{ m.csrf_field(csrf) }}
+      <button type="submit" class="secondary">{{ 'Restore client' if client.archived else 'Archive client' }}</button>
+    </form>
+  </details>
+</details>
+</div>
+{% endblock %}

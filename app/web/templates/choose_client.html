@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Who is the client? · Matter Workbench{% endblock %}
+{% block main %}
+<header class="wshead"><div><h1>{{ 'This looks like an existing client' if found.matches|selectattr("strong")|list else 'Who is the client?' }}</h1><p class="sub">Call date {{ call_date }}. The transcript is saved only when you finish the review.</p></div></header>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section>
+  <form method="post" action="/intake/start" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="call_date" value="{{ call_date }}">
+    <textarea name="text" class="hidden-text" tabindex="-1" aria-hidden="true">{{ text }}</textarea>
+    {% set strong = found.matches|selectattr("strong")|list %}
+    {% if found.matches %}
+    <fieldset class="pick">
+      <legend>Add to an existing client</legend>
+      {% for c in found.matches %}
+      <div class="matchrow">
+        <p><strong>{{ c.name }}</strong> <span class="cid">{{ c.id }}</span>{% if c.archived %} <span class="muted">(archived, restored if you pick them)</span>{% endif %}<br>
+        <span class="muted">Matched {{ c.via }}. {{ 'Their full name is already in this client\'s hidden names.' if c.strong else 'Same first name as the client. Check it is the same person.' }}
+        {% if c.last_call %}Last call {{ c.last_call }}, {{ c.calls }} transcript{{ 's' if c.calls != 1 }}.{% else %}No transcripts yet.{% endif %}</span></p>
+        <button type="submit" name="client" value="{{ c.id }}">Add to this client</button>
+      </div>
+      {% endfor %}
+    </fieldset>
+    {% endif %}
+    <fieldset class="pick">
+      <legend>{{ 'Or a new client' if found.matches else 'New client' }}</legend>
+      <label for="first-name">Client first name</label>
+      <input id="first-name" name="first_name" value="{{ found.suggested }}" list="detected-names" autocomplete="off" placeholder="First name">
+      <datalist id="detected-names">{% for p in found.people if not p.likely_staff %}<option value="{{ p.first }}">{% endfor %}</datalist>
+      <p class="muted">You can change this later. The client ID keeps the name it was created with.</p>
+      <p class="actions"><button type="submit" name="client" value="new"{% if found.matches %} class="secondary"{% endif %}>Start a new client</button></p>
+    </fieldset>
+    {% if found.people %}
+    <div>
+      <h3>People found in this transcript</h3>
+      <table>
+        <thead><tr><th>Name</th><th class="num">Mentions</th><th>Role guess</th></tr></thead>
+        <tbody>
+        {% for p in found.people %}
+          <tr><td><span class="tag tag-person">{{ p.full }}</span></td><td class="num">{{ p.mentions }}</td>
+              <td class="muted">{{ 'Probably the office' if p.likely_staff else ('Speaker' if p.speaker else 'Mentioned') }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    <p class="actions"><a href="/intake" data-confirm-link="Discard this review? The pasted text is not kept.">Discard and paste again</a></p>
+  </form>
+</section>
+{% endblock %}

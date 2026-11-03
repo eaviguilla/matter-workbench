@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Delete · {{ cid }} · Matter Workbench{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section class="confirmdel">
+  {% if what == "client" %}
+  <h2>Delete {{ full_name }}?</h2>
+  <p>This removes the client, {{ n_tx }} transcript{{ 's' if n_tx != 1 }}, {{ n_versions }} saved output version{{ 's' if n_versions != 1 }}, every message copied for Claude and all hidden names for this client. It deletes the files from this computer.</p>
+  {% else %}
+  <h2>Delete this transcript?</h2>
+  <p>{{ target.label }}</p>
+  <p>This removes the transcript, its {{ n_versions }} saved output version{{ 's' if n_versions != 1 }} and the messages copied for it. Names you hid for this call only are removed too. Names hidden for the whole client stay. It deletes the files from this computer.</p>
+  {% endif %}
+  <p><strong>There is no undo.</strong> Text already pasted into claude.ai is not touched.</p>
+  <form method="post" action="{{ '/clients/' ~ cid ~ '/delete' if what == 'client' else '/transcripts/' ~ target.id ~ '/delete' }}" class="inline">
+    {{ m.csrf_field(csrf) }}
+    <button type="submit" class="danger">{{ 'Delete this client' if what == 'client' else 'Delete this transcript' }}</button>
+    <a class="button secondary" href="{{ '/clients/' ~ cid ~ ('?tx=' ~ target.id if target else '') }}">Cancel, keep it</a>
+  </form>
+</section>
+{% endblock %}

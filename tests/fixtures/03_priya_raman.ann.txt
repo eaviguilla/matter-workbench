@@ -1,0 +1,67 @@
+# Anxious, over-apologizes, interrupts herself. Father died in a car crash, auto claim.
+• {P2:Jamal Pierce}
+Hi, is this {P1:Priya}? This is {P2:Jamal Pierce} from the law office.
+• {P1:Priya Raman}
+Oh, hi, yes, sorry, sorry, I'm in the car, well, not driving, parked, I'm parked. Sorry. Is this a bad time? I can call back.
+• {P2:Jamal Pierce}
+No, now is fine. Take a breath. I just need to collect some details.
+• {P1:Priya Raman}
+Okay. Sorry. Yes. I'm {P1:Priya Raman}. {P1:Raman}, {P1:R-A-M-A-N}. I live at {A1:908 Juniper Court, Apt 3B, Columbus, OH 43215}. Is that right? Do you need the zip?
+• {P2:Jamal Pierce}
+That's perfect. Email?
+• {P1:Priya Raman}
+It's {E1:p r a m a n at outlook dot com}. Sorry, that's confusing, the p and then raman.
+• {P2:Jamal Pierce}
+No problem. So what brought you to us?
+• {P1:Priya Raman}
+My father. He, um. He died in an accident. In June. On the highway. My father, {P3:Venkat Raman}, was driving to the temple and another car, a truck actually, hit him from the side and he, he didn't make it. Sorry.
+• {P2:Jamal Pierce}
+I'm so sorry, {P1:Priya}. Is it okay to continue?
+• {P1:Priya Raman}
+Yes, yes. Sorry. I want to do it. I just keep crying at work and my manager {P4:Lauren} is nice about it but still.
+• {P2:Jamal Pierce}
+Totally understandable. Who is handling the insurance side?
+• {P1:Priya Raman}
+Allstate. Papa's policy. The adjuster is {P5:Denise Kowalski}, she was nice at first, but now she says the other driver's insurance is responsible and she won't pay the funeral costs or the car, and, sorry, I don't understand any of it.
+• {P2:Jamal Pierce}
+That's what we're here for. Do you know the other driver's name?
+• {P1:Priya Raman}
+The police report says {P6:Brandon Teague}. I looked him up online, which I know I shouldn't have, sorry. The officer was Officer {P7:Ruiz} no wait, {P7:Ruiz}, Officer {P7:Ruiz}.
+• {P2:Jamal Pierce}
+Okay, you're doing great. Are there siblings or your mother who should be part of this?
+• {P1:Priya Raman}
+My mother is {P8:Lakshmi}, she is in Chennai with my aunt, {P9:Meena}, because she could not bear to stay in the house. And my brother {P10:Arjun}, he's in Seattle, he said he would join the call if needed but he is useless with paperwork, sorry, that sounds mean.
+• {P2:Jamal Pierce}
+Not at all. Have you signed anything for Allstate?
+• {P1:Priya Raman}
+I signed a release? I think? {P5:Denise} said it was just for medical records, and then I read it later and it said something about final settlement and I panicked.
+• {P2:Jamal Pierce}
+That's important, thank you. We'll get a copy. Has anyone else contacted you? Another lawyer, a doctor?
+• {P1:Priya Raman}
+A man called, he said he was with a firm, Mr. {P11:Lindgren}, no, {P11:Lindgren}, Mister {P11:Lindgren}, he wanted me to sign right away. I hung up. Was that okay?
+• {P2:Jamal Pierce}
+That was exactly right. Don't sign anything. We'll send the paperwork to your email, {E1:p r a m a n at outlook dot com}.
+• {P1:Priya Raman}
+Oh, wait, sorry, I forgot to say, there was a witness. A woman in the other lane, she stopped and stayed with my father until the ambulance came. I don't know her name. Is that bad?
+• {P2:Jamal Pierce}
+Not bad at all. The police report may list her. Did anyone from the hospital talk to you?
+• {P1:Priya Raman}
+A social worker. {P12:Hope}. {P12:Hope} something. {P12:Hope Delaney}. She was so kind, I really hope, sorry, I really hope she can help with the paperwork too.
+• {P2:Jamal Pierce}
+We'll reach out to her. Where was your father taken?
+• {P1:Priya Raman}
+Riverside Methodist, on the east side. And the truck driver's company is, um, Tri-State something. {P10:Arjun} has the card. Actually no, wait, I have it, it's in my wallet. Sorry. I'll take a photo.
+• {P2:Jamal Pierce}
+Perfect. And you said you're at {A1:908 Juniper}, is that the same address as your father's?
+• {P1:Priya Raman}
+No, no. Papa lived on Alum Creek Drive. I'm at {A1:908 Juniper}, sorry, {A1:908 Juniper Court}, like I said, with the apartment. My mother never liked that I moved so far.
+• {P2:Jamal Pierce}
+Okay, got it. One last check, can I confirm how you spell the adjuster's last name?
+• {P1:Priya Raman}
+{P5:Kowalski}. {P5:K-O-W-A-L-S-K-I}. With a K, sorry, not a C. Everyone gets it wrong.
+• {P2:Jamal Pierce}
+Thanks. Hang on one second, I'm just noting that.
+• {P1:Priya Raman}
+Thank you. Thank you so much, {P2:Jamal}. Sorry. I'm going to cry again. I'll call back if I think of more.
+• {P2:Jamal Pierce}
+Anytime. Take care of yourself.

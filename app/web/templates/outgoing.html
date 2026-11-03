@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Message · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section>
+  <h2>Message to Claude</h2>
+  <p class="muted">Type a correction or comment. Real names, emails and addresses are replaced before you copy.</p>
+  <form class="stack" data-outgoing="/clients/{{ cid }}/outgoing" data-hide-url="/clients/{{ cid }}/outgoing/hide-word">
+    <div class="row">
+      <label>Kind of message
+        <select name="kind" id="msg-kind"><option value="comment">Comment</option><option value="correction">Correction</option></select>
+      </label>
+      <label>About which transcript (needed for a correction)
+        <select name="tx_id" id="msg-tx"><option value="">None</option>{% for t in transcripts %}<option value="{{ t.id }}">{{ t.id }}</option>{% endfor %}</select>
+      </label>
+    </div>
+    <label for="msg-text">Message</label>
+    <textarea id="msg-text" name="text" rows="8" data-msg-text spellcheck="false"></textarea>
+    <h3>What will be copied</h3>
+    <pre class="text" id="msg-preview" aria-live="polite"></pre>
+    <div class="flagbox" data-msg-flags hidden></div>
+    <p class="status-msg" data-box-msg role="status" hidden></p>
+    <p class="error hidden" id="msg-error" role="alert"></p>
+    <p class="actions"><button type="button" id="msg-copy" disabled>Scrub and copy</button> <span class="status-msg" data-status></span></p>
+  </form>
+</section>
+{% endblock %}

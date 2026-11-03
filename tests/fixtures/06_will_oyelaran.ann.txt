@@ -1,0 +1,67 @@
+# Jokey, plays on his common-word name. Father died after surgery, malpractice and insurance.
+• {P2:Beth Nakamura}
+Hi there, {P2:Beth Nakamura} from intake. Am I speaking with {P1:Will Oyelaran}?
+• {P1:Will Oyelaran}
+Speaking. And yes, before you ask, I will answer your questions. Will will. Everybody does that joke, so I just get it out of the way.
+• {P2:Beth Nakamura}
+Ha, noted. Let's start with your address.
+• {P1:Will Oyelaran}
+{A1:1620 Harbor View Boulevard, Baltimore, MD 21230}. Third floor, no elevator, you get strong or you get out.
+• {P2:Beth Nakamura}
+And email?
+• {P1:Will Oyelaran}
+{E1:will.oyelaran@gmail.com}. Same as the name, nothing clever.
+• {P2:Beth Nakamura}
+Perfect. Tell me what's going on.
+• {P1:Will Oyelaran}
+So my dad, {P3:Chukwuemeka Oyelaran}, everyone called him {P3:Emeka}, went into St. Luke's in May for a routine hip surgery. Routine. He was seventy four, walked every day. Four days later he's gone. They say a blood clot. I say somebody dropped the ball.
+• {P2:Beth Nakamura}
+I'm so sorry. Who was the surgeon?
+• {P1:Will Oyelaran}
+A Dr. {P4:Anand Patel}. Seemed nice. Seemed confident. Said "we will monitor him closely." I have the discharge notes. They did not monitor him closely.
+• {P2:Beth Nakamura}
+Do you know who his nurse was?
+• {P1:Will Oyelaran}
+A night nurse, {P5:Cheryl}. I never got a last name. She is the one who told my sister there was a delay in giving the blood thinners.
+• {P2:Beth Nakamura}
+Your sister is?
+• {P1:Will Oyelaran}
+{P6:Joy}. {P6:Joy Oyelaran}. Yes, Will and Joy, our parents had a sense of humor. She's the oldest. Joy is a pharmacist so when she says there was a delay, I believe her.
+• {P2:Beth Nakamura}
+And your mother?
+• {P1:Will Oyelaran}
+Mom is {P7:Adaeze}. She's okay. Not okay. She keeps setting the table for three.
+• {P2:Beth Nakamura}
+I'm very sorry. What about insurance? Was there a claim?
+• {P1:Will Oyelaran}
+Two things. One, the hospital's malpractice carrier, which I assume is going to fight us. Two, Dad had accidental death coverage through his union, Local 1204. The rep there, {P8:Terrell Whitmore}, says since it was a complication it's not "accidental." I said, was it intentional?
+• {P2:Beth Nakamura}
+That's a fair point. Do you have anything in writing from {P8:Terrell}?
+• {P1:Will Oyelaran}
+An email. I'll forward it. Will you want everything or just the denial?
+• {P2:Beth Nakamura}
+Everything is best. The attorney will reach you at {E1:will.oyelaran@gmail.com}.
+• {P1:Will Oyelaran}
+Oh, one more thing, since you're being so patient. The funeral home. They also tried to upsell us on a casket that cost more than my car.
+• {P2:Beth Nakamura}
+I'm sorry, that's awful. Do you remember the name of the funeral home?
+• {P1:Will Oyelaran}
+Greenlawn. The director was a guy named {P9:Rich}. {P9:Richard Tolliver}. Everybody called him {P9:Rich}, and I thought, well, he's not wrong, with those prices.
+• {P2:Beth Nakamura}
+Ha. Did you pay the bill yourselves?
+• {P1:Will Oyelaran}
+My sister did. {P6:Joy} put it on a card. She keeps the receipts in a shoebox, and she's a pharmacist, so you know the shoebox is organized.
+• {P2:Beth Nakamura}
+Good. Those receipts will matter for damages. Who else was at the hospital?
+• {P1:Will Oyelaran}
+My uncle {P10:Ifeanyi} flew in from Lagos. Mom's cousin, {P11:Nkechi}, too. And a priest, Father {P12:Okonkwo}. He prayed with Dad the night before. He asked me not to go to the press. I said, Father, I'm not going to the press. I'm going to you people.
+• {P2:Beth Nakamura}
+Understood. We'll be careful. What's the best way to reach your mother?
+• {P1:Will Oyelaran}
+Through {P6:Joy}. Mom doesn't do email. She does WhatsApp, and she has six hundred cousins on it.
+• {P2:Beth Nakamura}
+Okay. I'll note to go through {P6:Joy}.
+• {P1:Will Oyelaran}
+Great. Hey, one request. If anybody says "Will you please hold," I swear I will get up and leave.
+• {P2:Beth Nakamura}
+I'll make a note. Thank you, {P1:Will}.

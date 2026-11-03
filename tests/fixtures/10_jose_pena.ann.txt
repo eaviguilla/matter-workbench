@@ -1,0 +1,65 @@
+# Courteous and formal, mixes in Spanish, accented names. Father died, auto insurance wrongful denial.
+• {P2:Ines Okafor}
+Buenas tardes, this is {P2:Ines Okafor} calling from the firm. May I speak with {P1:José Peña}?
+• {P1:José Peña}
+Buenas tardes, señorita. Yes, speaking. A pleasure to hear from you. Please, call me {P1:José}.
+• {P2:Ines Okafor}
+Thank you {P1:José}. I will ask a few questions so the attorney is prepared. Your address?
+• {P1:José Peña}
+{A1:1903 Magnolia Boulevard, Houston, TX 77004}. Casa blanca, with the green door.
+• {P2:Ines Okafor}
+And your email?
+• {P1:José Peña}
+{E1:jose dot pena at hotmail dot com}. The N has the little tilde in my name, but in the email, no, just N.
+• {P2:Ines Okafor}
+Understood. What brings you to us?
+• {P1:José Peña}
+It is a long story, but I will be brief. My father, {P3:Don Rafael Peña}, he died in October, at home, with the family. He was ninety. A very peaceful death, thanks be to God. The problem is the car.
+• {P2:Ines Okafor}
+The car?
+• {P1:José Peña}
+Papá's truck, a Ford, nineteen ninety eight. In September, before he passed, he was in a small accident, a man hit him from behind at a light. Papá was not hurt. The insurance, Gulf Coast Auto, refused to pay for repairs, and now they say because he died the claim is closed.
+• {P2:Ines Okafor}
+Who at Gulf Coast has been handling it?
+• {P1:José Peña}
+First an adjuster, {P4:Roy Delacroix}. A gentleman. He promised to call me back and never did. Then a different one, {P5:Mónica Salazar}, she was less polite.
+• {P2:Ines Okafor}
+Do you know the other driver?
+• {P1:José Peña}
+His name is on the police report, {P6:Jerome Whitcomb}. He said it was the sun in his eyes. At seven in the evening. In Houston. In September.
+• {P2:Ines Okafor}
+I understand. Who in the family is helping you with this?
+• {P1:José Peña}
+My wife, {P7:Lucía}, she is the one who keeps all the papers. We have four children. {P8:Mariana}, {P9:Santiago}, {P10:Elena}, and the youngest, {P11:Tomás}. My sister {P12:Rosario} lives next door to my father's house, she was the one who found the police report in his glove compartment.
+• {P2:Ines Okafor}
+That sounds like a very close family.
+• {P1:José Peña}
+Yes. It is our strength and our difficulty. Everyone has an opinion. My uncle {P13:Ignacio} says we should sue. My wife says we should pray. I say, first the lawyer.
+• {P2:Ines Okafor}
+Ha, a good order. Has anyone from the insurance company asked you to sign something?
+• {P1:José Peña}
+Yes, a form. A woman from their office, Mrs. {P14:Villanueva}, sent it. I did not sign. I do not sign what I do not understand, señorita. Papá taught me this.
+• {P2:Ines Okafor}
+Perdón, one more detail, if you don't mind. Did your father have a will?
+• {P1:José Peña}
+Yes, yes. Written by a notary in nineteen ninety six, {P15:Faith Montalvo}. A woman of great faith, you could say, ha, and her name is {P15:Faith}, so the joke makes itself.
+• {P2:Ines Okafor}
+Ha. Where is the original?
+• {P1:José Peña}
+With my sister {P12:Rosario}. She keeps it in a metal box under her bed, with the rosary and the photographs. Do not tell the insurance this, they will think it is not safe.
+• {P2:Ines Okafor}
+I won't. Did your father speak with any other insurance agent before the accident?
+• {P1:José Peña}
+A young man came to the house in August, a salesman, {P16:Dylan Park}. He sold Papá a second policy, a supplement. Papá signed because he did not want to be rude. He was too polite, my father.
+• {P2:Ines Okafor}
+Interesting. That could matter. Is {P16:Dylan} still with the company?
+• {P1:José Peña}
+I do not know. I called, the woman said he is no longer there. Then she said, Mr. {P1:Peña}, I cannot say more. Mr. {P1:Peña}! As if I were the criminal.
+• {P2:Ines Okafor}
+I'm sorry. Let me confirm your street, {A1:1903 Magnolia}, is that right?
+• {P1:José Peña}
+{A1:1903 Magnolia Boulevard}, Houston. Yes.
+• {P2:Ines Okafor}
+That was wise. Please forward it. We'll write to you at {E1:jose dot pena at hotmail dot com}.
+• {P1:José Peña}
+Muchas gracias, {P2:Ines}. God bless you and your family.

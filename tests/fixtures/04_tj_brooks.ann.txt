@@ -1,0 +1,75 @@
+# Angry, distrustful, clipped. Father died in a warehouse accident, workers comp denied.
+• {P2:Nora Feldman}
+Hello, this is {P2:Nora} with the firm. Am I talking to {P1:Terrence Brooks}?
+• {P1:Terrence Brooks}
+Yeah. Everybody calls me {P1:TJ}. Look, before we start, who are you people? I've had three outfits call me this week and they all want something.
+• {P2:Nora Feldman}
+Fair question. You filled out our web form on Tuesday, and I'm following up on that. We don't charge anything unless we recover money.
+• {P1:Terrence Brooks}
+Uh huh. Everybody says that. Go ahead. What do you need.
+• {P2:Nora Feldman}
+Your address to start.
+• {P1:Terrence Brooks}
+{A1:2250 Pine Ridge Road, Toledo, OH 43604}. And don't send nothing in the mail with the company name on it, my wife opens everything.
+• {P2:Nora Feldman}
+Understood. Email instead?
+• {P1:Terrence Brooks}
+{E1:tj dot brooks dot hauling at gmail dot com}. Hauling. H-A-U-L.
+• {P2:Nora Feldman}
+Got it. Tell me what happened.
+• {P1:Terrence Brooks}
+My old man. {P3:Leonard Brooks}. Sixty eight years old, thirty years at Midwest Distribution, a warehouse. In April a pallet rack came down on him. A rack! Because they never maintained it. He died at the scene. And now the comp carrier says it's not covered because he wasn't, quote, on the clock.
+• {P2:Nora Feldman}
+I'm very sorry. Was he on a break?
+• {P1:Terrence Brooks}
+He was staying late to train some kid. That's a break? Come on. His supervisor, {P4:Gary Dunmore}, told me himself he was doing him a favor. Then next day {P4:Dunmore} changes his story.
+• {P2:Nora Feldman}
+Do you have that in writing?
+• {P1:Terrence Brooks}
+I got a voicemail. Saved it three places. Don't think I wasn't expecting this.
+• {P2:Nora Feldman}
+Smart. Who's the carrier?
+• {P1:Terrence Brooks}
+Hartford. The rep is a guy named {P5:Colin Ashby}. Real smooth talker. Called me "buddy" like four times.
+• {P2:Nora Feldman}
+Okay. Who else was in your dad's life? Your mother? Siblings?
+• {P1:Terrence Brooks}
+Mom passed in oh-nine. I got a sister, {P6:Denise}, she wants to just take whatever they offer. I told her no way. {P6:Denise} and I don't talk right now over this.
+• {P2:Nora Feldman}
+That's a hard spot. Is your sister on any paperwork?
+• {P1:Terrence Brooks}
+She's the executor. {P6:Denise Brooks-Hall}. Signed everything without asking me.
+• {P2:Nora Feldman}
+We'll need to talk to her at some point. Have you filed a complaint with OSHA?
+• {P1:Terrence Brooks}
+I called. A lady named {P7:Maribel Santoro} took my info. Haven't heard back. Typical.
+• {P2:Nora Feldman}
+All right. I'm writing all this down. If the attorney contacts you it'll be at {E1:tj dot brooks dot hauling at gmail dot com} unless you tell me otherwise.
+• {P1:Terrence Brooks}
+Hold on. Before you hang up, there's another thing. You gonna ask about the foreman or what.
+• {P2:Nora Feldman}
+Yes, please. Who was working that shift?
+• {P1:Terrence Brooks}
+A guy named {P8:Mark Delvecchio}. He put a mark on that rack in March, I swear. Red tape, "do not load." Somebody took it off. Somebody took it off and then my dad's dead.
+• {P2:Nora Feldman}
+I'm sorry. Did {P8:Mark} say that to you directly?
+• {P1:Terrence Brooks}
+He told my cousin {P9:Andre}. {P9:Andre} told me. So that's hearsay, I know, I watch TV. But {P9:Andre} will sign something.
+• {P2:Nora Feldman}
+Good, we'll talk to him. Is {P9:Andre} a {P1:Brooks} as well?
+• {P1:Terrence Brooks}
+No, his mother's side. {P9:Andre Whitlock}. And don't call him at work, he'll get fired.
+• {P2:Nora Feldman}
+Understood. Do you also have a lawyer already, or any other firm?
+• {P1:Terrence Brooks}
+Had one. {P10:Stan} something. {P10:Stanley Rourke}. Took my deposit and did nothing for two months. That's why I don't trust nobody.
+• {P2:Nora Feldman}
+I'll note that, and I'm sorry that happened. Where were you when he was found, if you don't mind me asking?
+• {P1:Terrence Brooks}
+On the road. Outside Dayton, near the {A1:2250 Pine Ridge} exit. Funny, same number as my house, no wait, that's not right, forget it.
+• {P2:Nora Feldman}
+No problem. We have plenty to start with.
+• {P1:Terrence Brooks}
+Fine. And I want it recorded that I don't trust the insurance company, the warehouse, or frankly anybody else yet. Prove me wrong.
+• {P2:Nora Feldman}
+Noted, and I'll do my best, {P1:TJ}. Thank you for your time.

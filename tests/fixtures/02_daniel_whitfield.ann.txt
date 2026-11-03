@@ -1,0 +1,73 @@
+# Terse, formal retired engineer. Father died in a nursing home, long-term care claim.
+• {P2:Rachel Ostrowski}
+Good afternoon, this is {P2:Rachel Ostrowski} at intake. Am I speaking with {P1:Daniel Whitfield}?
+• {P1:Daniel Whitfield}
+Yes.
+• {P2:Rachel Ostrowski}
+Thank you for making time. I'll ask a few questions. First, your address?
+• {P1:Daniel Whitfield}
+{A1:12 Brook Hollow Lane, Dayton, OH 45402}.
+• {P2:Rachel Ostrowski}
+And a good email?
+• {P1:Daniel Whitfield}
+{E1:dwhitfield at comcast dot net}. All lowercase.
+• {P2:Rachel Ostrowski}
+Got it. Tell me what happened, in your own words.
+• {P1:Daniel Whitfield}
+My father, {P3:Harold Whitfield}, died on the ninth of August. He was ninety one. He was a resident at Willow Grove Care for the last two years. I believe he was neglected. A pressure wound went untreated for weeks.
+• {P2:Rachel Ostrowski}
+I'm sorry. Who told you about the wound?
+• {P1:Daniel Whitfield}
+A nurse, {P4:Teresa Bianchi}. She called me privately. She asked me not to say so. I would prefer you keep that confidential.
+• {P2:Rachel Ostrowski}
+Of course. And the insurance claim?
+• {P1:Daniel Whitfield}
+Long-term care policy through Genworth. I filed the claim for reimbursement in September. They have not paid. The adjuster is {P5:Walter Kessler}. His responses are late and incomplete.
+• {P2:Rachel Ostrowski}
+Do you have claim numbers or correspondence?
+• {P1:Daniel Whitfield}
+Everything is in a binder. I kept a log. Seventeen calls, dated. Would you like me to send it?
+• {P2:Rachel Ostrowski}
+Yes please, that'd be very helpful. Who else is in your family?
+• {P1:Daniel Whitfield}
+My wife, {P6:Joanne}. Retired teacher. One son, {P7:Peter}, in Denver. My brother {P8:Gregory} died in two thousand nine.
+• {P2:Rachel Ostrowski}
+I'm sorry. Is your mother living?
+• {P1:Daniel Whitfield}
+No. She died in nineteen ninety eight. My father never remarried.
+• {P2:Rachel Ostrowski}
+Who held power of attorney for your father?
+• {P1:Daniel Whitfield}
+I did. I have the document. It was notarized by a woman named {P9:Linda Aguirre}.
+• {P2:Rachel Ostrowski}
+Perfect. Has the facility given you an explanation?
+• {P1:Daniel Whitfield}
+The administrator, {P10:Curtis Moore}, said it was within standard of care. I disagree. I am an engineer. I read the logs. They skipped turning him for eleven shifts.
+• {P2:Rachel Ostrowski}
+That's significant. We'll want those logs. Any deadlines?
+• {P1:Daniel Whitfield}
+Genworth's letter states ninety days. Today is day seventy.
+• {P2:Rachel Ostrowski}
+Understood, I'll mark it urgent. Is there anything you'd like to add, {P1:Daniel}?
+• {P1:Daniel Whitfield}
+No. Please have the attorney email me. Not phone.
+• {P2:Rachel Ostrowski}
+One more area before we finish. Did your father see any doctor outside the facility?
+• {P1:Daniel Whitfield}
+Yes. A cardiologist, Dr. {P11:Anand Rao}. No. {P11:Rao}. {P11:R-A-O}. I misspoke, the first name is not needed. He saw Father twice a year at the clinic on Patterson Road.
+• {P2:Rachel Ostrowski}
+Okay. And was anyone from the family visiting regularly, besides you?
+• {P1:Daniel Whitfield}
+Aunt {P12:Millie} came every Sunday until her hip gave out. Her opinion of the facility is, let us say, unprintable. She will talk to you if needed.
+• {P2:Rachel Ostrowski}
+That could be very useful. Anyone else who saw the conditions firsthand?
+• {P1:Daniel Whitfield}
+Yes. {P13:Bill} drove Father to the emergency room in July when the facility would not. {P13:Bill Hargrove}, his old friend from the plant. He paid the hospital bill out of pocket. I intend to reimburse him from any recovery.
+• {P2:Rachel Ostrowski}
+That's kind of him. Is the old house still in the family, the one on {A1:12 Brook Hollow}?
+• {P1:Daniel Whitfield}
+Correct. Twelve Brook Hollow is where I live. My father's house was sold in June to cover the fees. Please do not confuse the two.
+• {P2:Rachel Ostrowski}
+Noted. To {E1:dwhitfield at comcast dot net}. Thank you, Mr. {P1:Whitfield}.
+• {P1:Daniel Whitfield}
+Thank you.

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Welcome</h1>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<p>Paste a transcript. The app finds the client from the names in the call, creates them if they are new, and replaces names, emails and addresses with hidden names before anything is copied to Claude.</p>
+<p><a class="button" href="/intake">New transcript</a></p>
+{% endblock %}

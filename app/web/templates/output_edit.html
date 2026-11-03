@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Edit {{ out_name }} · {{ tx.id }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section>
+  <p class="muted"><a href="{{ back }}">Back to the outputs</a></p>
+  <h2>Edit {{ out_name }}, starting from v{{ base.version }}</h2>
+  <p class="muted">This is the text with hidden names, as stored. Change it here and save. The save adds a new version and keeps the old ones. A real value typed into the text is replaced with its hidden name first.</p>
+  <form method="post" action="/transcripts/{{ tx.id }}/outputs/{{ slug }}/edit?v={{ base.version }}" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <label for="edit-text">Text</label>
+    <textarea id="edit-text" name="content" rows="18" required spellcheck="false">{{ text }}</textarea>
+    <p class="actions">
+      <button type="submit">Save as new version</button>
+      <a class="button secondary" href="{{ back }}">Cancel</a>
+    </p>
+  </form>
+</section>
+{% endblock %}

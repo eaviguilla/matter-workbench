@@ -1,0 +1,67 @@
+# Soft-spoken, short answers, second-language phrasing, worried. Father died abroad, life insurance claim.
+• {P2:Tasha Greene}
+Hi, is this {P1:Kofi Mensah}? My name is {P2:Tasha Greene}, I am calling from the law office.
+• {P1:Kofi Mensah}
+Yes. Hello. Yes, this is {P1:Kofi}.
+• {P2:Tasha Greene}
+Thanks for taking my call. I'm going to ask some simple questions. Where do you live now?
+• {P1:Kofi Mensah}
+{A1:5521 Cedar Heights Avenue, Apt 12, Newark, NJ 07102}. Apartment twelve.
+• {P2:Tasha Greene}
+And your email address?
+• {P1:Kofi Mensah}
+It is {E1:kofi dot mensah at yahoo dot com}. {P1:Kofi}, {P1:K-O-F-I}.
+• {P2:Tasha Greene}
+Thank you. Can you tell me why you contacted us?
+• {P1:Kofi Mensah}
+My father is dead. He died in Accra, in Ghana. In January. I was not there. I came after, for the funeral. My father, {P3:Yaw Mensah}, he has a policy. Life insurance. I am the beneficiary.
+• {P2:Tasha Greene}
+I'm very sorry for your loss. Which company is the policy with?
+• {P1:Kofi Mensah}
+MetLife. I send the papers, the death certificate from Ghana. They say it is not valid. They want a, how you say, apostille.
+• {P2:Tasha Greene}
+Okay. Have you spoken to someone there?
+• {P1:Kofi Mensah}
+Yes. A man, {P4:Brian Hollis}. He is nice but he does not answer my question. I ask the same question four time. Four. He says "someone will follow up."
+• {P2:Tasha Greene}
+That sounds frustrating. Who is in your family here in the U.S.?
+• {P1:Kofi Mensah}
+My wife, {P5:Abena}. And my daughter {P6:Akosua}, she is six. My brother {P7:Kwame} is in London. My mother is in Ghana, {P8:Esi}. She is old. She does not understand about the insurance.
+• {P2:Tasha Greene}
+Does she have anyone with her?
+• {P1:Kofi Mensah}
+My uncle, {P9:Nana Boateng}. He helps her. He went to the office in Accra with the papers.
+• {P2:Tasha Greene}
+That's good to know. Is there anything about your immigration situation we should be aware of? You don't have to answer.
+• {P1:Kofi Mensah}
+I have green card. It is okay. But I am afraid to travel now. I do not want problem.
+• {P2:Tasha Greene}
+You have nothing to worry about from this claim. Did the insurance company give a deadline?
+• {P1:Kofi Mensah}
+Ninety days. Maybe sixty. I am not sure. The letter is from a lady, Ms. {P10:Whitaker}. I can send picture.
+• {P2:Tasha Greene}
+A photo is perfect. Please send it by email. We'll write to you at {E1:kofi dot mensah at yahoo dot com}.
+• {P1:Kofi Mensah}
+Please, I want to say one more thing. The company, they send me a letter, in the letter they say I have grace period. But the grace period is finished before the letter arrive.
+• {P2:Tasha Greene}
+That's an important detail. Do you still have the envelope with the postmark?
+• {P1:Kofi Mensah}
+Yes, I keep everything. My cousin, {P11:Grace}, she is a nurse in Newark, she tell me, {P1:Kofi}, keep the envelope, keep everything. She is smart like that.
+• {P2:Tasha Greene}
+She's right. Is {P11:Grace} helping you with the paperwork?
+• {P1:Kofi Mensah}
+Yes. She also come to my house on Sunday. {P11:Grace Owusu}. Her mother is my father's sister, Auntie {P12:Akua}. Auntie, she is in Kumasi.
+• {P2:Tasha Greene}
+Thanks. I want to check your address again, so I have it correct. It's {A1:5521 Cedar Heights}, apartment twelve?
+• {P1:Kofi Mensah}
+Yes, {A1:5521 Cedar Heights Avenue}. Newark. 07102.
+• {P2:Tasha Greene}
+Got it, thanks. And the name of the person at MetLife again?
+• {P1:Kofi Mensah}
+{P4:Brian Hollis}. {P4:H-O-L-L-I-S}. One L, two L, sorry, two L in the middle. {P4:Brian}, with an I.
+• {P2:Tasha Greene}
+Perfect. I'll make sure it's spelled right in the file.
+• {P1:Kofi Mensah}
+Okay. Thank you, {P2:Tasha}. Thank you very much. God bless you.
+• {P2:Tasha Greene}
+You're welcome, {P1:Kofi}. Talk soon.

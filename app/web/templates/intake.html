@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Add transcript · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section>
+  <h2>Add a transcript</h2>
+  {{ m.layout_help() }}
+  {% if issues %}
+  <div class="error" role="alert"><p>The transcript could not be used.</p><ul>{% for i in issues %}<li>{{ i }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  <form method="post" action="/clients/{{ cid }}/intake" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <label>Call date <input type="date" name="call_date" value="{{ today }}" required></label>
+    <label for="tx-text">Transcript</label>
+    <textarea id="tx-text" name="text" rows="18" required spellcheck="false">{{ text or "" }}</textarea>
+    <p><button type="submit"{% if not model_ok %} disabled{% endif %}>Scrub and review</button></p>
+  </form>
+</section>
+{% set opt_tx = "" %}{% set opt_back = "intake" %}{% include "_options_row.html" %}
+{% endblock %}

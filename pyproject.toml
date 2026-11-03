@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matter-workbench"
+version = "0.1.0"
+description = "Local transcript scrubber and rehydrator for claude.ai Project chats"
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn", "jinja2", "python-multipart"]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+ner = ["onnxruntime", "tokenizers", "numpy"]            # runtime for the GLiNER stage
+export = ["gliner", "onnx", "huggingface_hub", "torch"]  # one-off export only, never at runtime
+
+[tool.setuptools.packages.find]
+include = ["app*", "mcp_server*"]
+
+[tool.setuptools.package-data]
+"app.web" = ["templates/*.html", "static/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

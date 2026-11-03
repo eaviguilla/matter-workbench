@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Import · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+<section>
+  {% if kind == 'summary' %}
+  <h2>Import a summary</h2>
+  <p class="muted">Paste the running summary Claude wrote for this client. It is checked first and saved only after you confirm.</p>
+  <form method="post" action="/clients/{{ cid }}/import" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="kind" value="summary">
+    <label for="imp-text">Summary</label>
+    <textarea id="imp-text" name="text" rows="14" required spellcheck="false">{{ text or "" }}</textarea>
+    <p><button type="submit">Check summary</button></p>
+  </form>
+  {% else %}
+  <h2>Import Claude's reply</h2>
+  <p class="muted">Paste the reply from claude.ai. The header line tells the app which transcript it belongs to. If Claude put each output under a line like [OUTPUT: clio-note], the app splits the reply and saves each part as a new version of that output. Nothing is saved until you confirm.</p>
+  <form method="post" action="/clients/{{ cid }}/import" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <label for="imp-text">Reply</label>
+    <textarea id="imp-text" name="text" rows="14" required spellcheck="false">{{ text or "" }}</textarea>
+    <div class="row">
+      <label>Save as
+        <select name="kind"><option value="output" selected>Output for a transcript</option><option value="summary">Running summary</option></select>
+      </label>
+      <label>Output, if the reply has no [OUTPUT: name] lines
+        <select name="output"><option value="">Choose</option>{% for slug, name in output_choices %}<option value="{{ slug }}"{% if slug == suggested_output %} selected{% endif %}>{{ name }}</option>{% endfor %}</select>
+      </label>
+      <label>Transcript, if the reply has no header
+        <select name="tx_id"><option value="">Use the header</option>{% for t in transcripts %}<option value="{{ t.id }}"{% if t.id == pick_tx %} selected{% endif %}>{{ t.title or 'Untitled' }}, {{ t.call_date|long_day }}</option>{% endfor %}</select>
+      </label>
+    </div>
+    <p><button type="submit">Check reply</button></p>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

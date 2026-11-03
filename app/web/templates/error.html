@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} · Matter Workbench{% endblock %}
+{% block main %}
+<header class="wshead"><div><h1>{{ heading }}</h1></div></header>
+<section>
+  <p class="error" role="alert">{{ detail }}</p>
+  <p class="actions"><a href="/">Go to clients</a> <a href="/intake">Paste a new transcript</a></p>
+</section>
+{% endblock %}

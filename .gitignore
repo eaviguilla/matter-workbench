@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+models/
+*.db
+*.db-wal
+*.db-shm
+.env
+# real transcripts must never be committed; only tests/fixtures/*.ann.txt (synthetic)
+real/
+dist/
+.DS_Store
+*.egg-info/
+*.pyc
+*.docx
+*.zip

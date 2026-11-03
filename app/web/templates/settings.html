@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Settings · Matter Workbench{% endblock %}
+{% block main %}
+<h1>Settings</h1>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section>
+  <h2>Name finder</h2>
+  <p>Status: <strong>{{ 'installed' if ner.available else 'not installed' }}</strong>{% if ner.available %}, {{ 'loaded in memory' if ner.loaded else 'not loaded (loads on first use)' }}{% endif %}.</p>
+  {% if not ner.available %}<p class="warn">Scrubbing is blocked until the name finder is installed in <code>{{ model_dir }}</code>. See the README, section "Turn the model on".</p>{% endif %}
+  <form method="post" action="/settings" class="stack narrow" data-save-form>
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="section" value="model">
+    <label for="set-threshold">How sure the name finder must be, from 0.05 to 0.99
+      <input id="set-threshold" type="number" name="threshold" step="0.05" min="0.05" max="0.99" value="{{ settings.threshold }}"></label>
+    <p class="muted">It hides every name it is at least this sure about. Names it is a little less sure about are flagged for you to decide. A lower number finds more names and flags more wrong ones.</p>
+    <label for="set-idle">Free the memory it uses after <input id="set-idle" type="number" name="idle_minutes" min="1" max="240" value="{{ settings.idle_minutes }}"> minutes without use</label>
+    <p class="actions"><button type="submit">Save</button> <span class="status-msg" data-save-status role="status">{% if saved_section in ('model', 'all') %}Saved.{% endif %}</span></p>
+  </form>
+</section>
+<section>
+  <h2>Instructions to save in Claude</h2>
+  <p class="muted">Paste this once into your claude.ai Project, under the Project's instructions. It holds the standing rules, so Claude keeps placeholders unchanged and answers in a form this app can save. Copy for Claude sends the wording for each output every time, so it is not repeated here. The text follows the connector switch below.</p>
+  <pre id="claude-instructions" class="text" data-on="{{ project_on }}" data-off="{{ project_off }}">{{ project_on if settings.mcp_enabled else project_off }}</pre>
+  <p class="actions"><button type="button" data-copy-text="#claude-instructions">Copy instructions</button> <span class="status-msg" data-status></span></p>
+</section>
+<section>
+  <h2>Output instructions</h2>
+  <p class="muted">Copy for Claude puts the instructions for the ticked outputs at the top of the text. Each box starts with the starter text, which you can change. Write the task only. Do not type client names here, because this text is sent to Claude as written.</p>
+  <form method="post" action="/settings/outputs" class="stack" data-save-form>
+    {{ m.csrf_field(csrf) }}
+    {% for slug, name, text, default in instructions %}
+    <label for="instr-{{ slug }}">{{ name }}</label>
+    <textarea id="instr-{{ slug }}" name="instructions_{{ slug }}" rows="4" maxlength="4000" data-starter="{{ default }}">{{ text }}</textarea>
+    <p class="actions"><button type="button" class="textbtn" data-reset-starter="#instr-{{ slug }}">Reset to starter text</button></p>
+    {% endfor %}
+    <p class="actions"><button type="submit">Save</button> <span class="status-msg" data-save-status role="status">{% if saved_section in ('instructions', 'all') %}Saved.{% endif %}</span></p>
+  </form>
+</section>
+<section>
+  <h2>Claude Desktop connector (optional)</h2>
+  <p class="muted">Off by default. When on, Claude Desktop can call one write-only tool, save_output, that stores one output as a new version of that output. It cannot read anything. Register it in Claude Desktop's MCP configuration with this command:</p>
+  <pre class="text">{{ mcp_command }}</pre>
+  <form method="post" action="/settings" class="stack narrow" data-save-form data-autosave data-connector>
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="section" value="connector">
+    <label class="check"><input type="checkbox" name="mcp_enabled" value="1"{{ ' checked' if settings.mcp_enabled }}><span>Allow the connector to save outputs</span></label>
+    <p class="muted">Changing the box saves it at once.</p>
+    <p class="actions"><noscript><button type="submit">Save</button></noscript> <span class="status-msg" data-save-status role="status">{% if saved_section in ('connector', 'all') %}Saved.{% endif %}</span></p>
+  </form>
+</section>
+<section>
+  <h2>Where the data is</h2>
+  <p>Real names, emails and addresses are stored as plain text in each client's <code>client.json</code>, in the data folder on this computer. Keep disk encryption on (FileVault or BitLocker), and do not share that file. To report a problem, run <code>python -m app.check</code>. Its report holds no stored values.</p>
+</section>
+<section>
+  <h2>Download history</h2>
+  <p class="muted">Open a client, then More, then Manage client, and choose "Download history with real names (.md)". The file has real names restored, so save it only where you control access.</p>
+</section>
+{% endblock %}

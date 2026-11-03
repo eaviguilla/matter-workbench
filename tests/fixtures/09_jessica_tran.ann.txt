@@ -1,0 +1,61 @@
+# Young, fast, filler words, spells things out. Father died, homeowners water damage claim on his condo.
+• {P2:Marcus Lindqvist}
+Hey, is this {P1:Jessica}? {P2:Marcus Lindqvist}, from the law firm, you filled out our form.
+• {P1:Jessica Tran}
+Oh my gosh, yes, hi, sorry, I'm literally walking into a Target, hold on, okay I'm good. Hi. Yes. It's {P1:Jess}. {P1:Jessica}, but {P1:Jess}.
+• {P2:Marcus Lindqvist}
+No worries. Let's start with the easy stuff. Where do you live?
+• {P1:Jessica Tran}
+So like, I live at {A1:88 Sycamore Way, Unit 4, Austin, TX 78704}. But the condo, the one that has the problem, is my dad's, that's {A2:1450 Bluebonnet Trail, Unit 9, Austin, TX 78745}.
+• {P2:Marcus Lindqvist}
+Okay, two addresses, got it. And email?
+• {P1:Jessica Tran}
+It's {E1:j e s s underscore t r a n at icloud dot com}.
+• {P2:Marcus Lindqvist}
+Perfect. What's going on with the condo?
+• {P1:Jessica Tran}
+Okay so my dad, {P3:Hung Tran}, passed away in like September? He had a stroke, it was super fast, like, one day he's fine, next day not. And I'm handling everything because my mom is, like, not in the picture. And then in October there was a pipe, like, in the unit above his. It burst. And the water came through the whole ceiling.
+• {P2:Marcus Lindqvist}
+I'm sorry, that's a lot at once. Did you file a claim?
+• {P1:Jessica Tran}
+Yeah, with his homeowners policy, it's through State Farm. And literally they sent this guy, {P4:Rodney Pruitt}, and he looked at it for ten minutes and said it was "pre-existing." It was not pre-existing! I have photos!
+• {P2:Marcus Lindqvist}
+Did you get that in writing?
+• {P1:Jessica Tran}
+He emailed me. I can forward it. Also the HOA is being, like, so unhelpful. The HOA lady, {P5:Beverly Chu}, she's like "that's between you and the insurance."
+• {P2:Marcus Lindqvist}
+What about the unit above, do you know who lives there?
+• {P1:Jessica Tran}
+Some guy. {P6:Kyle Hartman}. My roommate {P7:Brittany} knows him from, like, college or whatever. She says he's chill. He has renters insurance I think.
+• {P2:Marcus Lindqvist}
+Good to know. Any other siblings, or is it just you?
+• {P1:Jessica Tran}
+Just me and my little brother {P8:Danny}. He's nineteen, he lives with my aunt {P9:Linh} in San Jose. He's kind of falling apart. Like honestly so am I but whatever.
+• {P2:Marcus Lindqvist}
+That's rough. Is the estate open? Do you have letters of administration?
+• {P1:Jessica Tran}
+I have, like, a paper from the court? A lawyer, {P10:Susan Delgado}, helped me file it. But I couldn't afford to keep her.
+• {P2:Marcus Lindqvist}
+Sorry, before I forget. Is there anyone else who lived in your dad's condo, or had a key?
+• {P1:Jessica Tran}
+Um, like, my dad's girlfriend? {P11:Autumn}. She was over a lot. {P11:Autumn} something, {P11:Autumn Pham}? She moved in last autumn, I think. And the cleaner, but I don't know her name, she came on, like, Thursdays.
+• {P2:Marcus Lindqvist}
+Okay. Did {P11:Autumn} see the damage?
+• {P1:Jessica Tran}
+She was the one who found it? She texted me this video at, like, two in the morning, like water just pouring out of the light fixture. I'll send it. Wait, I might not have it, my phone is so full.
+• {P2:Marcus Lindqvist}
+We'd love the video if you can find it. Is she in touch with you now?
+• {P1:Jessica Tran}
+Kind of? She's, like, staying with her sister in Round Rock. I have her number. I'll give it to you but I feel weird.
+• {P2:Marcus Lindqvist}
+That's okay, no pressure. Let me confirm the unit, it's {A2:1450 Bluebonnet}, unit nine?
+• {P1:Jessica Tran}
+Yeah, {A2:1450 Bluebonnet Trail}, unit 9. And mine's the Sycamore one. Don't mix them up, like, please. The insurance already mixed them up once.
+• {P2:Marcus Lindqvist}
+I won't. And who is the building manager?
+• {P1:Jessica Tran}
+{P12:Gordon}. Just {P12:Gordon}. He wears, like, the same flannel every day. Honestly I like him.
+• {P2:Marcus Lindqvist}
+Okay. I'll let our attorney know. They'll email you at {E1:j e s s underscore t r a n at icloud dot com}.
+• {P1:Jessica Tran}
+Awesome. Thank you so much {P2:Marcus}. You're, like, really nice. Okay I gotta go, the self checkout is yelling at me.

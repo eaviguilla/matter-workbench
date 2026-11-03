@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Check import · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+{% set show_whole = kind == 'summary' or not check.pieces %}
+<section>
+  <h2>Check before importing</h2>
+  <ul class="checks">
+    {% if check.problem %}<li class="error">{{ check.problem }}</li>{% endif %}
+    {% if kind == 'summary' %}<li class="ok">Summary for {{ full_name }}.</li>
+    {% elif check.tx_id %}{% set owner = transcripts|selectattr('id', 'equalto', check.tx_id)|first %}<li class="ok">Belongs to {{ owner.title or 'Untitled' }}, {{ owner.call_date|long_day }}.</li>{% endif %}
+    {% if check.needs_pick and kind == 'output' %}<li class="warn">No usable header. Pick the transcript below.</li>{% endif %}
+    {% if kind == 'output' %}
+    {% for slug in check.bad_markers %}<li class="error">The output name "{{ slug }}" in an [OUTPUT: ...] line is not known. Fix the line and check again. Nothing is saved until every name is known.</li>{% endfor %}
+    {% for slug in check.empty_markers %}<li class="error">The output {{ slug }} has an [OUTPUT: ...] line and no text under it.</li>{% endfor %}
+    {% if check.loose_text %}<li class="muted">Claude's usual opening line before the first [OUTPUT: ...] line is not saved.</li>{% endif %}
+    {% if check.pieces %}<li class="ok">Will save {{ check.pieces|length }} output{{ 's' if check.pieces|length != 1 }} {{ 'as a new version' if check.pieces|length == 1 else 'as new versions' }}: {% for p in check.pieces %}{{ p.name }}{{ ', ' if not loop.last }}{% endfor %}.</li>{% endif %}
+    {% if check.needs_output %}<li class="warn">No [OUTPUT: ...] lines found. Pick which output this reply is below.</li>{% endif %}
+    {% endif %}
+    {% if show_whole %}
+    {% if check.unknown %}<li class="error">Unknown hidden names: {{ check.unknown|join(', ') }}. They stay as written.</li>{% endif %}
+    {% if check.possible_real %}<li class="warn">Real values appear in plain text: {{ check.possible_real|length }}. The claude.ai chat may contain a real name.</li>{% endif %}
+    {% endif %}
+    {% if check.masked %}<li class="warn">{{ check.masked }} real value{{ 's' if check.masked != 1 }} replaced with hidden names before saving.</li>{% endif %}
+  </ul>
+  {% if check.replaced %}
+  <div class="replaced">
+    <h3>Replaced before saving</h3>
+    <p class="muted">Check that each real word became the right code. This list is shown here only and is not saved.</p>
+    <ul class="swaps">{% for real, code, n in check.replaced %}<li><span class="was">{{ real }}</span> became <code>{{ code }}</code>{% if n > 1 %} <span class="muted">{{ n }} times</span>{% endif %}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  {% if show_whole %}
+  <h3>Preview with real names</h3>
+  <pre class="text">{% for t, ty in check.segments %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
+  {% else %}
+  {% for p in check.pieces %}
+  <h3>{{ p.name }}, preview with real names</h3>
+  {% if p.unknown %}<p class="error" role="alert">Unknown hidden names: {{ p.unknown|join(', ') }}. They stay as written.</p>{% endif %}
+  {% if p.possible_real %}<p class="warn" role="alert">Real values appear in plain text: {{ p.possible_real|length }}. The claude.ai chat may contain a real name.</p>{% endif %}
+  <pre class="text">{% for t, ty in p.segments %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
+  {% endfor %}
+  {% endif %}
+  <form method="post" action="/clients/{{ cid }}/import/save" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <textarea name="content" class="hidden-text" readonly tabindex="-1" aria-hidden="true">{{ check.content }}</textarea>
+    <input type="hidden" name="kind" value="{{ kind }}">
+    {% if kind == 'output' and check.needs_output %}
+    <label>Which output is this reply? <select name="output" required><option value="">Choose</option>{% for slug, name in output_choices %}<option value="{{ slug }}"{% if slug == suggested_output %} selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+    {% if suggested_output %}<p class="muted">Chosen because your latest change request was for this output. Change it if the reply is for another.</p>{% endif %}
+    {% elif chosen_output %}
+    <input type="hidden" name="output" value="{{ chosen_output }}">
+    {% endif %}
+    {% if kind == 'output' and (check.needs_pick or not check.tx_id) %}
+    <label>Which transcript is this reply for? <select name="tx_id" required><option value="">Choose</option>{% for t in transcripts %}<option value="{{ t.id }}"{{ ' selected' if t.id == check.tx_id }}>{{ t.title or 'Untitled' }}, {{ t.call_date|long_day }}</option>{% endfor %}</select></label>
+    {% else %}
+    <input type="hidden" name="tx_id" value="{{ check.tx_id or '' }}">
+    {% endif %}
+    <p class="actions">
+      <button type="submit"{% if kind == 'output' and (check.bad_markers or check.empty_markers or (check.problem and not check.needs_pick and not check.tx_id)) %} disabled{% endif %} {% if check.unknown %}data-confirm="This reply has unknown placeholders. Import it anyway?"{% endif %}>{{ 'Save as summary' if kind == 'summary' else 'Import as a new version' if check.pieces|length == 1 else 'Import as new versions' }}</button>
+      <a class="button secondary" href="/clients/{{ cid }}/import">Back</a>
+    </p>
+  </form>
+</section>
+{% endblock %}

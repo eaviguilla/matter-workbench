@@ -1,0 +1,100 @@
+{% set paste_block %}
+<section class="paste" id="paste">
+  <h2>Paste Claude's reply</h2>
+  <p class="muted">It is checked first and saved to this transcript only after you confirm. Under [OUTPUT: name] lines, each part becomes a new version of that output.</p>
+  <form method="post" action="/clients/{{ cid }}/import" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="kind" value="output">
+    <input type="hidden" name="tx_id" value="{{ sel.id }}">
+    <label for="paste-text" class="sr">Claude's reply</label>
+    <textarea id="paste-text" name="text" rows="5" required data-keep spellcheck="false"></textarea>
+    <p class="actions"><button type="submit">Check reply</button></p>
+  </form>
+</section>
+{% endset %}
+<p class="notice" role="status" data-new-version hidden>New version available. <a href="" data-leave-guard>Reload to see it</a>. The text you typed is kept until you do.</p>
+<p class="notice" role="status" data-stale-version hidden>A newer version of this output was saved after this page opened, so nothing was copied. <a href="">Reload to see it</a>. The change you typed in the box is kept and will be there after the reload.</p>
+{% if waiting_any %}{{ paste_block }}{% endif %}
+<div class="board" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
+{% for b in blocks %}
+<section class="col" id="out-{{ b.slug }}">
+  <h3 class="colname">{{ b.name }}</h3>
+  {% if b.current %}
+  {% set res, rsegs = b.shown %}
+  <form method="get" action="/clients/{{ cid }}" class="vctl" data-nav-form>
+    {% for k, v in b.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <div class="vrow">
+      {% if b.older_href %}<a class="arrow" href="{{ b.older_href }}" data-leave-guard aria-label="Older version of {{ b.name }}" title="Older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></span>{% endif %}
+      <label class="sr" for="ver-{{ b.slug }}">Version of {{ b.name }}</label>
+      <select id="ver-{{ b.slug }}" name="{{ b.slug }}" data-nav-select data-current="{{ b.current.version }}">
+        {% for o in b.version_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+      </select>
+      {% if b.newer_href %}<a class="arrow" href="{{ b.newer_href }}" data-leave-guard aria-label="Newer version of {{ b.name }}" title="Newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>{% endif %}
+    </div>
+    <div class="crow">
+      {% if b.version_options|length > 1 %}
+      <label for="cmp-{{ b.slug }}">Compare with</label>
+      <select id="cmp-{{ b.slug }}" name="cmp-{{ b.slug }}" data-nav-select data-current="{% for o in b.compare_options if o.selected %}{{ o.value }}{% endfor %}">
+        {% for o in b.compare_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      {% if b.back_href %}<a class="backlatest" href="{{ b.back_href }}" data-leave-guard>Back to latest</a>{% endif %}
+    </div>
+    <noscript><button type="submit" class="secondary">Show</button></noscript>
+  </form>
+  <div class="warnings">
+    {% if res.unknown %}<p class="error" role="alert">Unknown hidden names: {{ res.unknown|join(', ') }}. They are left as written. Check Claude did not invent them.</p>{% endif %}
+    {% if res.possible_real %}<p class="warn" role="alert">The reply already contains {{ res.possible_real|length }} real value{{ 's' if res.possible_real|length != 1 }} in plain text. The claude.ai chat may hold a real name.</p>{% endif %}
+  </div>
+  {% if b.diff %}
+  <div class="textbox">
+    <p class="difftitle muted">Changes from v{{ b.compare.version }} to v{{ b.current.version }}. Changed words are marked.</p>
+    <pre class="text diff">{% for kind, parts in b.diff %}<span class="d-{{ kind }}">{{ '+ ' if kind == 'add' else ('- ' if kind == 'del' else '  ') }}{% for t, hot in parts %}{% if hot and kind != 'same' %}<mark class="w-{{ kind }}">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</span>{% endfor %}</pre>
+  </div>
+  <div class="actions"><a class="button secondary" href="{{ b.plain_href }}" data-leave-guard>Show the text</a></div>
+  {% else %}
+  <div class="textbox">
+    <pre class="text" id="out-rehydrated-{{ b.slug }}">{% for t, ty in rsegs %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
+    <pre class="hidden-text" id="out-raw-{{ b.slug }}">{{ b.raw }}</pre>
+  </div>
+  <div class="actions copyrow">
+    <button type="button" data-copy-text="#out-rehydrated-{{ b.slug }}" data-unknown="{{ res.unknown|length }}" title="Copies the text with real names">{{ 'Copy' if b.is_latest else 'Copy v' ~ b.current.version ~ ' (older)' }}</button>
+    {% if not b.is_latest %}<span class="oldnote">Older version. The latest is v{{ b.latest }}.</span>{% endif %}
+    <button type="button" class="textbtn" data-copy-text="#out-raw-{{ b.slug }}">Copy with hidden names</button>
+    <a class="textbtn" href="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/edit?v={{ b.current.version }}" aria-label="Edit {{ b.name }}, version {{ b.current.version }}">Edit</a>
+    <span class="status-msg" data-status></span>
+  </div>
+  {% endif %}
+  <div class="change" data-change data-version="{{ b.current.version }}" data-latest="{{ b.latest }}" data-store-key="change-{{ sel.id }}-{{ b.slug }}" data-preview-url="/transcripts/{{ sel.id }}/scrub-preview" data-hide-url="/transcripts/{{ sel.id }}/hide-word">
+    <label for="chg-{{ b.slug }}">Ask Claude to change this</label>
+    <textarea id="chg-{{ b.slug }}" rows="3" data-keep data-change-text spellcheck="false" placeholder="For example: shorten it, or add the deadline."></textarea>
+    <div class="flagbox" data-change-flags hidden></div>
+    <p class="status-msg" data-box-msg role="status" hidden></p>
+    <div class="actions">
+      <button type="button" data-change-url="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/request-change" aria-label="Copy for Claude, with the change requested for {{ b.name }}" disabled>Copy for Claude</button>
+      <span class="status-msg" data-status data-reason="1">Type a change first</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="vctl"></div>
+  <div class="warnings"></div>
+  <div class="textbox">
+    {% if b.waiting %}
+    <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Paste Claude's reply in the box above.{% if mcp_on %} The connector can also save it. This page checks every few seconds.{% endif %}</span></p>
+    {% else %}
+    <p class="empty"><span><strong>Not requested.</strong></span></p>
+    {% endif %}
+  </div>
+  <div class="actions">{% if not b.waiting %}<a class="button secondary" href="#request-more" data-ask="{{ b.slug }}">Ask Claude for this</a>{% endif %}</div>
+  <div class="change"></div>
+  {% endif %}
+</section>
+{% endfor %}
+</div>
+{% if not waiting_any %}{{ paste_block }}{% endif %}
+<section class="request" id="request-more">
+  <h2>Request more outputs</h2>
+  {{ m.copy_box(sel.id, output_choices, ticked, sel.status == 'draft', 'more', href_after_copy, directions, directions_ok) }}
+</section>

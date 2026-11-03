@@ -1,0 +1,67 @@
+# Warm, rambling, tangents. Father died of a heart attack, life insurance claim denied.
+• {P2:Sam Whitaker}
+Hi, good morning. This is {P2:Sam} with the intake team. Is this {P1:Maria}?
+• {P1:Maria Lopez}
+Yes, yes, hi {P2:Sam}, thank you for calling me back, I was just making coffee, I hope that's okay, my daughter says I always talk with my mouth full.
+• {P2:Sam Whitaker}
+Not a problem at all. I just need to get some basics so the attorney has the full picture. Can you spell your full name for me?
+• {P1:Maria Lopez}
+It's {P1:Maria Lopez}, {P1:M-A-R-I-A}, and {P1:Lopez} like the singer, but no relation, I wish. My maiden name was Santos but nobody uses that anymore.
+• {P2:Sam Whitaker}
+Great. And where are you living now?
+• {P1:Maria Lopez}
+Oh, we moved last year. It's {A1:4417 Alder Creek Drive, Tacoma, WA 98402}. Before that we were across town, near the old bakery, you wouldn't know it.
+• {P2:Sam Whitaker}
+Got it. Best email to reach you?
+• {P1:Maria Lopez}
+That's {E1:maria dot lopez seventy one at gmail dot com}. My daughter set it up, she does all the computer stuff.
+• {P2:Sam Whitaker}
+Perfect. Tell me a little about your family before we get to the claim.
+• {P1:Maria Lopez}
+Okay, so, I'm married, my husband is {P3:Hector}, we have been married thirty one years in June. We have two kids, my daughter {P4:Grace} who's thirty, she is the one who set up the email, and my son {P5:Mateo}, he lives in Phoenix now.
+• {P2:Sam Whitaker}
+Lovely. And I understand you recently lost your father?
+• {P1:Maria Lopez}
+Yes. Oh, this is hard. My father, {P6:Roberto Lopez}, he passed in March. He was eighty three. It was his heart, it was so sudden, he was out in the garden, he loved his tomatoes, and then, um, my mother found him.
+• {P2:Sam Whitaker}
+I'm very sorry for your loss. Take your time.
+• {P1:Maria Lopez}
+No, no, I'm okay. My mother, {P7:Carmen}, she's staying with my sister {P8:Elena} now in Yakima. {P7:Carmen} can't be alone, she gets confused in the evenings.
+• {P2:Sam Whitaker}
+Understood. So the insurance claim. What policy are we talking about?
+• {P1:Maria Lopez}
+Papa had a life insurance policy with Pacific Mutual, two hundred thousand dollars, he paid on it for like thirty years. And they denied it. They said the policy lapsed in January because a payment bounced.
+• {P2:Sam Whitaker}
+Who handled the claim on their side?
+• {P1:Maria Lopez}
+A woman named {P9:Denise Park}. Very polite, very, you know, robotic. She kept saying "per the terms." I spoke with {P9:Denise} three times and each time a different story.
+• {P2:Sam Whitaker}
+Did you receive anything in writing?
+• {P1:Maria Lopez}
+A letter, yes. I have it in a folder. Signed by a Mr. {P10:Aldridge}, I think he is a vice president or something.
+• {P2:Sam Whitaker}
+And who was the beneficiary on the policy?
+• {P1:Maria Lopez}
+My mother. {P7:Carmen}. But Papa always said it was for all of us, he wanted {P5:Mateo} to have help with the house.
+• {P2:Sam Whitaker}
+Do you know if the bank notified your father about the bounced payment?
+• {P1:Maria Lopez}
+That's the thing! My sister {P8:Elena} looks at his account and she says there was plenty of money in there. We think the bank made a mistake. Or maybe Papa's address was wrong, he got mail at the old place, the one on Fir Lane, honestly I don't know.
+• {P2:Sam Whitaker}
+That's useful. I'll note the address issue. Is there anything else, any deadlines you were given?
+• {P1:Maria Lopez}
+They gave us sixty days to appeal and it's been, I think, forty. Oh no. Is that bad? I am sorry, I should have called sooner, {P4:Grace} told me to call sooner.
+• {P2:Sam Whitaker}
+You're fine, there's still time. I'll flag it as urgent for the attorney.
+• {P1:Maria Lopez}
+Thank you. Thank you so much {P2:Sam}. You have a kind voice. Do you have family here too?
+• {P2:Sam Whitaker}
+Ha, yes, but let's get you scheduled. The attorney will email you at the address you gave me, {E1:maria dot lopez seventy one at gmail dot com}.
+• {P1:Maria Lopez}
+Yes, that's right. And if I don't answer, call {P4:Grace}, she answers everything.
+• {P2:Sam Whitaker}
+Will do. Anything else you'd like me to pass along?
+• {P1:Maria Lopez}
+Just that Papa was a good man, {P6:Roberto} worked at the shipyard for forty years and never missed a payment on anything in his life.
+• {P2:Sam Whitaker}
+I'll make sure they know. Have a good day, {P1:Maria}.

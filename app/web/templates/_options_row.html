@@ -1,0 +1,17 @@
+<form method="post" action="/clients/{{ cid }}/options" class="optrow" id="scrub-options" data-autosave>
+  {{ m.csrf_field(csrf) }}
+  <input type="hidden" name="tx" value="{{ opt_tx or '' }}">
+  <input type="hidden" name="back" value="{{ opt_back }}">
+  <input type="hidden" name="parts" value="1">
+  <fieldset>
+    <legend>Hide from Claude</legend>
+    <label class="check"><input type="checkbox" data-name-all{% if first_hidden and last_hidden %} checked{% endif %}><span>Names</span></label>
+    <label class="check"><input type="checkbox" name="first_hide" value="1" data-name-part{% if first_hidden %} checked{% endif %}><span>First names</span></label>
+    <label class="check"><input type="checkbox" name="last_hide" value="1" data-name-part{% if last_hidden %} checked{% endif %}><span>Last names</span></label>
+    {% for t in all_types if t != "PERSON" %}<label class="check"><input type="checkbox" name="types" value="{{ t }}"{% if t in options.types %} checked{% endif %}><span>{{ type_labels[t] }}</span></label>{% endfor %}
+    <noscript><button type="submit" class="secondary">Save</button></noscript>
+    {% if request.query_params.get("options") == "saved" %}<span class="status-msg" role="status">Saved.</span>{% endif %}
+  </fieldset>
+  {% if options_error %}<p class="error" role="alert">{{ options_error }}</p>{% endif %}
+  <p class="muted">The first name is the first word of a name and the last name is everything after it. Names is ticked while both are. A box you untick goes to Claude as real text, in every transcript of this client, including ones saved earlier. It saves when you change it.</p>
+</form>

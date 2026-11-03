@@ -1,0 +1,21 @@
+{% if client.archived %}
+<form method="post" action="/clients/{{ cid }}/archive" class="archivebar" role="status">
+  {{ m.csrf_field(csrf) }}
+  <span>Archived. Hidden from the client list.</span> <button type="submit" class="linkbtn">Restore</button>
+</form>
+{% endif %}
+<header class="wshead">
+  <div>
+    <h1>{{ full_name }}</h1>
+    <p class="sub"><span class="cid">{{ cid }}</span></p>
+  </div>
+  <a class="deletelink" href="/clients/{{ cid }}/delete">Delete client</a>
+</header>
+<nav class="tabs" aria-label="Client sections">
+  {% for key, label, href in [("overview","Transcripts","/clients/"~cid), ("intake","Add transcript","/clients/"~cid~"/intake"), ("registry","Hidden names","/clients/"~cid~"/registry")] %}
+  <a href="{{ href }}" class="{{ 'on' if tab == key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+{% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+{% if warning %}<p class="warn" role="status">{{ warning }}</p>{% endif %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}

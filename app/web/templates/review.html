@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Review · {{ cid }}{% endblock %}
+{% block main %}
+{% include "_workspace.html" %}
+{% for n in result.notes %}<p class="warn" role="status">{{ n }}</p>{% endfor %}
+{% for n in result.info %}<p class="muted" role="status">{{ n }}</p>{% endfor %}
+{% if client.pending %}<p class="muted">Not this person? <a href="/intake">Choose the client yourself</a>. Wrong name? After saving, rename it under More, then Manage client.</p>{% endif %}
+<section>
+  <h2>Review before saving</h2>
+  {{ m.legend() }}
+  <div class="sidebyside">
+    <div><h3>Original (this page only, not stored)</h3><pre class="text">{{ m.segs(result.original_segments) }}</pre></div>
+    <div><h3>Scrubbed</h3><pre class="text">{{ m.segs(result.scrubbed_segments) }}</pre></div>
+  </div>
+</section>
+<form method="post" action="/clients/{{ cid }}/intake/save" data-gate-form class="stack">
+  {{ m.csrf_field(csrf) }}
+  <input type="hidden" name="call_date" value="{{ call_date }}">
+  <textarea name="text" class="hidden-text" readonly tabindex="-1" aria-hidden="true">{{ result.cleaned }}</textarea>
+  <input type="hidden" name="n_flags" value="{{ result.groups|length }}">
+  <input type="hidden" name="carry" value="{{ carry_json }}">
+  <section>
+    <h2>Flagged words ({{ result.groups|length }})</h2>
+    {% if result.groups %}
+    <p class="muted">Each word below is capitalized but not hidden. Choose scrub to hide every place it appears, keep to leave it, or choose each place when the same word is a name in one spot and something else in another. Saving needs a choice for each.</p>
+    <p class="actions"><button type="button" class="secondary" data-all="scrub">Scrub all</button> <button type="button" class="secondary" data-all="keep">Keep all</button></p>
+    <ul class="flags">
+    {% for g in result.groups %}
+      <li data-flag>
+        <input type="hidden" name="w{{ loop.index0 }}" value="{{ g.text }}">
+        <input type="hidden" name="s{{ loop.index0 }}" value="{% for o in g.occurrences %}{{ o.start }}:{{ o.end }}{{ ',' if not loop.last }}{% endfor %}">
+        <div class="flagword"><strong>{{ g.text }}</strong> <span class="muted">{{ g.reason }}, {{ g.occurrences|length }} time{{ 's' if g.occurrences|length != 1 }}</span></div>
+        <ul class="ctx">{% for o in g.occurrences[:3] %}<li>…{{ o.before }}<mark class="tag tag-unknown">{{ g.text }}</mark>{{ o.after }}…</li>{% endfor %}{% if g.occurrences|length > 3 %}<li>and {{ g.occurrences|length - 3 }} more</li>{% endif %}</ul>
+        <fieldset class="choice"><legend class="sr">Decision for {{ g.text }}</legend>
+          <label><input type="radio" name="d{{ loop.index0 }}" value="scrub"> Scrub</label>
+          <label><input type="radio" name="d{{ loop.index0 }}" value="keep"> Keep</label>
+          {% if g.occurrences|length > 1 %}<label><input type="radio" name="d{{ loop.index0 }}" value="each" data-each> Choose each place</label>{% endif %}
+        </fieldset>
+        {% if g.occurrences|length > 1 %}
+        {% set gi = loop.index0 %}
+        <ol class="places" data-places hidden>
+          {% for o in g.occurrences %}
+          <li data-place>
+            <span class="placectx">…{{ o.before }}<mark class="tag tag-unknown">{{ g.text }}</mark>{{ o.after }}…</span>
+            <fieldset class="choice"><legend class="sr">Place {{ loop.index }} of {{ g.occurrences|length }} for {{ g.text }}</legend>
+              <label><input type="radio" name="p{{ gi }}_{{ loop.index0 }}" value="scrub"> Scrub</label>
+              <label><input type="radio" name="p{{ gi }}_{{ loop.index0 }}" value="keep"> Keep</label>
+            </fieldset>
+          </li>
+          {% endfor %}
+        </ol>
+        {% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Nothing is flagged.</p>
+    {% endif %}
+  </section>
+  <section>
+    <h2>Something else to hide?</h2>
+    <p class="muted">Add text the scrubber missed. It is hidden everywhere it appears and remembered for this client.</p>
+    <div class="extras">
+      {% for j in range(2) %}
+      <div class="row"><label class="sr" for="et{{ j }}">Type</label><select id="et{{ j }}" name="extra_type"><option value="PERSON">Person</option><option value="EMAIL">Email</option><option value="ADDRESS">Address</option></select>
+      <label class="sr" for="ex{{ j }}">Text</label><input id="ex{{ j }}" name="extra_text" placeholder="Exact text as written" autocomplete="off"></div>
+      {% endfor %}
+    </div>
+    <p class="muted">After adding text, use Rescan to see the result before saving.</p>
+    <p class="actions"><button type="submit" formaction="/clients/{{ cid }}/intake/rescan" class="secondary">Rescan</button></p>
+  </section>
+  <section>
+    <h2>Transcript title <span class="muted">(optional)</span></h2>
+    <p class="muted">A short name for this transcript, such as "Lease follow-up". It is shown on this computer only, saved as typed, and never sent to Claude.</p>
+    <label class="sr" for="call-title">Transcript title</label>
+    <input id="call-title" name="title" maxlength="120" value="{{ title or '' }}" autocomplete="off" placeholder="For example: Lease follow-up">
+  </section>
+  <section class="barbox">
+    <div class="requestbar" data-review-box data-preview-url="/clients/{{ cid }}/intake/directions-preview" data-confirmed='{{ dir_confirmed|list|tojson }}'>
+      {{ m.pick_outputs(output_choices, ticked) }}
+      <div class="directions">
+        {{ m.directions_field("review", directions) }}
+        <div class="flagbox" data-copy-flags role="status"{% if not dir_flags %} hidden{% endif %}>
+          {% if dir_flags %}<p>These capitalized words in the directions were left as they are. Tick each one to send it as written, or hide it.</p>
+          {% for w in dir_flags %}<div class="flagrow"><label class="check"><input type="checkbox" name="dir_confirm" value="{{ w }}"{% if w in dir_confirmed %} checked{% endif %}><span>{{ w }}</span></label><button type="button" class="textbtn" data-hide-word="{{ w }}" aria-label="Hide {{ w }}">Hide</button></div>{% endfor %}{% endif %}
+        </div>
+        <p class="status-msg" data-box-msg role="status" hidden></p>
+        <div class="hidlines" data-hidden-words>
+          {% for w in dir_hidden %}<p class="hidline" role="status"><input type="hidden" name="dir_hide" value="{{ w }}"><span>{{ w }} will be hidden for this transcript</span></p>{% endfor %}
+          {% for w in dir_hidden_wide %}<p class="hidline" role="status"><input type="hidden" name="dir_hide_client" value="{{ w }}"><span>{{ w }} will be hidden for this client from now on</span></p>{% endfor %}
+        </div>
+        <div data-place-inputs>{% for p in dir_places %}<input type="hidden" name="dir_place" value="{{ p.start }}|{{ p.choice }}|{{ p.word }}">{% endfor %}</div>
+      </div>
+    </div>
+    <p class="muted hint">Saved with the transcript. Nothing is copied until you press Copy for Claude on the next page.</p>
+  </section>
+  <p class="actions"><button type="submit" data-gate-save{% if result.groups %} disabled{% endif %}>Save scrubbed transcript</button> <a class="button secondary" href="{{ '/intake' if client.pending else '/clients/' ~ cid ~ '/intake' }}" data-confirm-link="Discard this review? The pasted text is not kept.">Discard and paste again</a></p>
+  <p class="muted" data-gate-hint{% if not result.groups %} hidden{% endif %}>Choose Scrub or Keep for every flagged word to save.</p>
+</form>
+{% endblock %}

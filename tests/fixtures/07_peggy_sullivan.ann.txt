@@ -1,0 +1,67 @@
+# Elderly, hard of hearing, repeats herself, long tangents. Slip and fall; father died decades ago.
+• {P2:Owen Gallagher}
+Hello, is this {P1:Margaret Sullivan}? This is {P2:Owen Gallagher}, from the law office.
+• {P1:Margaret Sullivan}
+What? Who is this?
+• {P2:Owen Gallagher}
+{P2:Owen}, from the law office. You called us about your fall.
+• {P1:Margaret Sullivan}
+Oh, the fall! Yes. Hold on, let me turn the television down. Everyone calls me {P1:Peggy}, dear, nobody calls me {P1:Margaret} except the doctor.
+• {P2:Owen Gallagher}
+{P1:Peggy} it is. Could I get your address?
+• {P1:Margaret Sullivan}
+{A1:310 Elm Street, Scranton, PA 18503}. It's the yellow house with the ceramic frogs. My husband, God rest him, painted it yellow in nineteen seventy eight.
+• {P2:Owen Gallagher}
+That's lovely. Do you have an email address?
+• {P1:Margaret Sullivan}
+My grandson set it up. {P3:Kevin}. He's at college, Penn State. He says it's {E1:peggy dot sullivan forty four at aol dot com}. Is that how you say it? Forty four?
+• {P2:Owen Gallagher}
+That's right. Now tell me about the fall.
+• {P1:Margaret Sullivan}
+It was at the Rite Aid on Main Street, in September, near the cold medicine, the floor was wet, no sign, nothing. I went down like a sack of potatoes. Broke my wrist and my hip, and the girl at the counter, {P4:Tiffany}, she said "oh no, that's the third time this week."
+• {P2:Owen Gallagher}
+That's very helpful. Did you speak with anyone at the store afterward?
+• {P1:Margaret Sullivan}
+The manager, a young man, {P5:Dale Fitzgerald}. He gave me a card and a little bottle of water. Water! Ha. I should have thrown it at him.
+• {P2:Owen Gallagher}
+And the insurance claim?
+• {P1:Margaret Sullivan}
+The store's insurance called me. A woman. {P6:Carolyn Voss}. She said they would pay for the ambulance and that is it. I said, what about the hospital and my physical therapy, and she said that wasn't covered.
+• {P2:Owen Gallagher}
+Okay. Are you married, any family close by?
+• {P1:Margaret Sullivan}
+My husband {P7:Frank} died in two thousand fifteen. I have a daughter, {P8:Maureen}, in Florida. And my brother {P9:Tommy} passed last winter. Oh, and my father, {P10:Michael Sullivan}, he died in nineteen eighty nine, he was in the mines, black lung. I don't know why I'm telling you that.
+• {P2:Owen Gallagher}
+That's all right. Take your time.
+• {P1:Margaret Sullivan}
+What?
+• {P2:Owen Gallagher}
+I said take your time!
+• {P1:Margaret Sullivan}
+Oh. Yes. Anyway {P10:Michael} used to say never trust a store that won't mop. And he was right.
+• {P2:Owen Gallagher}
+Ha. Okay, {P1:Peggy}, I'll have the attorney call you this week. Is the number on file best?
+• {P1:Margaret Sullivan}
+What was I saying? Oh, the doctor. The doctor at the emergency room was a very handsome young man, Doctor {P13:Weiss}. No, {P11:Weinstein}. Doctor {P11:Weinstein}. He put on the cast and told me to rest.
+• {P2:Owen Gallagher}
+That's good to know. Did you have follow-up visits?
+• {P1:Margaret Sullivan}
+Oh yes, with the specialist, over in Wilkes-Barre. {P12:Sue} drove me. {P12:Sue Kowalczyk}, from church. She is a saint, that woman. She says I should sue them. Ha! Sue and sue. I don't know why I laughed.
+• {P2:Owen Gallagher}
+Ha, I see. Is Sue willing to speak to us about what she saw?
+• {P1:Margaret Sullivan}
+What?
+• {P2:Owen Gallagher}
+Would {P12:Sue} talk to us!
+• {P1:Margaret Sullivan}
+Oh, of course, she'd love to. She's at {A1:310 Elm}, I mean the other end, she's number {A2:304 Elm Street}. Right near me. I can just walk over. Well, not walk. Be driven.
+• {P2:Owen Gallagher}
+Okay, thank you. One more, you mentioned your daughter in Florida?
+• {P1:Margaret Sullivan}
+{P8:Maureen}. Yes. She's in Naples. She wants me to move there. I said, {P8:Maureen}, I was born in Scranton and I will die in Scranton, and you can put that in your Florida pipe.
+• {P2:Owen Gallagher}
+Ha! All right, I'll leave that out of the notes.
+• {P1:Margaret Sullivan}
+Yes, but if I don't answer call {P8:Maureen}. Or email {P3:Kevin}'s email, {E1:peggy dot sullivan forty four at aol dot com}. I never check it.
+• {P2:Owen Gallagher}
+Will do. Thank you, {P1:Peggy}.

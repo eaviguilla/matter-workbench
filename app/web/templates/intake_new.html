@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}New transcript · Matter Workbench{% endblock %}
+{% block main %}
+<header class="wshead"><div><h1>New transcript</h1><p class="sub">Paste a transcript. The app finds who the client is. Someone new becomes a new client, and a known full name is matched to their existing client.</p></div></header>
+<section>
+  {{ m.layout_help() }}
+  {% if issues %}
+  <div class="error" role="alert"><p>The transcript could not be used.</p><ul>{% for i in issues %}<li>{{ i }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="/intake" class="stack">
+    {{ m.csrf_field(csrf) }}
+    <label>Call date <input type="date" name="call_date" value="{{ today }}" required></label>
+    <label for="tx-text">Transcript</label>
+    <textarea id="tx-text" name="text" rows="18" required spellcheck="false">{{ text or "" }}</textarea>
+    <p><button type="submit"{% if not model_ok %} disabled{% endif %}>Scrub and review</button></p>
+  </form>
+</section>
+{% endblock %}

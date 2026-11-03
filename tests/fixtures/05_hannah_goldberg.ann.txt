@@ -1,0 +1,67 @@
+# Precise, former paralegal, corrects the interviewer. Father died, estate dispute plus a house fire claim.
+• {P2:Luis Carrasco}
+Good morning, this is {P2:Luis Carrasco}, I'm with the intake group. Is this {P1:Hannah Goldberg}?
+• {P1:Hannah Goldberg}
+It is. And before we go further, I was a paralegal for eleven years, so you can skip the scripted preamble and ask what you need.
+• {P2:Luis Carrasco}
+That helps. Let's start with contact details. Address?
+• {P1:Hannah Goldberg}
+I reside at {A1:19 Quarry Hill Road, Saratoga Springs, NY 12866}. The property at issue is separate. It's {A2:77 Maple Terrace, Albany, NY 12203}. Please keep those distinct in your notes.
+• {P2:Luis Carrasco}
+Will do. And your email?
+• {P1:Hannah Goldberg}
+{E1:hgoldberg at protonmail dot com}. That's an H, not an A. People always type it wrong.
+• {P2:Luis Carrasco}
+Thanks. Walk me through what happened.
+• {P1:Hannah Goldberg}
+My father, {P3:Samuel Goldberg}, died on the second of February. Natural causes, ninety years old. The house on Maple Terrace was his. Three weeks later there was a kitchen fire. The fire marshal's report calls it electrical. The insurer, Northeast Mutual, is asserting vacancy.
+• {P2:Luis Carrasco}
+Vacancy as in, nobody was living there?
+• {P1:Hannah Goldberg}
+Correct. But the vacancy exclusion requires sixty consecutive days. It had been twenty-one. I counted from the date of death, which is the latest defensible start.
+• {P2:Luis Carrasco}
+Who at the insurer is your contact?
+• {P1:Hannah Goldberg}
+The claims examiner is {P4:Ethel Brandt}. Spelled {P4:B-R-A-N-D-T}. Her supervisor, {P5:Raymond Oyelowo}, has not returned three messages. I have the dates.
+• {P2:Luis Carrasco}
+And the estate, is that being handled?
+• {P1:Hannah Goldberg}
+There's a dispute. My brother {P6:Ethan Goldberg} contends the will executed in twenty nineteen is invalid. He's represented by {P7:Marcus Feld}, who I know professionally, unfortunately.
+• {P2:Luis Carrasco}
+Is the estate in probate?
+• {P1:Hannah Goldberg}
+Surrogate's Court, Albany County. The petition was filed by the named executor, which is me. Please note that's Albany County, not Saratoga.
+• {P2:Luis Carrasco}
+Noted, thanks. Is there a surviving spouse?
+• {P1:Hannah Goldberg}
+No. My mother, {P8:Ruth}, predeceased him by six years.
+• {P2:Luis Carrasco}
+Any other witnesses to the fire, neighbors?
+• {P1:Hannah Goldberg}
+A neighbor, Mrs. {P9:Okafor}. I'm sorry, strike that. {P9:Okafor}. Mrs. {P9:Okafor}. She called the fire department. I haven't contacted her because I did not want to create a witness-tampering appearance.
+• {P2:Luis Carrasco}
+That's careful. I'll flag all of this for the attorney. They'll email you at {E1:hgoldberg at protonmail dot com} with a proposed time.
+• {P1:Hannah Goldberg}
+One correction for the record. I said the fire was in February. It was March the twentieth. Please fix that.
+• {P2:Luis Carrasco}
+Done, thank you. Anything else to correct while we're at it?
+• {P1:Hannah Goldberg}
+Yes. The neighbor's name. I said {P9:Okafor}. It is spelled {P9:O-K-A-F-O-R}, with an F, not a V. And her first name is {P9:Rose}. {P9:Rose Okafor}. She has tended the rose bushes along my father's fence for twenty years.
+• {P2:Luis Carrasco}
+Got it. Does {P9:Rose} have a phone number on file with you?
+• {P1:Hannah Goldberg}
+She does, but I will not provide it until the attorney advises. As I said, I do not want any appearance of coaching a witness.
+• {P2:Luis Carrasco}
+Fair. And the fire marshal, do you have a name for the report?
+• {P1:Hannah Goldberg}
+Deputy Marshal {P11:Ignatius Pell}. Yes, really, {P11:Ignatius}. His report is eleven pages. I have read all eleven. Page seven is where he says the wiring, the original knob and tube, was probably the source.
+• {P2:Luis Carrasco}
+Helpful. And your brother's attorney, did you say {P7:Feld}?
+• {P1:Hannah Goldberg}
+{P7:Marcus Feld}. {P7:F-E-L-D}. Of {P7:Feld} and Associates, which has one associate, who is also named {P7:Feld}.
+• {P2:Luis Carrasco}
+Ha. Okay, noted.
+• {P1:Hannah Goldberg}
+Good. Please use the word "claim" for the fire and "matter" for the estate. They are two different files.
+• {P2:Luis Carrasco}
+Understood. Thanks, {P1:Hannah}.

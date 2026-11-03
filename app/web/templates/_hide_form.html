@@ -1,0 +1,24 @@
+<section class="hidesec">
+  <form method="post" action="/transcripts/{{ sel.id }}/hide" class="hideform" data-hide-form data-confirm="Scrub this everywhere in this transcript and in its outputs? There is no undo here.">
+    {{ m.csrf_field(csrf) }}
+    <input type="hidden" name="view" value="{{ view }}">
+    <fieldset>
+      <legend>Scrub this</legend>
+      <p class="muted">Missed a name, email or address? Select it in the {{ 'text above' if view == 'transcript' else 'outputs above' }}, or type it here. It is hidden in this transcript and in the latest version of each output, and remembered for this client.</p>
+      {% if hide_error %}<p class="error" role="alert">{{ hide_error }}</p>{% endif %}
+      {% if seen and not warning %}<p class="warn" role="status">Claude already has this transcript. Text it received cannot be changed. Hiding now protects new copies and new versions.</p>{% endif %}
+      <div class="row">
+        <label for="hide-text">Text to scrub</label>
+        <input id="hide-text" name="text" maxlength="200" required autocomplete="off" value="{{ hide_typed or '' }}" data-hide-text>
+        <label for="hide-type">It is a</label>
+        <select id="hide-type" name="type" data-hide-type>
+          <option value="PERSON">Person</option>
+          <option value="EMAIL">Email</option>
+          <option value="ADDRESS">Address</option>
+        </select>
+        <button type="submit">Scrub this</button>
+        <span class="status-msg" data-hide-status role="status"></span>
+      </div>
+    </fieldset>
+  </form>
+</section>

@@ -1,0 +1,62 @@
+{% import "_macros.html" as m %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="{{ csrf }}">
+<title>{% block title %}Matter Workbench{% endblock %}</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<script src="/static/theme.js"></script>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">Matter Workbench</a>
+  <span class="local">Local only. Nothing leaves this computer unless you paste it.</span>
+  <button type="button" class="themebtn" data-theme-toggle aria-label="Switch between light and dark" title="Switch between light and dark">
+    <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+  </button>
+  <a class="toplink" href="/settings">Settings</a>
+</header>
+{% if damaged_clients %}
+<div class="banner" role="alert">A saved file could not be read for {{ damaged_clients|join(", ") }}. Other clients are not affected. Run <code>python -m app.check</code> for a report that is safe to share.</div>
+{% endif %}
+{% if not model_ok %}
+<div class="banner warn" role="alert">The name model is not installed, so scrubbing is blocked. <a href="/settings">Open Settings</a></div>
+{% endif %}
+<div class="shell">
+  <nav class="clients" aria-label="Clients">
+    <a class="button newtx" href="/intake">New transcript</a>
+    <label for="client-filter" class="sr">Search clients</label>
+    <input id="client-filter" type="search" placeholder="Search clients" data-filter="#client-list, #archived-list" autocomplete="off">
+    <ul id="client-list">
+    {% for c in clients %}
+      <li class="{{ 'current' if cid is defined and cid == c.id }}{{ ' archived' if c.archived }}">
+        <a href="/clients/{{ c.id }}"{% if cid is defined and cid == c.id %} aria-current="page"{% endif %}>
+          <span class="cname">{{ c.full_name }}</span>
+          <span class="cid" title="{{ c.id }}">{{ c.id }}</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="empty">No clients yet.</li>
+    {% endfor %}
+    </ul>
+    {% if archived_clients %}
+    <details class="archived-box">
+      <summary>Archived ({{ archived_clients|length }})</summary>
+      <ul id="archived-list">
+      {% for c in archived_clients %}
+        <li class="archived{{ ' current' if cid is defined and cid == c.id }}"><a href="/clients/{{ c.id }}"{% if cid is defined and cid == c.id %} aria-current="page"{% endif %}><span class="cname">{{ c.full_name }}</span><span class="cid" title="{{ c.id }}">{{ c.id }}</span></a></li>
+      {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </nav>
+  <main class="{% block mainclass %}{% endblock %}">
+  {% block main %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>
