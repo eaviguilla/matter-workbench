@@ -112,7 +112,7 @@ _GENERIC = re.compile(r"^(?:speaker|spk|unknown|caller|agent|client|customer|int
                       r"participant|attorney|lawyer|paralegal|staff|q|a)[\s_.-]*\d*$", re.I)
 _NOT_A_NAME = {"note", "notes", "email", "phone", "address", "date", "time", "subject", "summary", "topic",
                "re", "fwd", "from", "to", "cc", "bcc", "case", "matter", "file", "ref", "id"}
-_CAP_TOKEN = r"[^\W\d_][\w.'’-]*"
+_CAP_TOKEN = r"[^\W\d_][\w.'’-]{0,60}"      # a name word is short, and the bound keeps a long run of dashes or dots from backtracking
 _LABEL = rf"(?P<name>{_CAP_TOKEN}(?:\s+{_CAP_TOKEN}){{0,3}}(?:[\s_]\d+)?)"
 _TS_FIRST = re.compile(rf"^(?P<lead>\s*)[\[(]?(?P<ts>{TS})[\])]?\s*[-–—]?\s*{_LABEL}\s*:?(?P<rest>\s*\S.*)?$")
 _NAME_TS = re.compile(rf"^(?P<lead>\s*){_LABEL}\s*[\[(,-]*\s*(?P<ts>{TS})\s*[\])]*\s*:?(?P<rest>\s*\S.*)?$")

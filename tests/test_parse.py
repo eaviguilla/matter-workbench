@@ -55,3 +55,13 @@ def test_scrub_reads_any_layout_as_plain_text_and_says_so():
 def test_scrub_refuses_only_an_empty_paste():
     with pytest.raises(TranscriptFormatError):
         scrub_transcript("   \n", Registry())
+
+
+def test_a_long_run_of_dashes_or_dots_after_a_capital_letter_does_not_stall_the_speaker_regexes():
+    import time
+    from app.scrub import parse
+    for line in ("A" + "-" * 200_000 + "!", "A" + "." * 200_000 + "!", "Name " + "-" * 200_000 + " x"):
+        start = time.perf_counter()
+        for rx in (parse._TS_FIRST, parse._NAME_TS, parse._COLON):
+            rx.match(line)
+        assert time.perf_counter() - start < 3
