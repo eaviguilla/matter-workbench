@@ -1596,9 +1596,26 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
 
 
 def forms_listing(rows: list, key: str) -> str:
-    """All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
+    """All the answers of a form as one text for Copy with hidden names: the question number and question, then the answer. An entry
     that Clio would not show, because the answer that opens it is a different one or is not given, is left out."""
     return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key] and not r["fold"])
+
+
+CLIO_FORMAT = "Matter Workbench answers for Clio, format 1"
+COPIED_STAMP = "@@COPIED@@"
+
+
+def clio_text(slug: str, rows: list, client: str, call_date: str, version: int) -> str:
+    """The text of Copy for Clio, which the Chrome extension in clio_filler reads: a header (format, form, client, call,
+    version and the time of the copy), then one `--- n. question` block for each answered entry, then an end line. An
+    entry that is empty, not discussed or not shown by Clio is left out. The time is filled in by the page at the moment of
+    the copy (COPIED_STAMP), so a stale copy can be told apart. The text holds real values and goes only to the clipboard."""
+    one = lambda t: " ".join(str(t).split())
+    head = [CLIO_FORMAT, f"Form: {slug}", f"Client: {one(client)}", f"Call: {one(call_date)}", f"Version: {version}",
+            f"Copied: {COPIED_STAMP}"]
+    blocks = [f"--- {r['n']}. {one(r['question'])}\n" + re.sub(r"(?m)^(-{3,})", r" \1", r["text"].strip())
+              for r in rows if r["state"] == "answered" and not r["fold"]]
+    return "\n".join(head + blocks + ["--- End of answers"])
 
 
 def form_items(rows: list) -> list:

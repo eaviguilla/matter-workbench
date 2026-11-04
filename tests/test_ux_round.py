@@ -371,22 +371,22 @@ def test_saving_a_title_keeps_the_view_and_the_version_choices(seen):
     assert "view=" not in r.headers["location"] and NOTE not in r.headers["location"]
 
 
-def test_waiting_text_points_at_the_box_above_and_names_the_connector_only_when_it_is_on(seen):
+def test_waiting_text_names_the_connector_and_says_when_it_is_off_and_there_is_no_paste_box(seen):
     web, cid, tx = seen
     with store_of(web) as s:
         s.set_requested_outputs(tx, [NOTE, CAL])
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     col = re.search(rf'<section class="col" id="out-{CAL}">(.*?)</section>', page, re.S).group(1)
-    assert "Waiting for Claude" in col and "Paste Claude's reply in the box above." in col and "connector" not in col
-    assert page.index('id="paste"') < page.index('class="board"')                    # the paste box comes first while waiting
+    assert "Waiting for Claude" in col and "Claude saves it with the connector" in col and "The connector is off. Turn it on in Settings." in col
+    assert 'id="paste"' not in page and "Paste Claude's reply" not in page and 'name="text"' not in page.split('id="request-more"')[0]
     with store_of(web) as s:
         wf.save_settings(s, wf.Settings(mcp_enabled=True))
     col = re.search(rf'<section class="col" id="out-{CAL}">(.*?)</section>', web.get(f"/clients/{cid}?tx={tx}&view=outputs").text, re.S).group(1)
-    assert "connector" in col
+    assert "Claude saves it with the connector" in col and "The connector is off" not in col
     with store_of(web) as s:
         s.set_requested_outputs(tx, [NOTE])
     quiet = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
-    assert quiet.index('class="board"') < quiet.index('id="paste"')                   # nothing waiting, so it moves below
+    assert 'id="paste"' not in quiet and 'class="board"' in quiet
 
 
 def test_an_output_that_was_not_requested_is_not_on_the_page_and_request_more_is_where_it_is_added(seen):

@@ -190,7 +190,7 @@ def test_one_columns_version_choice_does_not_change_another(env):
 def test_the_page_never_reloads_over_typed_text_and_the_script_has_no_inline_code(env):
     web, cid, tx, tmp = env
     page = web.get(f"/transcripts/{tx}").text
-    assert "data-new-version" in page and page.count("data-keep") == 4 and "<script>" not in page.replace("<script src", "")
+    assert "data-new-version" in page and page.count("data-keep") == 3 and "<script>" not in page.replace("<script src", "")
     js = web.get("/static/app.js").text
     assert "hasTyped()" in js and js.count("location.reload()") == 1 and "if (!hasTyped()) { window.location.href" in js and "textarea[data-keep]" in js
     assert "←" not in page and "—" not in page and "–" not in page
@@ -198,11 +198,10 @@ def test_the_page_never_reloads_over_typed_text_and_the_script_has_no_inline_cod
 
 # ---- pasting a reply on the call page ----------------------------------------------------------------
 
-def test_a_reply_pasted_on_the_call_page_is_saved_to_this_call(env):
+def test_a_reply_posted_to_the_import_route_is_saved_to_this_call_though_the_page_has_no_paste_box(env):
     web, cid, tx, tmp = env
     page = web.get(f"/transcripts/{tx}").text
-    form = re.search(r'<form method="post" action="/clients/[^"]+/import"[^>]*>(.*?)</form>', page, re.S).group(1)
-    assert f'name="tx_id" value="{tx}"' in form and 'name="kind" value="output"' in form and 'name="text"' in form
+    assert not re.search(r'<form method="post" action="/clients/[^"]+/import"', page)      # the connector saves replies now
     assert page.count('name="output"') == 7                   # only the checkboxes of Request more outputs
     plain = "A reply with no header and no markers."
     chk = web.post(f"/clients/{cid}/import", {"text": plain, "kind": "output", "tx_id": tx, "output": FORM})

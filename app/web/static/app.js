@@ -46,7 +46,10 @@
       ok ? resolve() : reject(new Error("copy failed"));
     });
   }
+  // Copy for Clio carries a time stamp that is filled in at the moment of the copy, so the form filler can tell a stale copy.
+  function stamp(text) { return typeof text === "string" ? text.split("@@COPIED@@").join(new Date().toISOString()) : text; }
   function copy(text) {
+    text = stamp(text);
     if (navigator.clipboard && window.isSecureContext) {
       return navigator.clipboard.writeText(text).catch(function () { return legacyCopy(text); });
     }
@@ -56,7 +59,7 @@
   // click, so hand it a promise; other browsers wait for the text first.
   function copyLater(promise) {
     if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
-      var item = new ClipboardItem({ "text/plain": promise.then(function (t) { return new Blob([t], { type: "text/plain" }); }) });
+      var item = new ClipboardItem({ "text/plain": promise.then(function (t) { return new Blob([stamp(t)], { type: "text/plain" }); }) });
       return navigator.clipboard.write([item]).catch(function () { return promise.then(copy); });
     }
     return promise.then(copy);
@@ -169,7 +172,7 @@
         copyLater(saved).then(function () {
           markClean(panel); say(b, "Saved and copied."); reload();
         }).catch(function (err) {
-          if (wasSaved) { markClean(panel); say(b, "Saved, but could not copy. Press Copy all again."); reload(); return; }
+          if (wasSaved) { markClean(panel); say(b, "Saved, but could not copy. Press Copy for Clio again."); reload(); return; }
           saveFailed(panel, err); say(b, "Not saved, so nothing was copied.");
         });
         return;
@@ -416,6 +419,19 @@
       box._timer = window.setTimeout(function () { preview(box); }, 0);
     }
   });
+  // A box marked data-grow is one line tall until its text needs more, then it grows. It is measured again when the page
+  // loads (so text restored above counts), when the window changes size and when a folded card opens.
+  function growBox(t) { t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
+  function growAll() {
+    Array.prototype.forEach.call(document.querySelectorAll("textarea[data-grow]"), function (t) { if (t.offsetParent) { growBox(t); } });
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target.matches && e.target.matches("textarea[data-grow]")) { growBox(e.target); }
+  });
+  var growTimer = null;
+  window.addEventListener("resize", function () { window.clearTimeout(growTimer); growTimer = window.setTimeout(growAll, 150); });
+  document.addEventListener("refit", growAll);
+  growAll();
   // Review page: the names hidden here depend on the choices made so far, so a new choice or added text checks the
   // directions again. A saved set of flags from a failed save is checked on load too.
   var reviewBox = document.querySelector("[data-review-box]");
@@ -932,6 +948,13 @@
     }
   });
   Array.prototype.forEach.call(document.querySelectorAll(".arow[data-live] textarea[data-answer-text]"), fit);
+  // The boxes follow the width they have, which changes when the window crosses the two-column size or a form is unfolded.
+  function refitAll() {
+    Array.prototype.forEach.call(document.querySelectorAll(".arow[data-live] textarea[data-answer-text]"), function (t) { if (t.offsetParent) { fit(t); } });
+  }
+  var refitTimer = null;
+  window.addEventListener("resize", function () { window.clearTimeout(refitTimer); refitTimer = window.setTimeout(refitAll, 150); });
+  document.addEventListener("refit", refitAll);
   Array.prototype.forEach.call(document.querySelectorAll(".fpanel"), function (p) { refreshWhen(p); refreshSave(p); });
   // Pick up outputs saved by the optional connector while this page is open.
   var poll = document.querySelector("[data-poll]");
@@ -947,6 +970,52 @@
       }).catch(function () {});
     }, 5000);
   }
+  // Fold an output card down to its title. The names of the folded outputs are kept in this browser, so the polling
+  // reload and the reload after a copy do not open them again. Without script the buttons stay hidden and nothing folds.
+  (function () {
+    var KEY = "folded-outputs";
+    var buttons = document.querySelectorAll("button[data-fold]");
+    if (!buttons.length) { return; }
+    function names() {
+      try { var list = JSON.parse(window.localStorage.getItem(KEY) || "[]"); return Array.isArray(list) ? list : []; } catch (e) { return []; }
+    }
+    function remember(slug, folded) {
+      var list = names().filter(function (n) { return n !== slug; });
+      if (folded) { list.push(slug); }
+      try { window.localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* not kept, still folded */ }
+    }
+    function setFolded(btn, folded) {
+      var card = btn.closest("section.col, .fpanel");
+      if (!card) { return; }
+      card.classList.toggle("folded", folded);
+      btn.setAttribute("aria-expanded", folded ? "false" : "true");
+      btn.setAttribute("aria-label", (folded ? "Unfold " : "Fold ") + btn.dataset.name);
+    }
+    var kept = names();
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.hidden = false;
+      setFolded(btn, kept.indexOf(btn.dataset.fold) >= 0);
+    });
+    // A link to a folded output (the Jump line, or a copy that scrolls to it) opens it first.
+    function reveal(id) {
+      var target = id && document.getElementById(id);
+      var btn = target && target.querySelector("button[data-fold]");
+      if (btn && target.classList.contains("folded")) { setFolded(btn, false); remember(btn.dataset.fold, false); document.dispatchEvent(new Event("refit")); }
+    }
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-fold]");
+      if (btn) {
+        var folded = btn.getAttribute("aria-expanded") === "true";
+        setFolded(btn, folded);
+        remember(btn.dataset.fold, folded);
+        if (!folded) { document.dispatchEvent(new Event("refit")); }
+        return;
+      }
+      var link = e.target.closest('a[href^="#out-"]');
+      if (link) { reveal(link.getAttribute("href").slice(1)); }
+    });
+    if (location.hash.indexOf("#out-") === 0) { reveal(location.hash.slice(1)); }
+  })();
   // Typing a new client's name chooses "new client" without a second click.
   var firstName = document.querySelector("#first-name");
   if (firstName) {

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outputs tab, five more layouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&family=Geist:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Page chrome for this comparison sheet only. Each option below sets its own tokens from the style it was dealt. */
+:root { --pg: #f7f7f6; --pgtext: #151515; --pgmuted: #5c5c59; --pgline: #e2e2de; }
+@media (prefers-color-scheme: dark) { :root { --pg: #111112; --pgtext: #eeeeec; --pgmuted: #a3a3a0; --pgline: #2b2b2d; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--pg); color: var(--pgtext); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.page { max-width: 1280px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 8px; font-weight: 600; }
+.lede { max-width: 90ch; color: var(--pgmuted); margin: 0 0 20px; }
+.jump { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 28px; padding: 0; list-style: none; }
+.jump a { color: var(--pgtext); border: 1px solid var(--pgline); border-radius: 6px; padding: 5px 10px; text-decoration: none; font-size: 14px; }
+.opt { margin: 0 0 56px; }
+.opt h2 { font-size: 19px; margin: 0 0 4px; font-weight: 600; }
+.opt .what { color: var(--pgmuted); margin: 0 0 12px; max-width: 100ch; }
+.frame { width: 100%; border: 1px solid var(--pgline); border-radius: 8px; overflow: hidden; position: relative; }
+.comp { width: 1200px; height: 780px; overflow: hidden; display: flex; transform-origin: 0 0; text-align: left; }
+.tradeoff { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0 0; max-width: 100ch; font-size: 14px; }
+.tradeoff p { margin: 0; }
+.tradeoff b { font-weight: 600; }
+@media (max-width: 700px) { .tradeoff { grid-template-columns: 1fr; } }
+.notes { max-width: 100ch; font-size: 14px; color: var(--pgmuted); margin: 40px 0 0; }
+.notes b { color: var(--pgtext); font-weight: 600; }
+
+/* Pieces every comp shares. Colours come from each comp's own tokens. */
+.comp button, .comp .btn { font: inherit; cursor: default; }
+.mono { font-family: var(--mono); }
+.yn { display: inline-flex; gap: 0; }
+.yn span { border: 1px solid var(--control); padding: 0 12px; height: 26px; display: inline-flex; align-items: center; font-size: 13px; color: var(--muted); background: var(--surface); }
+.yn span:first-child { border-radius: var(--radius-control) 0 0 var(--radius-control); }
+.yn span:last-child { border-radius: 0 var(--radius-control) var(--radius-control) 0; margin-left: -1px; }
+.yn span.on { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+.nd { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.cut { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ============ 1 Tinted frame (framed-sheet, IBM Plex Sans) ============ */
+.t1 { --ground: #f5f4ef; --surface: #fff; --raised: #f4f6f8; --active: #ebe9e2; --border: #e8e6df; --rule: #f0efea; --control: #cdced1; --text: #131416; --muted: #5d5f60; --accent: #1b6c80; --warn: #92400e; --warn-bg: #fffbeb; --primary: #1d1f20; --primary-ink: #fff; --radius-control: 6px; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--ground); color: var(--text); font: 14px/20px "IBM Plex Sans", system-ui, sans-serif; }
+.t1 .side { width: 228px; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; flex: none; }
+.t1 .brand { font-weight: 600; font-size: 15px; padding: 4px 8px 12px; }
+.t1 .newbtn { height: 32px; border-radius: 6px; background: var(--primary); color: #fff; border: 0; margin: 0 0 12px; }
+.t1 .lbl { font-size: 12px; color: var(--muted); padding: 8px 8px 4px; }
+.t1 .cl { padding: 6px 8px; border-radius: 6px; display: flex; flex-direction: column; }
+.t1 .cl small { font: 11px/16px var(--mono); color: var(--muted); }
+.t1 .cl.on { background: var(--active); font-weight: 600; }
+.t1 .foot { margin-top: auto; padding: 8px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.t1 .col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.t1 .top { height: 48px; display: flex; align-items: center; justify-content: center; flex: none; }
+.t1 .search { width: 440px; height: 32px; border: 1px solid var(--border); background: #fff; border-radius: 6px; color: var(--muted); display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+.t1 .search kbd { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+.t1 .sheet { flex: 1; margin: 0 8px 8px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; position: relative; overflow: hidden; }
+.t1 .crumb { display: flex; align-items: center; gap: 8px; padding: 18px 24px 12px; }
+.t1 .crumb .par { color: var(--muted); font-size: 16px; font-weight: 600; }
+.t1 .crumb h1 { font-size: 22px; line-height: 28px; margin: 0; font-weight: 600; }
+.t1 .chip { background: var(--active); color: #353736; border-radius: 4px; padding: 0 8px; height: 24px; display: inline-flex; align-items: center; font-size: 12px; }
+.t1 .crumb .sp { flex: 1; }
+.t1 .crumb .tb { color: var(--accent); padding: 0 8px; }
+.t1 .crumb .outl { border: 1px solid var(--control); background: #fff; height: 32px; border-radius: 6px; padding: 0 12px; }
+.t1 .tabs { display: flex; gap: 20px; padding: 0 24px; border-bottom: 1px solid var(--border); }
+.t1 .tabs a { padding: 8px 0 10px; display: flex; gap: 8px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.t1 .tabs a small { font-size: 12px; }
+.t1 .tabs a.on { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.t1 .strip { margin: 16px 24px 12px; border: 1px solid var(--border); border-radius: 8px; display: grid; grid-template-columns: repeat(4, 1fr); }
+.t1 .strip div { padding: 10px 16px; border-left: 1px solid var(--border); }
+.t1 .strip div:first-child { border-left: 0; }
+.t1 .strip small { display: block; color: var(--muted); font-size: 12px; }
+.t1 .strip b { font-size: 24px; line-height: 30px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.t1 .strip em { font-style: normal; color: var(--muted); font-size: 14px; }
+.t1 .rows { padding: 0 24px; }
+.t1 .r { display: grid; grid-template-columns: 30px 1fr 430px 52px; align-items: center; min-height: 33px; border-top: 1px solid var(--rule); font-size: 13px; }
+.t1 .r.h { color: var(--muted); font-size: 12px; min-height: 28px; border-top: 0; border-bottom: 1px solid var(--border); }
+.t1 .r i { font-style: normal; color: var(--muted); font-variant-numeric: tabular-nums; }
+.t1 .r.kid .q { padding-left: 18px; color: #353736; }
+.t1 .r .a { padding-right: 12px; }
+.t1 .r .cp { color: var(--accent); text-align: right; }
+.t1 .r.fold { grid-template-columns: 30px 1fr; color: var(--muted); }
+.t1 .warn { color: var(--warn); font-size: 12px; margin-left: 8px; }
+.t1 .savebar { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: #fff; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 24px; }
+.t1 .savebar .pri { height: 32px; padding: 0 14px; border-radius: 6px; background: var(--primary); color: #fff; border: 0; }
+.t1 .savebar .sec { height: 32px; padding: 0 14px; border-radius: 6px; background: #fff; border: 1px solid var(--control); }
+.t1 .savebar span { color: var(--muted); font-size: 13px; }
+
+/* ============ 2 Ledger (achromatic-ledger, Geist) ============ */
+.t2 { --ground: #f2f4f7; --surface: #fff; --border: #e3e6ea; --rule: #eff1f4; --control: #cfd3d9; --text: #0a0a0a; --muted: #62666d; --hue: #1d5fbf; --neg: #c4242a; --active: #eceef2; --primary: #141414; --primary-ink: #fff; --radius-control: 6px; --mono: "Geist Mono", ui-monospace, monospace;
+  background: var(--ground); color: var(--text); font: 14px/20px "Geist", system-ui, sans-serif; flex-direction: column; }
+.t2 .top { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 0 24px; flex: none; }
+.t2 .top .brand { font-weight: 600; margin-right: 8px; }
+.t2 .sel { height: 32px; border: 1px solid var(--control); border-radius: 6px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #fff; }
+.t2 .sel small { font: 11px var(--mono); color: var(--muted); }
+.t2 .top .sp { flex: 1; }
+.t2 .top a { color: var(--muted); }
+.t2 .body { padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0; }
+.t2 .title { display: flex; align-items: baseline; gap: 12px; }
+.t2 h1 { font-size: 24px; line-height: 30px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
+.t2 .title span { color: var(--muted); }
+.t2 .two { display: grid; grid-template-columns: 360px 1fr; gap: 16px; flex: 1; min-height: 0; }
+.t2 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.t2 .card h2 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; padding: 14px 16px 10px; display: flex; align-items: center; gap: 8px; }
+.t2 .card h2 .sp { flex: 1; }
+.t2 .card h2 .btn { height: 30px; padding: 0 12px; border-radius: 6px; background: var(--primary); color: #fff; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; }
+.t2 .card h2 .btn.sec { background: #fff; color: var(--text); border: 1px solid var(--control); }
+.t2 table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.t2 th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 12px; border-bottom: 1px solid var(--border); }
+.t2 td { padding: 0 12px; height: 40px; border-top: 1px solid var(--rule); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t2 .num { text-align: right; font-variant-numeric: tabular-nums; }
+.t2 tr.sel2 td { background: var(--active); }
+.t2 .grey { color: var(--muted); }
+.t2 .ask { padding: 12px 16px 14px; border-top: 1px solid var(--border); }
+.t2 .ask p { margin: 0 0 8px; font-weight: 500; }
+.t2 .ask label { display: flex; gap: 8px; align-items: center; color: var(--muted); padding: 3px 0; }
+.t2 .ask label i { width: 14px; height: 14px; border: 1px solid var(--control); border-radius: 3px; flex: none; }
+.t2 .meter { display: inline-block; width: 44px; height: 4px; background: #e6e8ec; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+.t2 .meter b { display: block; height: 4px; background: var(--hue); border-radius: 2px; }
+.t2 .qrow td:nth-child(3) { white-space: normal; line-height: 18px; }
+.t2 .yn span.on { background: var(--primary); }
+.t2 .tri { color: var(--neg); font-size: 12px; margin-left: 8px; }
+
+/* ============ 3 Triage (accent-ladder, DM Sans, deep green) ============ */
+.t3 { --ground: #f6f9f7; --surface: #fff; --raised: #f1f4f2; --border: #e2e8e4; --rule: #edf1ee; --control: #cbd3ce; --text: #111827; --muted: #5a6560; --accent: #1f6b57; --soft: #eaf4ef; --track: #cfe5db; --ink: #14402f; --primary: #1f6b57; --primary-ink: #fff; --radius-control: 6px; --mono: ui-monospace, monospace;
+  background: var(--ground); color: var(--text); font: 14px/20px "DM Sans", system-ui, sans-serif; }
+.t3 .side { width: 230px; padding: 20px 14px; flex: none; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); }
+.t3 .brand { font-weight: 600; font-size: 16px; padding: 0 8px 14px; }
+.t3 .lbl { font-size: 12px; color: var(--muted); padding: 10px 8px 4px; }
+.t3 .cl { padding: 7px 8px; border-radius: 6px; }
+.t3 .cl.on { background: var(--soft); color: var(--ink); font-weight: 600; }
+.t3 .side .foot { margin-top: auto; color: var(--muted); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.t3 .main { flex: 1; padding: 24px 28px; min-width: 0; display: flex; flex-direction: column; }
+.t3 .head { display: flex; align-items: flex-start; gap: 16px; }
+.t3 h1 { font-size: 28px; line-height: 34px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.t3 .sub { color: var(--muted); margin: 2px 0 0; }
+.t3 .prog { margin: 16px 0 6px; display: flex; align-items: center; gap: 12px; }
+.t3 .track { flex: 1; height: 8px; background: var(--track); border-radius: 999px; overflow: hidden; }
+.t3 .track b { display: block; height: 8px; background: var(--accent); }
+.t3 .prog span { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
+.t3 .cols { display: grid; grid-template-columns: 1fr 292px; gap: 24px; margin-top: 12px; flex: 1; min-height: 0; }
+.t3 h2 { font-size: 16px; margin: 14px 0 8px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.t3 h2 .n { background: var(--soft); color: var(--ink); border-radius: 999px; padding: 0 8px; font-size: 12px; height: 20px; display: inline-flex; align-items: center; }
+.t3 .need { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; display: grid; grid-template-columns: 26px 1fr auto; gap: 4px 12px; align-items: center; margin-bottom: 8px; }
+.t3 .need i { font-style: normal; color: var(--muted); font-variant-numeric: tabular-nums; }
+.t3 .need .why { grid-column: 2; color: var(--muted); font-size: 13px; }
+.t3 .need .why b { color: var(--text); font-weight: 500; }
+.t3 .need .ctl { grid-column: 3; grid-row: 1 / 3; }
+.t3 .need input { height: 32px; border: 1px solid var(--control); border-radius: 6px; padding: 0 10px; width: 190px; font: inherit; }
+.t3 .done { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.t3 .done .r { display: grid; grid-template-columns: 34px 1fr 1fr; gap: 12px; padding: 0 16px; min-height: 34px; align-items: center; border-top: 1px solid var(--rule); font-size: 13px; }
+.t3 .done .r:first-child { border-top: 0; }
+.t3 .done .r i { font-style: normal; color: var(--muted); }
+.t3 .more { padding: 8px 16px; border-top: 1px solid var(--rule); color: var(--accent); font-size: 13px; }
+.t3 .rail { display: flex; flex-direction: column; gap: 12px; }
+.t3 .rail .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px; }
+.t3 .rail .o { display: flex; align-items: center; padding: 8px 10px; border-radius: 6px; gap: 8px; }
+.t3 .rail .o.on { background: var(--soft); color: var(--ink); font-weight: 600; }
+.t3 .rail .o small { margin-left: auto; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.t3 .btnrow { display: flex; flex-direction: column; gap: 8px; }
+.t3 .btn { height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 500; }
+.t3 .btn.p { background: var(--primary); color: #fff; }
+.t3 .btn.s { background: #fff; border: 1px solid var(--control); }
+.t3 .rail .note { color: var(--muted); font-size: 13px; }
+.t3 .yn span.on { background: var(--accent); border-color: var(--accent); }
+.t3 .more2 { color: var(--muted); font-size: 12px; padding: 0 4px; }
+
+/* ============ 4 Plain panels (editorial-greeting, Instrument Sans) ============ */
+.t4 { --ground: #fff; --surface: #f7f7f4; --border: #eaeaea; --text: #1f201d; --muted: #636361; --accent: #1b6e66; --control: #cfcfcb; --primary: #1f201d; --primary-ink: #fff; --radius-control: 999px; --mono: ui-monospace, monospace;
+  background: var(--ground); color: var(--text); font: 14px/20px "Instrument Sans", system-ui, sans-serif; }
+.t4 .side { width: 224px; padding: 24px 16px; flex: none; display: flex; flex-direction: column; gap: 2px; }
+.t4 .brand { font-weight: 600; font-size: 16px; padding: 0 10px 16px; }
+.t4 .cl { padding: 7px 10px; border-radius: 999px; color: var(--muted); }
+.t4 .cl.on { background: var(--surface); color: var(--text); font-weight: 600; }
+.t4 .side .foot { margin-top: auto; color: var(--muted); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.t4 .main { flex: 1; padding: 24px 32px; min-width: 0; }
+.t4 .wrap { max-width: 928px; margin: 0 auto; }
+.t4 h1 { font-size: 32px; line-height: 38px; font-weight: 500; margin: 8px 0 4px; letter-spacing: -.015em; }
+.t4 .sub { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+.t4 .g { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin-bottom: 16px; }
+.t4 .pn { background: var(--surface); border-radius: 22px; padding: 16px 18px; min-width: 0; }
+.t4 .pn h3 { margin: 0 0 2px; font-size: 15px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.t4 .pn h3 small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.t4 .pn p { margin: 6px 0 12px; color: #3c3d3a; font-size: 13px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.t4 .s3 { grid-column: span 3; } .t4 .s9 { grid-column: span 9; }
+.t4 .pill { height: 30px; border-radius: 999px; padding: 0 14px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 500; }
+.t4 .pill.d { background: var(--primary); color: #fff; }
+.t4 .pill.o { background: #fff; border: 1px solid var(--control); }
+.t4 .card { background: #fff; border-radius: 16px; margin-top: 10px; }
+.t4 .r { display: grid; grid-template-columns: 26px 1.2fr 1fr; gap: 12px; align-items: center; min-height: 36px; padding: 0 14px; border-top: 1px solid var(--border); font-size: 13px; }
+.t4 .r:first-child { border-top: 0; }
+.t4 .r i { font-style: normal; color: var(--muted); }
+.t4 .r.kid .q { padding-left: 14px; color: #3c3d3a; }
+.t4 .yn span.on { background: var(--accent); border-color: var(--accent); }
+.t4 .mini { font-size: 13px; }
+.t4 .mini div { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border); }
+.t4 .mini div:first-child { border-top: 0; }
+.t4 .mini span:first-child { color: var(--muted); }
+.t4 .tick { display: flex; gap: 8px; align-items: center; padding: 4px 0; color: var(--muted); }
+.t4 .tick i { width: 14px; height: 14px; border: 1px solid var(--control); border-radius: 4px; background: #fff; flex: none; }
+.t4 .count { color: var(--muted); font-size: 13px; }
+
+/* ============ 5 Review mode (data-terminal, Public Sans) ============ */
+.t5 { --ground: #171719; --surface: #131217; --raised: #212023; --border: #2b2b2e; --text: #fff; --muted: #9a9ca2; --faint: #8a8c92; --accent: #4a8ad6; --control: #4a4a4f; --primary: #fff; --primary-ink: #111; --radius-control: 999px; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--ground); color: var(--text); font: 14px/20px "Public Sans", system-ui, sans-serif; }
+.t5 .rail { width: 50px; border-right: 1px solid var(--border); flex: none; display: flex; flex-direction: column; align-items: center; padding: 14px 0; gap: 18px; color: var(--muted); }
+.t5 .rail svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.t5 .rail .on { color: var(--text); }
+.t5 .col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.t5 .hd { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-bottom: 1px solid var(--border); flex: none; }
+.t5 .hd b { font-size: 16px; font-weight: 600; }
+.t5 .hd .id { font: 12px var(--mono); color: var(--muted); }
+.t5 .hd .sp { flex: 1; }
+.t5 .hd .sel { border: 1px solid var(--control); border-radius: 999px; height: 30px; padding: 0 14px; display: flex; align-items: center; color: var(--text); font-size: 13px; }
+.t5 .tabs { display: flex; gap: 22px; padding: 0 20px; border-bottom: 1px solid var(--border); height: 40px; flex: none; }
+.t5 .tabs a { color: var(--muted); display: flex; align-items: center; position: relative; gap: 8px; font-size: 13px; }
+.t5 .tabs a small { color: var(--faint); font-variant-numeric: tabular-nums; }
+.t5 .tabs a.on { color: var(--text); }
+.t5 .tabs a.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--accent); }
+.t5 .work { flex: 1; display: grid; grid-template-columns: 372px 1fr; min-height: 0; }
+.t5 .idx { border-right: 1px solid var(--border); padding: 10px 0; overflow: hidden; background: var(--surface); }
+.t5 .idx .cap { padding: 4px 20px 8px; color: var(--muted); font-size: 12px; }
+.t5 .ix { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; height: 36px; padding: 0 20px; font-size: 13px; position: relative; color: #d4d5d8; }
+.t5 .ix i { font-style: normal; color: var(--faint); font-variant-numeric: tabular-nums; }
+.t5 .ix.on { background: var(--raised); color: var(--text); }
+.t5 .ix.on::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--accent); }
+.t5 .ix.kid span:nth-child(2) { padding-left: 12px; color: var(--muted); }
+.t5 .ix .st { color: var(--faint); font-size: 12px; }
+.t5 .ix .st.go { color: var(--text); }
+.t5 .focus { padding: 28px 40px; overflow: hidden; display: flex; flex-direction: column; gap: 18px; }
+.t5 .focus .pos { color: var(--muted); font-size: 13px; }
+.t5 .focus h1 { font-size: 26px; line-height: 32px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.t5 .hint { color: var(--muted); font-size: 13px; margin: -8px 0 0; }
+.t5 .yn span { background: transparent; color: var(--text); height: 36px; padding: 0 22px; font-size: 14px; }
+.t5 .yn span.on { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.t5 .src { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+.t5 .src h2 { margin: 0; padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--border); }
+.t5 .ln { display: grid; grid-template-columns: 34px 1fr; gap: 8px; padding: 6px 14px; font-size: 13px; color: #c9cacf; }
+.t5 .ln i { font: 12px var(--mono); color: var(--faint); font-style: normal; padding-top: 1px; }
+.t5 .ln.hit { background: var(--raised); color: var(--text); }
+.t5 .clio { border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 13px; }
+.t5 .clio h2 { margin: 0 0 8px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.t5 .clio .opt2 { display: flex; gap: 20px; margin-top: 6px; }
+.t5 .clio .opt2 span { display: flex; gap: 8px; align-items: center; }
+.t5 .clio .opt2 i { width: 14px; height: 14px; border: 1px solid var(--control); border-radius: 50%; }
+.t5 .actions { display: flex; gap: 10px; align-items: center; margin-top: auto; }
+.t5 .actions .b { height: 34px; border-radius: 999px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid var(--control); font-size: 13px; gap: 8px; }
+.t5 .actions .b.p { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); font-weight: 500; }
+.t5 .actions kbd { font: 11px var(--mono); color: var(--faint); }
+.t5 .actions .b.p kbd { color: #555; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Outputs tab, five more layouts from the taste skill</h1>
+  <p class="lede">These five come from the taste skill's app-screen run, not from impeccable. Each one is a different dealt style with its own tokens, type, shell and one idea taken from this product. They all show the same moment as the first sheet, with the same synthetic data. Nadia Kowalczyk's probate call. Five outputs are on the page. The Probate Intake Form is at 13 of 15 answered, 2 not discussed, and 1 follow-up that Clio does not show until answer 13 is Yes. Fonts load from Google Fonts for this mock only, the app keeps its own system type.</p>
+  <ul class="jump">
+    <li><a href="#o1">1 Tinted frame</a></li><li><a href="#o2">2 Ledger</a></li><li><a href="#o3">3 Needs you first</a></li><li><a href="#o4">4 Plain panels</a></li><li><a href="#o5">5 Review mode</a></li>
+  </ul>
+
+  <section class="opt" id="o1">
+    <h2>1 Tinted frame</h2>
+    <p class="what">The sidebar and top bar are one tinted L. The work sits on a white sheet with a hairline edge and soft corners. One output per tab, the form as a plain list. The tint is a paper stone, taken from the product's world. This is the closest to what the app does today, only tidier.</p>
+    <div class="frame"><div class="comp t1">
+      <div class="side">
+        <div class="brand">Matter Workbench</div>
+        <button class="newbtn">New transcript</button>
+        <div class="lbl">Clients</div>
+        <div class="cl">Elena Whitfield<small>Elena-20261105-1</small></div>
+        <div class="cl">Priya Raghunathan<small>Priya-20261105-1</small></div>
+        <div class="cl on">Nadia Kowalczyk<small>Nadia-20261105-1</small></div>
+        <div class="foot"><span>Hidden names</span><span>Settings</span></div>
+      </div>
+      <div class="col">
+        <div class="top"><div class="search">Search clients and calls<kbd>/</kbd></div></div>
+        <div class="sheet">
+          <div class="crumb"><span class="par">Nadia Kowalczyk</span><span class="par">/</span><h1>Outputs</h1><span class="chip">Intake call, 27 Oct 2026</span><span class="sp"></span><span class="tb">Transcript</span><span class="outl">Request more outputs</span></div>
+          <div class="tabs"><a>Clio Note <small>v2</small></a><a>Overview <small>v1</small></a><a>Clio form note <small>v1</small></a><a class="on">Probate Intake Form <small>13 of 15</small></a><a>General Intake Form <small>5 of 5</small></a></div>
+          <div class="strip">
+            <div><small>Answered</small><b>13 <em>of 15</em></b></div>
+            <div><small>Not discussed</small><b>2</b></div>
+            <div><small>Follow-ups shut in Clio</small><b>1</b></div>
+            <div><small>Version</small><b>v3 <em>saved 14:02</em></b></div>
+          </div>
+          <div class="rows" id="t1rows"></div>
+          <div class="savebar"><button class="pri">Save changes</button><button class="sec">Copy all</button><span>Type in any box, then save once.</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> The least to learn. The list reads like Clio's form, and the four figures answer whether the form is ready at a glance.</p><p><b>Costs.</b> It does not change how she works. She still opens every tab to see what is left, and the screen shows one output at a time.</p></div>
+  </section>
+
+  <section class="opt" id="o2">
+    <h2>2 Ledger</h2>
+    <p class="what">No sidebar. The client and call are two selects in the top bar, which frees the full width. Left, a ledger of the call's outputs with their versions and counts. Right, the open form as a second ledger with a column the app already knows, how much of each 255-character Clio box the answer uses. The one blue is the fill of those meters.</p>
+    <div class="frame"><div class="comp t2">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="sel">Nadia Kowalczyk <small>Nadia-20261105-1</small> &#9662;</span><span class="sel">Intake call, 27 Oct 2026 &#9662;</span><span class="sp"></span><a>Transcript</a><a>Hidden names</a><a>Settings</a></div>
+      <div class="body">
+        <div class="title"><h1>Outputs</h1><span>5 on this call, 2 forms not requested</span></div>
+        <div class="two" style="align-items:start">
+          <div class="card">
+            <h2>On this call</h2>
+            <table><thead><tr><th style="width:176px">Output</th><th style="width:52px">Version</th><th class="num">Answered</th></tr></thead><tbody>
+              <tr><td>Clio Note</td><td class="grey">v2</td><td class="num grey">&ndash;</td></tr>
+              <tr><td>Overview for Jordan</td><td class="grey">v1</td><td class="num grey">&ndash;</td></tr>
+              <tr><td>Clio form note</td><td class="grey">v1</td><td class="num grey">&ndash;</td></tr>
+              <tr class="sel2"><td><b style="font-weight:600">Probate Intake Form</b></td><td>v3</td><td class="num">13 of 15</td></tr>
+              <tr><td>General Intake Form</td><td class="grey">v1</td><td class="num">5 of 5</td></tr>
+            </tbody></table>
+            <div class="ask"><p>Request more outputs</p><label><i></i>Estate Plan - General Intake form</label><label><i></i>Trust Admin Intake Form</label></div>
+          </div>
+          <div class="card">
+            <h2>Probate Intake Form <span class="sp"></span><span class="btn sec">Save changes</span><span class="btn">Copy all</span></h2>
+            <table><thead><tr><th style="width:48px">#</th><th style="width:270px">Question</th><th>Answer</th><th class="num" style="width:176px">Clio box</th></tr></thead><tbody id="t2rows"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Everything about one call on one screen and no sidebar to spend width on. The Clio box column answers a question she hits at paste time, before she hits it.</p><p><b>Costs.</b> Two selects are slower than a visible client list when she moves between clients all day. The left ledger and the right form compete for the eye.</p></div>
+  </section>
+
+  <section class="opt" id="o3">
+    <h2>3 Needs you first</h2>
+    <p class="what">The form is split by what she has to do. The three answers that need a person come first, each with its reason and its control. The twelve that are fine sit under them, with the first eight shown. A progress track shows the true 13 of 15. A right rail holds the other outputs and the two actions. The hue is a deep green, taken from the paper world rather than a brand.</p>
+    <div class="frame"><div class="comp t3">
+      <div class="side">
+        <div class="brand">Matter Workbench</div>
+        <div class="lbl">Clients</div>
+        <div class="cl">Elena Whitfield</div><div class="cl">Priya Raghunathan</div><div class="cl on">Nadia Kowalczyk</div>
+        <div class="foot"><span>Hidden names</span><span>Settings</span></div>
+      </div>
+      <div class="main">
+        <div class="head"><div><h1>Probate Intake Form</h1><p class="sub">Nadia Kowalczyk, intake call 27 Oct 2026. Version 3, saved 14:02.</p></div></div>
+        <div class="prog"><div class="track"><b style="width:86.7%"></b></div><span>13 of 15 answered</span></div>
+        <div class="cols">
+          <div>
+            <h2>Needs you <span class="n">3</span></h2>
+            <div class="need"><i>5.</i><span>When did your loved one pass away?</span><span class="ctl"><input value="09/14/" aria-label="Answer 5"></span><span class="why"><b>The year was not said.</b> Clio takes a date as MM/DD/YYYY.</span></div>
+            <div class="need"><i>9.</i><span>Are you planning to sell the property?</span><span class="ctl"><span class="yn"><span>Yes</span><span>No</span></span></span><span class="why"><b>Not discussed.</b> Line 16, "I do not know yet. My brother wants to."</span></div>
+            <div class="need"><i>13.</i><span>Was the probate process started?</span><span class="ctl"><span class="yn"><span>Yes</span><span>No</span></span></span><span class="why"><b>Not discussed.</b> Claude found no answer in the call.</span></div>
+            <h2>Answered <span class="n">12</span></h2>
+            <div class="done" id="t3done"></div>
+          </div>
+          <div class="rail">
+            <div class="panel">
+              <div class="o">Clio Note <small>v2</small></div>
+              <div class="o">Overview <small>v1</small></div>
+              <div class="o">Clio form note <small>v1</small></div>
+              <div class="o on">Probate Intake Form <small>13 of 15</small></div>
+              <div class="o">General Intake Form <small>5 of 5</small></div>
+            </div>
+            <div class="btnrow"><span class="btn p">Copy all</span><span class="btn s">Save changes</span></div>
+            <p class="note">1 follow-up is not shown in Clio until answer 13 is Yes.</p>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> It changes the job from reading sixteen rows to clearing three. The reason sits next to each control, and the progress track makes done and not done honest.</p><p><b>Costs.</b> The form no longer reads in Clio's order, so a person who wants to compare line by line must open the answered group. Needs a plain "Show all in order" switch.</p></div>
+  </section>
+
+  <section class="opt" id="o4">
+    <h2>4 Plain panels</h2>
+    <p class="what">One page, no tabs. The heading is a sentence made from the data, not a greeting. The three text outputs and a request panel sit on one row of equal panels. Under them the probate form takes nine columns and the general form with the two forms not requested takes three. Soft shapes, pill controls, one white card for the form list.</p>
+    <div class="frame"><div class="comp t4">
+      <div class="side">
+        <div class="brand">Matter Workbench</div>
+        <div class="cl">Elena Whitfield</div><div class="cl">Priya Raghunathan</div><div class="cl on">Nadia Kowalczyk</div>
+        <div class="foot"><span>Hidden names</span><span>Settings</span></div>
+      </div>
+      <div class="main"><div class="wrap">
+        <h1>Nadia's call has two answers left to pick.</h1>
+        <p class="sub">Intake call, 27 Oct 2026. The three notes are ready to copy. The Probate Intake Form is at 13 of 15.</p>
+        <div class="g">
+          <div class="pn s3"><h3>Clio Note <small>v2</small></h3><p>Intake call with Nadia Kowalczyk. Her father Stefan died on 14 September. House in Fullerton and a rental condo. Brother and sister disagree about the house.</p><span class="pill d">Copy</span></div>
+          <div class="pn s3"><h3>Overview <small>v1</small></h3><p>Next steps. Confirm the year of death, ask for the 1998 will and the trust, and find out whether the house will be sold.</p><span class="pill d">Copy</span></div>
+          <div class="pn s3"><h3>Clio form note <small>v1</small></h3><p>Probate, urgent. Father died 14 September. House and condo, will from 1998, trust from about 2011, title unknown.</p><span class="pill d">Copy</span></div>
+          <div class="pn s3"><h3>More outputs</h3><div class="tick"><i></i>Estate Plan - General Intake form</div><div class="tick"><i></i>Trust Admin Intake Form</div><div style="margin-top:10px"><span class="pill o">Copy for Claude</span></div></div>
+        </div>
+        <div class="g">
+          <div class="pn s9"><h3>Probate Intake Form <small>v3</small><span style="flex:1"></span><span class="count">13 of 15 answered, 2 not discussed</span><span class="pill o">Save changes</span><span class="pill d">Copy all</span></h3><div class="card" id="t4rows"></div></div>
+          <div class="pn s3"><h3>General Intake Form <small>v1</small></h3><div class="mini">
+            <div><span>Name</span><span>Nadia Kowalczyk</span></div><div><span>Phone</span><span>714 555 0142</span></div><div><span>City</span><span>Fullerton, CA</span></div><div><span>Matter</span><span>Probate</span></div><div><span>Referral</span><span>Irena Wojcik</span></div></div>
+            <div style="margin-top:12px"><span class="pill d">Copy all</span></div></div>
+        </div>
+      </div></div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Every output is visible without a click and the page says what is wrong in words. The equal panels make the three notes easy to scan and copy.</p><p><b>Costs.</b> The most vertical scrolling of the five, and 22px corners are a bigger break from the current look. Long notes are clipped to four lines and need an open.</p></div>
+  </section>
+
+  <section class="opt" id="o5">
+    <h2>5 Review mode</h2>
+    <p class="what">A dark, keyboard-first screen that walks the form one answer at a time. The left index shows all fifteen, the right shows the open one with the lines of the call it came from and how Clio will show it. Selection is a 1px blue line, nothing else is coloured. Next that needs you is one key. This is the strongest fit for a long day of forms, and the one that changes the most.</p>
+    <div class="frame"><div class="comp t5">
+      <div class="rail">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-4 3.2-6 6.5-6s5.9 2 6.5 6"/><path d="M16 5c2.2.3 3.5 1.8 3.5 3.6S18.200 11.800 16 12"/></svg>
+        <svg class="on" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z"/></svg>
+        <svg viewBox="0 0 24 24" style="margin-top:auto"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.600 5.600l2.100 2.100M16.300 16.300l2.100 2.100M18.400 5.600l-2.100 2.100M7.700 16.300l-2.100 2.100"/></svg>
+      </div>
+      <div class="col">
+        <div class="hd"><b>Nadia Kowalczyk</b><span class="id">Nadia-20261105-1</span><span class="sp"></span><span class="sel">Intake call, 27 Oct 2026 &#9662;</span></div>
+        <div class="tabs"><a>Clio Note <small>v2</small></a><a>Overview <small>v1</small></a><a>Clio form note <small>v1</small></a><a class="on">Probate Intake Form <small>13/15</small></a><a>General Intake Form <small>5/5</small></a></div>
+        <div class="work">
+          <div class="idx"><div class="cap">15 answers. 2 not discussed, 1 to check.</div><div id="t5idx"></div></div>
+          <div class="focus">
+            <span class="pos">Answer 9. Follow-up of answer 7.</span>
+            <h1>Are you planning to sell the property?</h1>
+            <p class="hint">Yes or No. Clio takes only Yes or No.</p>
+            <div><span class="yn"><span>Yes</span><span>No</span></span><span class="nd">Not discussed. Nothing is picked.</span></div>
+            <div class="src"><h2>Closest lines in the call</h2>
+              <div class="ln"><i>14</i><span>Nadia: Yes, the house on Vista Alegre Drive, about one point one million.</span></div>
+              <div class="ln hit"><i>16</i><span>Nadia: I do not know yet. My brother Marcus wants to.</span></div>
+              <div class="ln"><i>19</i><span>Nadia: Marcus says the condo was promised to him. May wants to keep it.</span></div>
+            </div>
+            <div class="clio"><h2>How Clio shows it</h2>Are you planning to sell the property?<div class="opt2"><span><i></i>Yes</span><span><i></i>No</span></div></div>
+            <div class="actions"><span class="b">Previous <kbd>K</kbd></span><span class="b p">Next that needs you <kbd>N</kbd></span><span class="b">Save <kbd>Cmd Enter</kbd></span></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Her attention goes to one answer and its evidence, and the keys move her without a mouse. The "closest lines" box is the proof she looks for before she picks Yes or No.</p><p><b>Costs.</b> It hides the whole form at once, so it needs the plain list as a second view. Dark is a bigger change than the light styles, and the closest-lines box needs a lookup the app does not do yet.</p></div>
+  </section>
+
+  <div class="notes">
+    <p><b>How these were drawn.</b> Styles dealt by <code>draw.mjs --app</code> for kind builder and set one per option: framed-sheet, achromatic-ledger, accent-ladder, editorial-greeting and data-terminal. The shell, tokens and type of each are the dealt values. Every count is computed from the same sixteen entries. The "closest lines" in option 5 and the "why" lines in option 3 are mock text, the app does not produce them today.</p>
+    <p><b>Where these depart from the style sheets.</b> The mono face is used for client IDs only. The 22px panels and pill controls in option 4 are the dealt soft style. Option 4's heading is 32px, under the dealt 48px, because the inspector warns above 34px for working screens. Option 3 uses a deep green rather than the dealt raspberry.</p>
+  </div>
+</div>
+
+<script>
+var Q = [
+  [1, "What was the name of your loved one?", "text", "Stefan Kowalczyk"],
+  [2, "Did your loved one have any estate planning done?", "text", "A little. Looks like some documents were done."],
+  [3, "In what state was your loved one a resident at the time of their death?", "text", "California"],
+  [4, "In what county was your loved one a resident at the time of their death?", "text", "Orange"],
+  [5, "When did your loved one pass away?", "text", "14 September, year not said", "Year not said"],
+  [6, "What assets did your loved one leave behind?", "text", "Family home at 2217 Vista Alegre Drive, about 1.1 million. Rental condo, bank accounts, IRA, a car."],
+  [7, "Did your loved one own real estate when they died?", "yn", "Yes"],
+  [8, "Please share the full address.", "text", "2217 Vista Alegre Drive, Fullerton, California 92835", "", 7],
+  [9, "Are you planning to sell the property?", "yn", "", "", 7],
+  [10, "What family members did your loved one leave behind?", "text", "Children, Sibling"],
+  [11, "Are there any disagreements or unresolved matters among family members?", "yn", "Yes"],
+  [12, "Please explain. (disagreements)", "text", "Marcus wants to sell the house and says the condo was promised to him. May wants to keep it.", "", 11],
+  [13, "Was the probate process started?", "yn", ""],
+  [14, "Please provide case number and county where it was filed.", "shut", "", "", 13],
+  [15, "How did you hear about us?", "text", "Cousin Irena Wojcik, who used the firm for her mother's trust last year."],
+  [16, "Is there anything else you would like us to know?", "text", "Probate, urgent. Father died 14 September. House and condo, will from 1998, trust from about 2011, title unknown."]
+];
+function kid(r) { return r.length > 5 && r[5]; }
+function pill(v) { return '<span class="yn"><span' + (v === "Yes" ? ' class="on"' : "") + '>Yes</span><span' + (v === "No" ? ' class="on"' : "") + '>No</span></span>' + (v ? "" : '<span class="nd">Not discussed</span>'); }
+function ans(r) { return r[2] === "yn" ? pill(r[3]) : '<span class="cut" style="display:block">' + r[3] + '</span>'; }
+function html(id, s) { var el = document.getElementById(id); if (el) el.innerHTML = s; }
+
+html("t1rows", '<div class="r h"><span>#</span><span>Question</span><span>Answer</span><span></span></div>' + Q.map(function (r) {
+  if (r[2] === "shut") return '<div class="r fold"><i></i><span>1 follow-up is not shown in Clio until answer 13 is Yes.</span></div>';
+  return '<div class="r' + (kid(r) ? " kid" : "") + '"><i>' + r[0] + '.</i><span class="q cut" style="padding-right:16px">' + r[1] + '</span><span class="a" style="display:flex;align-items:center">' + ans(r) + (r[4] && r[2] !== "yn" ? '<span class="warn">' + r[4] + '</span>' : "") + '</span><span class="cp">Copy</span></div>';
+}).join(""));
+
+html("t2rows", Q.map(function (r) {
+  if (r[2] === "shut") return '<tr><td class="grey"></td><td colspan="3" class="grey">1 follow-up is shut until answer 13 is Yes</td></tr>';
+  var box = r[2] === "yn" ? '<span class="grey">Yes or No</span>' : '<span class="meter"><b style="width:' + Math.round(100 * r[3].length / 255) + '%"></b></span>' + r[3].length + ' of 255';
+  return '<tr class="qrow"><td class="grey">' + r[0] + '</td><td class="cut">' + (kid(r) ? "&nbsp;&nbsp;" : "") + r[1] + '</td><td>' + (r[2] === "yn" ? pill(r[3]) : r[3]) + (r[4] ? '<span class="tri">' + r[4] + '</span>' : "") + '</td><td class="num">' + box + '</td></tr>';
+}).join(""));
+
+var ok = Q.filter(function (r) { return r[2] !== "shut" && r[0] !== 5 && r[0] !== 9 && r[0] !== 13; });
+html("t3done", ok.slice(0, 8).map(function (r) { return '<div class="r"><i>' + r[0] + '.</i><span class="cut">' + r[1] + '</span><span class="cut">' + (r[2] === "yn" ? pill(r[3]) : r[3]) + '</span></div>'; }).join("") + '<div class="more">Show the other ' + (ok.length - 8) + ' answered</div>');
+
+html("t4rows", Q.filter(function (r) { return r[2] !== "shut"; }).slice(0, 11).map(function (r) {
+  return '<div class="r' + (kid(r) ? " kid" : "") + '"><i>' + r[0] + '.</i><span class="q cut">' + r[1] + '</span><span class="cut" style="display:flex;align-items:center">' + ans(r) + '</span></div>';
+}).join(""));
+
+html("t5idx", Q.map(function (r) {
+  var short = r[1].replace(/^Please /, "").replace(/\?$/, "");
+  short = short.charAt(0).toUpperCase() + short.slice(1);
+  if (short.length > 38) short = short.slice(0, 37) + "…";
+  if (r[2] === "shut") return '<div class="ix kid"><i></i><span>1 follow-up shut in Clio</span><span class="st">answer 13</span></div>';
+  var st = r[2] === "yn" ? (r[3] || "Not discussed") : (r[4] ? "Check" : "Answered");
+  return '<div class="ix' + (r[0] === 9 ? " on" : "") + (kid(r) ? " kid" : "") + '"><i>' + r[0] + '.</i><span class="cut">' + short + '</span><span class="st' + (st === "Not discussed" || st === "Check" ? " go" : "") + '">' + st + '</span></div>';
+}).join(""));
+
+function fit() {
+  document.querySelectorAll(".frame").forEach(function (f) {
+    var c = f.querySelector(".comp"), s = Math.min(1, f.clientWidth / 1200);
+    c.style.transform = "scale(" + s + ")";
+    f.style.height = (780 * s + 2) + "px";
+  });
+}
+window.addEventListener("resize", fit); window.addEventListener("load", fit); fit();
+</script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outputs tab, five layouts</title>
+<style>
+/* Tokens copied from the app's Ledger palette (app/web/static/style.css), so every option stays inside the same world. */
+:root {
+  --bg: #fafaf9; --panel: #ffffff; --line: #e6e6e3; --text: #111111; --muted: #5f5f5c;
+  --soft: #f1f1ee; --active: #efefec; --accent: #111111; --accent-text: #ffffff;
+  --data: #1d5fbf; --signal: #b8420a; --signal-bg: #fbeee6; --ok: #1f6b45; --ok-bg: #e7f3ec;
+  --radius: 6px; --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0d0e; --panel: #131314; --line: #29292b; --text: #f1f1ef; --muted: #9a9a96;
+    --soft: #222224; --active: #1c1c1e; --accent: #f1f1ef; --accent-text: #111111;
+    --data: #7aa7ee; --signal: #f08a4b; --signal-bg: #2e1d12; --ok: #6cc596; --ok-bg: #12261b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d0d0e; --panel: #131314; --line: #29292b; --text: #f1f1ef; --muted: #9a9a96;
+  --soft: #222224; --active: #1c1c1e; --accent: #f1f1ef; --accent-text: #111111;
+  --data: #7aa7ee; --signal: #f08a4b; --signal-bg: #2e1d12; --ok: #6cc596; --ok-bg: #12261b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+.page { max-width: 1280px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.lede { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+.jump a { color: var(--text); border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 6px 12px; text-decoration: none; font-size: 14px; }
+.opt { margin: 0 0 56px; }
+.opt h2 { font-size: 18px; margin: 0 0 2px; }
+.opt .what { margin: 0 0 10px; max-width: 80ch; }
+.opt .tradeoff { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0 0; font-size: 14px; max-width: 100ch; }
+.opt .tradeoff p { margin: 0; }
+.opt .tradeoff b { font-weight: 650; }
+@media (max-width: 700px) { .opt .tradeoff { grid-template-columns: 1fr; } }
+.frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg); }
+.comp { width: 1200px; height: 780px; overflow: hidden; display: flex; flex-direction: column; transform-origin: 0 0; }
+.comp > .shell, .comp > .split { flex: 1; min-height: 0; }
+.main { overflow: hidden; }
+
+/* Shared comp parts */
+.top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); font-size: 13px; }
+.top .brand { font-weight: 650; }
+.top .muted, .muted { color: var(--muted); }
+.top .sp { flex: 1; }
+.shell { display: grid; }
+.clients { padding: 12px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.clients .new { background: var(--accent); color: var(--accent-text); border-radius: 999px; padding: 8px; text-align: center; font-weight: 600; margin-bottom: 8px; }
+.clients .c { padding: 8px 10px; border-radius: var(--radius); }
+.clients .c small { display: block; font: 11px var(--mono); color: var(--muted); }
+.clients .c.on { background: var(--active); }
+.main { padding: 16px 20px; min-width: 0; }
+.who { display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px; }
+.who h3 { margin: 0; font-size: 20px; }
+.who .cid { font: 12px var(--mono); color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--text); border-radius: var(--radius); padding: 5px 12px; font-size: 13px; }
+.btn.pri { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+.btn.off { opacity: .5; }
+.link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; font-size: 13px; }
+.tag { font: 11px var(--mono); border-radius: 4px; padding: 2px 8px; background: var(--soft); color: var(--data); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; display: inline-block; }
+.dot.got { background: var(--text); } .dot.wait { border: 2px solid var(--signal); } .dot.none { border: 1px dashed var(--muted); }
+.pills { display: inline-flex; gap: 6px; }
+.pills span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 14px; font-size: 13px; color: var(--muted); background: var(--bg); }
+.pills span.on { color: var(--text); border-color: var(--text); font-weight: 650; }
+.pills span.empty { border-style: dashed; }
+.opts { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.opts span { border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 10px; color: var(--muted); background: var(--bg); }
+.opts span.on { color: var(--text); border-color: var(--text); font-weight: 650; }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 9px; font: 13px/1.5 var(--mono); background: var(--bg); }
+.box.empty { color: var(--muted); font-family: var(--font); border-style: dashed; }
+.warnline { font-size: 12px; color: var(--signal); }
+.hint { font-size: 12px; color: var(--muted); }
+.q { font-size: 14px; }
+.q i { font-style: normal; color: var(--muted); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.savebar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; }
+.dirty { font-weight: 650; }
+.note { font: 13px/1.55 var(--mono); white-space: pre-wrap; }
+mark.code { background: none; color: var(--data); font-weight: 600; }
+
+/* Option 1 */
+.o1 .shell { grid-template-columns: 190px 1fr; }
+.o1 .work { display: grid; grid-template-columns: 230px 1fr; gap: 16px; align-items: start; }
+.o1 .rail { position: sticky; top: 0; padding: 10px; font-size: 14px; }
+.o1 .rail h4, .o3 h4 { margin: 8px 6px 4px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.o1 .rail .it { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: var(--radius); }
+.o1 .rail .it small { margin-left: auto; color: var(--muted); font-size: 12px; }
+.o1 .rail .it.on { background: var(--active); font-weight: 650; }
+.o1 .rail .more { margin: 10px 6px 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.o1 .formrow { display: grid; grid-template-columns: 1fr 1.25fr 70px; gap: 16px; padding: 9px 14px; border-top: 1px solid var(--line); align-items: start; }
+
+/* Option 2 */
+.o2 .main { padding: 16px 20px; }
+.o2 .grid { display: grid; grid-template-columns: 1fr 330px; gap: 20px; align-items: start; }
+.o2 .form { padding: 4px 16px 12px; }
+.o2 .fr { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; padding: 9px 0; border-top: 1px solid var(--line); align-items: start; }
+.o2 .fr.kid { margin-left: 22px; padding-left: 14px; border-left: 1px solid var(--line); }
+.o2 .fr.shut { opacity: .6; }
+.o2 .fold { margin: 0 0 0 22px; padding: 7px 0 7px 14px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.o2 .ready { position: sticky; top: 0; padding: 14px; }
+.o2 .ready h4 { margin: 0 0 8px; font-size: 14px; }
+.o2 .chk { display: flex; gap: 8px; padding: 5px 0; font-size: 13px; border-top: 1px solid var(--line); }
+.o2 .chk b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.o2 .chk.bad b { color: var(--signal); }
+
+/* Option 3 */
+.o3 .shell { grid-template-columns: 56px 1fr; }
+.o3 .main { display: flex; flex-direction: column; min-height: 0; padding-bottom: 16px; }
+.o3 .main > .panel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.o3 .cols { flex: 1; overflow: hidden; align-content: start; }
+.o3 .clients { align-items: center; padding: 10px 6px; }
+.o3 .ini { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); font-size: 12px; font-weight: 650; }
+.o3 .ini.on { background: var(--accent); color: var(--accent-text); }
+.o3 .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 0 0 12px; }
+.o3 .tabs a { padding: 8px 12px; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; display: flex; gap: 7px; align-items: center; }
+.o3 .tabs a.on { color: var(--text); border-bottom-color: var(--text); font-weight: 650; }
+.o3 .tabs .grp { width: 1px; background: var(--line); margin: 6px 6px; }
+.o3 .tabs small { color: var(--muted); font-weight: 400; }
+.o3 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; padding: 6px 18px 14px; }
+.o3 .fr { display: grid; grid-template-columns: 1fr 1.1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); align-items: start; }
+.o3 .fr.kid .q { padding-left: 16px; }
+.o3 .actionbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--panel); font-size: 13px; }
+
+/* Option 4 */
+.o4 .shell { grid-template-columns: 1fr; }
+.o4 .split { display: grid; grid-template-columns: 410px 1fr; }
+.o4 .src { border-right: 1px solid var(--line); padding: 14px 16px; font: 13px/1.6 var(--mono); background: var(--panel); }
+.o4 .src .ln { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 1px 0; }
+.o4 .src .ln i { color: var(--muted); font-style: normal; text-align: right; }
+.o4 .src .ln.hit { background: var(--soft); margin: 0 -8px; padding: 3px 8px; }
+.o4 .srchead { margin: 0 0 8px; font: 650 13px var(--font); }
+.o4 .out { padding: 14px 20px; }
+.o4 .fr { display: grid; grid-template-columns: 1fr 1.1fr 84px; gap: 14px; padding: 9px 0; border-top: 1px solid var(--line); align-items: start; }
+.o4 .from { font: 11px var(--mono); color: var(--data); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; text-align: center; }
+.o4 .from.hit { background: var(--soft); }
+.o4 .from.none { color: var(--muted); border-style: dashed; }
+
+/* Option 5 */
+.o5 .shell { grid-template-columns: 190px 1fr 270px; }
+.o5 .rightcol { padding: 16px 16px 16px 0; }
+.o5 table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.o5 table { table-layout: fixed; }
+.o5 .main > .panel { padding: 4px 0; }
+.o5 th:nth-child(1) { width: 150px; } .o5 th:nth-child(2) { width: 110px; } .o5 th:nth-child(3) { width: 70px; } .o5 th:nth-child(5) { width: 96px; }
+.o5 td:last-child:not(.exp) { text-align: right; white-space: nowrap; }
+.o5 th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.o5 td { padding: 9px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+.o5 tr.open td { background: var(--soft); border-top-color: var(--text); }
+.o5 td.exp { padding: 0; background: var(--panel); }
+.o5 .qa { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; padding: 6px 16px 12px; }
+.o5 .qa div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; align-items: start; }
+.o5 .state { display: inline-flex; align-items: center; gap: 7px; }
+.o5 .prev { color: var(--muted); font-size: 13px; max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.o5 .ask label { display: flex; gap: 8px; padding: 5px 0; font-size: 13px; }
+.o5 .ask label span.box2 { width: 14px; height: 14px; border: 1px solid var(--muted); border-radius: 3px; flex: none; margin-top: 3px; }
+.o5 .ask label.waiting span.box2 { background: var(--signal); border-color: var(--signal); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Outputs tab, five layouts</h1>
+  <p class="lede">Every option keeps the Ledger palette and system type the app already uses, and uses plain controls (tabs, tables, pills, radios). They differ in how the screen is divided, what leads, and how dense it is. All five show the same moment: Nadia Kowalczyk's probate call, the Clio Note, the Overview, the Clio form note and the Probate Intake Form with one follow-up shut and two Yes or No answers still empty. Names and data are synthetic.</p>
+  <nav class="jump" aria-label="Options">
+    <a href="#o1">1 Output rail</a><a href="#o2">2 Form with its Clio checklist</a><a href="#o3">3 Tabs with an action bar</a><a href="#o4">4 Call beside outputs</a><a href="#o5">5 One table</a>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="opt" id="o1">
+    <h2>1. Output rail</h2>
+    <p class="what">A left list of the seven outputs with a state dot each. One output fills the main area at a time, so a form gets the full width and the three notes stop competing for columns.</p>
+    <div class="frame"><div class="comp o1">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="muted">Local only. Nothing leaves this computer unless you paste it.</span><span class="sp"></span><span>Theme</span><span>Settings</span></div>
+      <div class="shell">
+        <div class="clients"><div class="new">New transcript</div><div class="c">Elena Whitfield<small>Elena-20261105-1</small></div><div class="c">Priya Raghunathan<small>Priya-20261105-1</small></div><div class="c on">Nadia Kowalczyk<small>Nadia-20261105-1</small></div></div>
+        <div class="main">
+          <div class="who"><h3>Nadia Kowalczyk</h3><span class="cid">Nadia-20261105-1</span><span class="muted">Intake call, 27 Oct 2026</span><span style="flex:1"></span><a class="link">Transcript</a><a class="link">Hidden names</a></div>
+          <div class="work">
+            <div class="panel rail">
+              <h4>Notes</h4>
+              <div class="it"><span class="dot got"></span>Clio Note<small>v2</small></div>
+              <div class="it"><span class="dot got"></span>Overview<small>v1</small></div>
+              <div class="it"><span class="dot got"></span>Clio form note<small>v1</small></div>
+              <h4>Intake forms</h4>
+              <div class="it on"><span class="dot got"></span>Probate<small>15/15</small></div>
+              <div class="it"><span class="dot got"></span>General<small>5/5</small></div>
+              <div class="more"><div class="it"><span class="dot none"></span>Estate plan<small>ask</small></div><div class="it"><span class="dot none"></span>Trust admin<small>ask</small></div></div>
+            </div>
+            <div class="panel">
+              <div class="savebar"><b>Probate Intake Form</b><span class="muted">v2 latest, 5 Nov</span><span style="flex:1"></span><span class="muted dirty">All saved</span><span class="btn off">Save changes</span><span class="btn pri">Copy all</span></div>
+              <div id="o1rows"></div>
+              <div style="padding:12px 14px;border-top:1px solid var(--line)" class="hint">1 follow-up Clio does not show until answer 13 is Yes.  <a class="link">Show it</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Forms get the whole width. The rail answers "what has arrived and what is still waiting" at a glance, and removes the Jump line and the three-column board.</p><p><b>Costs.</b> The three notes can no longer be read side by side. Copying all notes means three clicks.</p></div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="opt" id="o2">
+    <h2>2. Form with its Clio checklist</h2>
+    <p class="what">The form is the page. Follow-ups sit indented under their question with a thin connector, the way they appear on the Clio page. A sticky panel on the right says what is left before the answers go to Clio. The client list collapses into a switcher in the top bar, which frees 190px.</p>
+    <div class="frame"><div class="comp o2">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="btn">Nadia Kowalczyk, Nadia-20261105-1 ▾</span><span class="muted">Intake call, 27 Oct 2026</span><span class="sp"></span><span>Transcript</span><span>Hidden names</span><span>Settings</span></div>
+      <div class="main">
+        <div class="grid">
+          <div>
+            <div class="who"><h3>Probate Intake Form</h3><span class="muted">v2 latest, 5 Nov. Notes: Clio Note v2, Overview v1, Clio form note v1</span></div>
+            <div class="panel form" id="o2rows"></div>
+          </div>
+          <div style="position:relative">
+            <div class="panel ready">
+              <h4>Before this goes to Clio</h4>
+              <div class="chk"><span>Answered</span><b>15 of 15</b></div>
+              <div class="chk bad"><span>Yes or No still empty</span><b>2</b></div>
+              <div class="chk bad"><span>Date missing a year</span><b>1</b></div>
+              <div class="chk"><span>Over the 255 limit</span><b>0</b></div>
+              <div class="chk"><span>Hidden names unknown</span><b>0</b></div>
+              <div class="chk"><span>Follow-ups not shown</span><b>1</b></div>
+              <p class="warnline" style="margin:10px 0">Answers 9 and 13 have no Yes or No, so Clio gets nothing there.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="btn pri">Save changes</span><span class="btn">Copy all</span></div>
+              <p class="hint" style="margin:8px 0 0"><a class="link">Copy with hidden names</a></p>
+            </div>
+            <div class="panel" style="margin-top:12px;padding:6px 14px">
+              <div class="chk" style="border:0"><span class="dot got" style="margin-top:6px"></span><span>Clio Note v2</span><b class="hint">open</b></div>
+              <div class="chk"><span class="dot got" style="margin-top:6px"></span><span>Overview v1</span><b class="hint">open</b></div>
+              <div class="chk"><span class="dot got" style="margin-top:6px"></span><span>Clio form note v1</span><b class="hint">open</b></div>
+              <div class="chk"><span class="dot got" style="margin-top:6px"></span><span>General form 5/5</span><b class="hint">open</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Matches how the paralegal checks a form: against the Clio page, in its order. Problems are listed once, in one place, instead of repeated as warnings under each row.</p><p><b>Costs.</b> It is a form view first. Notes become secondary links, so it is the right layout only if the form is what she works in most.</p></div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="opt" id="o3">
+    <h2>3. Tabs with an action bar</h2>
+    <p class="what">One tab per output, notes first, forms after a divider, each with its state. The panel below is one output at the full width, and the form runs in two columns so about ten entries show before any scrolling instead of six. A bar fixed to the bottom holds version, compare, copy and the save state.</p>
+    <div class="frame"><div class="comp o3">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="muted">Local only</span><span class="sp"></span><span>Theme</span><span>Settings</span></div>
+      <div class="shell">
+        <div class="clients"><div class="ini">EW</div><div class="ini">PR</div><div class="ini on">NK</div></div>
+        <div class="main">
+          <div class="who"><h3>Nadia Kowalczyk</h3><span class="cid">Nadia-20261105-1</span><span class="muted">Intake call, 27 Oct 2026, 5 of 5 outputs received</span></div>
+          <div class="tabs"><a>Clio Note <small>v2</small></a><a>Overview <small>v1</small></a><a>Clio form note <small>v1</small></a><span class="grp"></span><a class="on">Probate <small>15/15</small></a><a>General <small>5/5</small></a><span class="grp"></span><a class="muted">+ Ask Claude for more</a></div>
+          <div class="panel">
+            <div class="savebar"><span class="warnline">2 Yes or No answers are empty. 1 follow-up is not shown in Clio.</span></div>
+            <div class="cols" id="o3rows"></div>
+            <div class="actionbar"><span class="btn">v2 latest, 5 Nov ▾</span><span class="btn">Compare ▾</span><span style="flex:1"></span><span class="muted">All saved</span><span class="btn off">Save changes</span><span class="btn">Copy with hidden names</span><span class="btn pri">Copy all</span></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> Least change from today and the most familiar pattern. The tab bar shows the state of every output without opening it. Two form columns cut scrolling.</p><p><b>Costs.</b> Only one output is visible at a time, like option 1. The form's top-to-bottom order is split across two columns.</p></div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="opt" id="o4">
+    <h2>4. Call beside outputs</h2>
+    <p class="what">The scrubbed call sits on the left and the outputs on the right. Each form answer has a source chip with the lines of the call it came from, and tapping one highlights those lines. The client list moves into a top-bar switcher.</p>
+    <div class="frame"><div class="comp o4">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="btn">Nadia Kowalczyk ▾</span><span class="muted">Intake call, 27 Oct 2026</span><span class="sp"></span><span class="btn">Clio Note v2</span><span class="btn">Overview v1</span><span class="btn">Form note v1</span><span class="btn" style="border-color:var(--text);font-weight:650">Probate 15/15</span><span class="btn">General 5/5</span></div>
+      <div class="split">
+        <div class="src">
+          <div class="srchead">Call, hidden names shown as codes</div>
+          <div class="ln"><i>12</i><span>Nadia: Dad passed away on September fourteenth, I think <mark class="code">[DATE_1]</mark>.</span></div>
+          <div class="ln hit"><i>13</i><span>Renata: And did <mark class="code">[PERSON_2]</mark> own a home?</span></div>
+          <div class="ln hit"><i>14</i><span>Nadia: Yes, the house on <mark class="code">[ADDRESS_1]</mark>, about one point one million.</span></div>
+          <div class="ln"><i>15</i><span>Renata: Is anyone planning to sell?</span></div>
+          <div class="ln"><i>16</i><span>Nadia: I do not know yet. My brother <mark class="code">[PERSON_3]</mark> wants to.</span></div>
+          <div class="ln"><i>17</i><span>Renata: Has probate been started?</span></div>
+          <div class="ln"><i>18</i><span>Nadia: No, nothing has been filed.</span></div>
+          <div class="ln"><i>19</i><span>Nadia: Marcus says the condo was promised to him. May wants to keep it.</span></div>
+        </div>
+        <div class="out">
+          <div class="savebar" style="margin:-14px -20px 8px;padding:8px 20px"><b>Probate Intake Form</b><span class="muted">v2</span><span style="flex:1"></span><span class="muted">All saved</span><span class="btn off">Save</span><span class="btn pri">Copy all</span></div>
+          <div id="o4rows"></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> It is how an answer gets checked: look at what the caller said. The empty Yes or No at 9 and 13 can be settled from lines 15 to 18 without leaving the page.</p><p><b>Costs.</b> The source chips need new work. The app does not link answers to lines today, so this option includes a real feature, and Claude would have to return line numbers.</p></div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="opt" id="o5">
+    <h2>5. One table</h2>
+    <p class="what">All outputs of the call in one table with state, version and a one-line preview. A row opens in place into its content, so the paralegal sees where everything stands and opens only what she needs. The request list stays on the right.</p>
+    <div class="frame"><div class="comp o5">
+      <div class="top"><span class="brand">Matter Workbench</span><span class="muted">Local only</span><span class="sp"></span><span>Theme</span><span>Settings</span></div>
+      <div class="shell">
+        <div class="clients"><div class="new">New transcript</div><div class="c">Elena Whitfield<small>Elena-20261105-1</small></div><div class="c">Priya Raghunathan<small>Priya-20261105-1</small></div><div class="c on">Nadia Kowalczyk<small>Nadia-20261105-1</small></div></div>
+        <div class="main">
+          <div class="who"><h3>Nadia Kowalczyk</h3><span class="cid">Nadia-20261105-1</span><span class="muted">Intake call, 27 Oct 2026</span></div>
+          <div class="panel">
+            <table>
+              <thead><tr><th>Output</th><th>State</th><th>Version</th><th>Preview</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Clio Note</td><td><span class="state"><span class="dot got"></span>Received</span></td><td>v2</td><td><span class="prev">Call with <mark class="code">[PERSON_1]</mark>. Contact by email only. Please do not text.</span></td><td><span class="btn">Copy</span></td></tr>
+                <tr><td>Overview</td><td><span class="state"><span class="dot got"></span>Received</span></td><td>v1</td><td><span class="prev"><mark class="code">[PERSON_1]</mark> - probate, urgent. Referral from cousin.</span></td><td><span class="btn">Copy</span></td></tr>
+                <tr><td>Clio form note</td><td><span class="state"><span class="dot got"></span>Received</span></td><td>v1</td><td><span class="prev"><mark class="code">[PERSON_1]</mark> - probate. Father d. 14 Sep. House + condo.</span></td><td><span class="btn">Copy</span></td></tr>
+                <tr class="open"><td><b>Probate Intake Form</b></td><td><span class="state"><span class="dot got"></span>15 of 15</span></td><td>v2</td><td class="hint">2 empty Yes or No, 1 follow-up not shown</td><td><span class="btn pri">Copy all</span></td></tr>
+                <tr><td colspan="5" class="exp"><div class="qa" id="o5rows"></div></td></tr>
+                <tr><td>General Intake Form</td><td><span class="state"><span class="dot got"></span>5 of 5</span></td><td>v1</td><td><span class="prev">Estate Planning, Probate. Email. Referral.</span></td><td><span class="btn">Copy all</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="rightcol"><div class="panel ask" style="padding:12px 14px">
+          <b style="font-size:14px">Ask Claude for more</b>
+          <p class="hint" style="margin:2px 0 8px">Pre-ticked: only what is still waiting.</p>
+          <label><span class="box2"></span>Estate Plan - General Intake form</label>
+          <label><span class="box2"></span>Trust Admin Intake Form</label>
+          <label class="waiting"><span class="box2"></span>Clio form note <span class="hint">waiting</span></label>
+          <p style="margin:10px 0 0"><span class="btn pri">Copy for Claude</span></p>
+        </div></div>
+      </div>
+    </div></div>
+    <div class="tradeoff"><p><b>Gains.</b> The densest overview: every output, state and version in one place, no tabs. It scales if she works several calls, and expanding in place keeps her position.</p><p><b>Costs.</b> Notes are previewed, not read, so long text needs an expand. Two rows open at once make the page long.</p></div>
+  </section>
+</div>
+
+<script>
+var Q = [
+  [1, "What was the name of your loved one?", "text", "Stefan Kowalczyk"],
+  [2, "Did your loved one have any estate planning done?", "check", ["Yes! A full estate plan", "A little. Looks like some documents were done.", "None.", "Not sure."], 1],
+  [3, "In what state was your loved one a resident at the time of their death?", "text", "California"],
+  [4, "In what county was your loved one a resident at the time of their death?", "text", "Orange"],
+  [5, "When did your loved one pass away?", "text", "14 September, year not said", "A date as MM/DD/YYYY. The year was not said."],
+  [6, "What assets did your loved one leave behind?", "text", "Family home at 2217 Vista Alegre Drive, about 1.1 million. Rental condo, bank accounts, IRA, a car."],
+  [7, "Did your loved one own real estate when they died?", "yn", "Yes"],
+  [8, "Please share the full address.", "text", "2217 Vista Alegre Drive, Fullerton, California 92835", "", 7],
+  [9, "Are you planning to sell the property?", "yn", "", "", 7],
+  [10, "What family members did your loved one leave behind?", "check", ["Spouse", "Children", "Parent", "Sibling"], [1, 3]],
+  [11, "Are there any disagreements or unresolved matters among family members?", "yn", "Yes"],
+  [12, "Please explain. (disagreements)", "text", "Marcus wants to sell the house and says the condo was promised to him. May wants to keep it.", "", 11],
+  [13, "Was the probate process started?", "yn", ""],
+  [14, "Please provide case number and county where it was filed.", "shut", "", "", 13],
+  [15, "How did you hear about us?", "text", "Cousin Irena Wojcik, who used the firm for her mother's trust last year."],
+  [16, "Is there anything else you would like us to know?", "text", "Probate, urgent. Father died 14 September. House and condo, will from 1998, trust from about 2011, title unknown."]
+];
+function ans(r) {
+  var k = r[2];
+  if (k === "yn") return '<span class="pills"><span class="' + (r[3] === "Yes" ? "on" : (r[3] ? "" : "empty")) + '">Yes</span><span class="' + (r[3] === "No" ? "on" : (r[3] ? "" : "empty")) + '">No</span></span>' + (r[3] ? "" : ' <span class="warnline">Pick one</span>');
+  if (k === "check") return '<div class="opts">' + r[3].map(function (o, i) { var on = (Array.isArray(r[4]) ? r[4] : [r[4]]).indexOf(i) >= 0; return '<span class="' + (on ? "on" : "") + '">' + (on ? "&#10003; " : "") + o + '</span>'; }).join("") + '</div>';
+  if (k === "shut") return '<span class="hint">Shut until answer 13 is Yes</span>';
+  return '<div class="box">' + r[3] + '</div>' + (r[4] ? '<div class="warnline">' + r[4] + '</div>' : "");
+}
+function q(r) { return '<div class="q"><i>' + r[0] + '.</i>' + r[1] + (r[2] === "yn" ? ' <span class="hint">Yes or No</span>' : "") + '</div>'; }
+function kid(r) { return r.length > 5 && r[5]; }
+function fill(id, fn) { var el = document.getElementById(id); if (el) el.innerHTML = Q.map(fn).join(""); }
+
+fill("o1rows", function (r) { if (r[2] === "shut") return ""; return '<div class="formrow" style="' + (kid(r) ? "padding-left:36px" : "") + '">' + q(r) + '<div>' + ans(r) + '</div><div style="text-align:right"><span class="link">Copy</span></div></div>'; });
+fill("o2rows", function (r) {
+  if (r[2] === "shut") return '<div class="fold">1 follow-up Clio does not show until answer 13 is Yes</div>';
+  return '<div class="fr ' + (kid(r) ? "kid" : "") + '">' + q(r) + '<div>' + ans(r) + '</div></div>';
+});
+fill("o3rows", function (r) { if (r[2] === "shut") return ""; return '<div class="fr ' + (kid(r) ? "kid" : "") + '">' + q(r) + '<div>' + ans(r) + '</div></div>'; });
+var src = {1: "L3", 3: "L9", 4: "L9", 5: "L12", 6: "L14 L19", 7: "L13-14", 8: "L14", 9: "none", 10: "L5-6", 11: "L19", 12: "L19", 13: "L17-18", 15: "L2", 16: "L1-20"};
+fill("o4rows", function (r) {
+  if (r[2] === "shut") return "";
+  var s = src[r[0]] || "";
+  var cls = (r[0] === 7 || r[0] === 8) ? "hit" : (s === "none" || r[0] === 9 ? "none" : "");
+  return '<div class="fr"><div class="q" style="' + (kid(r) ? "padding-left:16px" : "") + '"><i style="color:var(--muted);font-style:normal;margin-right:6px">' + r[0] + '.</i>' + r[1] + '</div><div>' + ans(r) + '</div><div><div class="from ' + cls + '">' + (r[0] === 9 ? "not said" : (s || "")) + '</div></div></div>';
+});
+document.getElementById("o5rows").innerHTML = Q.filter(function (r) { return r[2] !== "shut"; }).map(function (r) { return '<div><span>' + r[0] + '. ' + r[1].slice(0, 56) + (r[1].length > 56 ? "..." : "") + '</span><span>' + (r[2] === "yn" ? ans(r) : (r[2] === "check" ? (Array.isArray(r[4]) ? r[4].map(function (i) { return r[3][i]; }).join(" | ") : r[3][r[4]]) : '<span class="box" style="display:block">' + r[3].slice(0, 70) + (r[3].length > 70 ? "..." : "") + '</span>')) + '</span></div>'; }).join("");
+
+function fit() {
+  document.querySelectorAll(".frame").forEach(function (f) {
+    var c = f.querySelector(".comp"), s = Math.min(1, f.clientWidth / 1200);
+    c.style.transform = "scale(" + s + ")";
+    f.style.height = (c.offsetHeight * s + 2) + "px";
+  });
+}
+window.addEventListener("resize", fit); window.addEventListener("load", fit); fit();
+</script>
+</body>
+</html>

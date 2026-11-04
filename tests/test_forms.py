@@ -272,17 +272,39 @@ def test_the_connector_patches_a_form_and_rejects_without_echoing_content(env):
 
 # ---- the page ----------------------------------------------------------------------------------------
 
+def test_every_output_card_has_a_fold_button_left_of_its_title_and_the_layout_follows_the_count(env):
+    web, cid, tx, tmp = env
+    copy(web, tx, [TEXT_SLUGS[0], TEXT_SLUGS[1], TEXT_SLUGS[2], PRO, TRU])
+    for slug in TEXT_SLUGS:
+        do_import(web, cid, reply(cid, tx, slug, "A note."))
+    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nMaria Santos"))
+    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 1]\nMaria Santos"))
+    page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
+    assert '<div class="board" data-cols="3">' in page and 'class="formgrid" id="intake-forms" data-cols="2"' in page
+    assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == list(TEXT_SLUGS)     # the Clio Note is the first card, so it gets the full row
+    for slug in (*TEXT_SLUGS, PRO, TRU):
+        assert page.count(f'data-fold="{slug}"') == 1                                         # one button for each output, shown only once script runs
+    assert re.search(r'<button type="button" class="foldbtn" data-fold="[a-z-]+" data-name="[^"]+" aria-expanded="true" aria-label="Fold [^"]+" hidden></button><h3 class="colname">', page)
+    css = web.get("/static/style.css").text
+    assert '.board[data-cols="3"] > .col:nth-child(1) { grid-column: 1 / -1;' in css and ".formgrid:not([data-cols=\"1\"]) { grid-template-columns: repeat(2" in css
+    assert "section.col.folded > :not(.foldhead), .fpanel.folded > :not(.fphead)" in css and "container-type: inline-size" in css
+    js = web.get("/static/app.js").text
+    assert 'folded-outputs' in js and "button[data-fold]" in js
+    assert page.count('rows="1" data-grow data-keep data-change-text') == 5               # every change box starts one line tall and grows
+    assert "textarea[data-grow]" in js and "growBox" in js and "max-height: 14rem" not in css
+
 def test_the_forms_show_under_the_board_with_one_copy_box_per_answer(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, PRO])
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nMaria Santos\n[ANSWER: 5]\nJune 1"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE]       # only what was asked for is on the page
-    assert page.index('class="board"') < page.index("Intake forms") < page.index(f'id="out-{PRO}"')
+    assert page.index('class="board"') < page.index('id="intake-forms"') < page.index(f'id="out-{PRO}"')
+    assert "<h2>Intake forms</h2>" not in page and 'class="formgrid" id="intake-forms" data-cols="1"' in page   # no outer card, a lone form is one column
     assert "2 of 12 answered, 4 follow-ups not shown in Clio" in page and "Jump to:" in page
     assert page.count("data-answer-text") == 10 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
     assert "data-answerform" in page and "Save changes" in page and "data-answer-edit" not in page
-    assert "Copy all" in page and "Ask Claude to change this form" in page
+    assert "Copy for Clio" in page and "Ask Claude to change this form" in page
     assert f'id="out-{EST}"' not in page and "Not requested" not in page and "Ask Claude for this" not in page
     assert f"/transcripts/{tx}/outputs/{PRO}/edit" in page and "<script>" not in page.replace("<script src", "")
 
@@ -607,3 +629,14 @@ def test_strict_keeps_yes_or_no_exact_and_empties_what_clio_would_not_show():
     assert forms.strict(EST, {1: "Yes", 2: "Not discussed", 3: "Not discussed"})[0] == {1: "Yes", 2: "Not discussed"}   # silent for Not discussed
     assert forms.strict(TRU, {2: "Will mail", 3: "Soon"})[0] == {2: "Will mail"}          # a pick-one that is no option opens nothing
     assert forms.merge(EST, forms.render(EST, {1: "Yes", 2: "Ana"}), {1: "No"}) == forms.render(EST, {1: "No"})
+
+
+def test_copy_for_clio_leaves_out_a_closed_follow_up_that_an_older_version_still_answers(env):
+    web, cid, tx, tmp = env
+    store = store_of(web)
+    content = forms.render(EST, {1: "No", 2: "Elena Whitfield", 3: "Single"})        # 2 is closed by the No, but this version holds it
+    _, rows = wf.view_form(store, cid, EST, content)
+    assert rows[1]["state"] == "answered" and rows[1]["fold"]
+    text = wf.clio_text(EST, rows, "Maria", "2026-11-02", 1)
+    assert "--- 1. Are you legally married?\nNo" in text and "--- 3." in text
+    assert "--- 2." not in text and "Elena Whitfield" not in text

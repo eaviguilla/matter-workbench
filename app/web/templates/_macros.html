@@ -2,6 +2,10 @@
 {%- for t, ty in items -%}{%- if ty -%}<mark class="tag tag-{{ ty|lower }}">{{ t }}</mark>{%- else -%}{{ t }}{%- endif -%}{%- endfor -%}
 {%- endmacro %}
 
+{% macro foldhead(name, slug) -%}
+<div class="foldhead"><button type="button" class="foldbtn" data-fold="{{ slug }}" data-name="{{ name }}" aria-expanded="true" aria-label="Fold {{ name }}" hidden></button><h3 class="colname">{{ name }}</h3></div>
+{%- endmacro %}
+
 {% macro csrf_field(token) -%}<input type="hidden" name="csrf" value="{{ token }}">{%- endmacro %}
 
 {% macro layout_help() -%}

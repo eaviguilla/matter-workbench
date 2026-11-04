@@ -1,6 +1,6 @@
 <article class="fpanel" id="out-{{ b.slug }}">
   <header class="fphead">
-    <h3 class="colname">{{ b.name }}</h3>
+    {{ m.foldhead(b.name, b.slug) }}
     {% if b.current %}{% set c = b.counts %}<p class="muted fpcount" data-answered="{{ c.answered }}">{{ c.answered }} of {{ c.total }} answered{% if c.not_discussed %}, {{ c.not_discussed }} not discussed{% endif %}{% if c.folded %}, {{ c.folded }} follow-up{{ 's' if c.folded != 1 }} not shown in Clio{% endif %}</p>{% endif %}
   </header>
   {% if b.current %}
@@ -23,7 +23,7 @@
   <div class="actions"><a class="button secondary" href="{{ b.plain_href }}" data-leave-guard>Show the answers</a></div>
   {% else %}
   <div class="actions copyrow fpall">
-    <button type="button" data-copy-text="#all-{{ b.slug }}"{% if b.is_latest %} data-save-first="1"{% endif %} data-unknown="{{ res.unknown|length }}" title="Copies every answer with real names" aria-label="Copy all answers of {{ b.name }}">Copy all</button>
+    <button type="button" data-copy-text="#all-{{ b.slug }}"{% if b.is_latest %} data-save-first="1"{% endif %} data-unknown="{{ res.unknown|length }}" title="Copies every answer with real names, ready for the Clio form filler" aria-label="Copy for Clio, the answers of {{ b.name }}">Copy for Clio</button>
     <button type="button" class="textbtn" data-copy-text="#allraw-{{ b.slug }}"{% if b.is_latest %} data-save-first="1"{% endif %}>Copy with hidden names</button>
     {% if not b.is_latest %}<span class="oldnote">Older version. The latest is v{{ b.latest }}.</span>{% endif %}
     <span class="status-msg" data-status></span>
@@ -57,7 +57,7 @@
   {% endif %}
   <div class="change" data-change data-version="{{ b.current.version }}" data-latest="{{ b.latest }}" data-store-key="change-{{ sel.id }}-{{ b.slug }}" data-preview-url="/transcripts/{{ sel.id }}/scrub-preview" data-hide-url="/transcripts/{{ sel.id }}/hide-word">
     <label for="chg-{{ b.slug }}">Ask Claude to change this form</label>
-    <textarea id="chg-{{ b.slug }}" rows="3" data-keep data-change-text spellcheck="false" placeholder="For example: answer 6 again with the bank accounts included."></textarea>
+    <textarea id="chg-{{ b.slug }}" rows="1" data-grow data-keep data-change-text spellcheck="false" placeholder="For example: answer 6 again with the bank accounts included."></textarea>
     <div class="flagbox" data-change-flags hidden></div>
     <p class="status-msg" data-box-msg role="status" hidden></p>
     <div class="actions">
@@ -67,7 +67,7 @@
   </div>
   {% else %}
   {% if b.waiting %}
-  <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Paste Claude's reply in the box above.</span></p>
+  <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Claude saves it with the connector, and this page checks every few seconds.{% if not mcp_on %} The connector is off. Turn it on in Settings.{% endif %}</span></p>
   {% else %}
   <p class="empty"><span><strong>Not requested.</strong></span></p>
   <div class="actions"><a class="button secondary" href="#request-more" data-ask="{{ b.slug }}">Ask Claude for this</a></div>

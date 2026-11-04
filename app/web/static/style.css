@@ -208,8 +208,8 @@ main.wide { max-width: none; }
 .col > * { min-width: 0; }
 .colname { margin: 0; font-size: 15px; color: var(--text); font-weight: 620; }
 .warnings p { margin: 8px 0 0; font-size: 13px; }
-.textbox { margin-top: 8px; display: flex; flex-direction: column; max-height: 24rem; min-height: 0; }
-.textbox pre.text { flex: 0 1 auto; min-height: 0; max-height: none; overflow: auto; }
+.textbox { margin-top: 8px; display: flex; flex-direction: column; min-height: 0; }
+.textbox pre.text { flex: 0 1 auto; min-height: 0; max-height: none; overflow: visible; }   /* the box is as tall as its text, one line for a short note */
 .textbox .difftitle { margin: 0 0 4px; font-size: 12px; }
 .empty { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); color: var(--muted); display: flex; align-items: center; justify-content: center; text-align: center; min-height: 7rem; flex: 1; }
 .empty strong { color: var(--text); margin-right: 4px; }
@@ -221,6 +221,7 @@ button.textbtn:hover, a.textbtn:hover { color: var(--text); background: var(--so
 .change:not(:empty) { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .change label { display: block; font-weight: 560; margin-bottom: 4px; }
 .change textarea { font-family: var(--font); font-size: 14px; }
+textarea[data-grow] { resize: none; width: 100%; box-sizing: border-box; }   /* one line until the text needs more */
 .change .actions { margin-top: 8px; }
 .flagbox { margin-top: 8px; padding: 8px 10px; border: 1px solid var(--signal); border-radius: var(--radius); background: var(--signal-bg); font-size: 13px; }
 .flagbox p { margin: 0 0 6px; }
@@ -233,7 +234,6 @@ button.textbtn:hover, a.textbtn:hover { color: var(--text); background: var(--so
 .flagbox .askplace .choice label { display: inline-flex; align-items: center; gap: 4px; }
 .hidlines { margin-top: 6px; }
 .hidline { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
-.paste textarea { font-size: 13px; }
 details.transcript, .more details, details.request, section.request { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; margin: 0 0 14px; }
 details.transcript summary, .more > details > summary, details.request > summary { cursor: pointer; font-weight: 620; font-size: 15px; }
 details.transcript[open] > summary, .more > details[open] > summary, details.request[open] > summary { margin-bottom: 8px; }
@@ -244,10 +244,12 @@ details.transcript[open] > summary, .more > details[open] > summary, details.req
   .board { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(6, auto); gap: 0 14px; }
   .board[data-cols="1"] { grid-template-columns: minmax(0, 1fr); }
   .board[data-cols="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* All three notes: the Clio Note takes a row of its own, the other two sit side by side under it. */
+  .board[data-cols="3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(12, auto); }
+  .board[data-cols="3"] > .col:nth-child(1) { grid-column: 1 / -1; grid-row: 1 / span 6; margin-bottom: 14px; }
+  .board[data-cols="3"] > .col:nth-child(2) { grid-column: 1; grid-row: 7 / span 6; }
+  .board[data-cols="3"] > .col:nth-child(3) { grid-column: 2; grid-row: 7 / span 6; }
   .col { display: grid; grid-row: span 6; grid-template-rows: subgrid; }
-  /* Short enough at 1440x900 that the change box below it shows on the first screen; long text scrolls inside. */
-  .textbox { height: clamp(9rem, calc(100vh - 40rem), 18rem); max-height: none; }
-  .textbox pre.text { flex: 1 1 auto; }
 }
 
 /* ---- call picker, view switch, version controls, hide, review places ---------------------------------- */
@@ -394,19 +396,31 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 
 /* Intake forms: a full-width panel for each form under the three-column board, one copy box per answer. */
 .forms { margin: 18px 0 14px; }
-.forms > h2 { margin: 0 0 10px; }
+/* The forms sit in two columns on a wide screen and in one on a small one. A lone form takes the whole width. */
+.formgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; margin: 0 0 14px; }
+.formgrid > .fpanel { margin: 0; }
+@media (min-width: 1200px) { .formgrid:not([data-cols="1"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* The fold button sits inside the card, left of the title. A folded card shows its title and nothing else. */
+.foldhead { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.foldhead .colname { min-width: 0; }
+.foldbtn { flex: none; width: 24px; height: 24px; min-height: 0; padding: 0; margin-left: -6px; border: 0; background: none; border-radius: var(--radius); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.foldbtn:hover { background: var(--soft); color: var(--text); }
+.foldbtn::before { content: ""; width: 7px; height: 7px; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); }
+.folded > .foldhead .foldbtn::before, .folded > .fphead .foldbtn::before { transform: translateX(-2px) rotate(-45deg); }
+section.col.folded > :not(.foldhead), .fpanel.folded > :not(.fphead), .fpanel.folded .fpcount { display: none; }
+section.col.folded, .fpanel.folded { align-self: start; }
 .jump { margin: 0 0 10px; font-size: 13px; }
 .jump a + a { margin-left: 2px; }
 .picktag { font-size: 12px; }
 .pickgroup { margin: 8px 0 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
-.fpanel { margin: 0 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); min-width: 0; }
+.fpanel { margin: 0 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); min-width: 0; container-type: inline-size; }
 .fpanel > * { min-width: 0; }
 .fphead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
 .fphead h3 { margin: 0; }
 .fpcount { margin: 0; font-size: 13px; }
 .fpall { margin: 8px 0; }
 .fdiff { margin: 8px 0; }
-.fdiff pre.text { max-height: 14rem; }
+.fdiff pre.text { max-height: none; overflow: visible; }
 .answers { list-style: none; margin: 8px 0 0; padding: 0; }
 .arow { display: grid; grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr) 10.5rem; gap: 6px 16px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
 .arow .aq { margin: 0; font-size: 14px; line-height: 1.45; }
@@ -414,7 +428,7 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .ahint { margin: 2px 0 0; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
 .qn { font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
 .abox { min-width: 0; }
-.abox pre.answer { margin: 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); white-space: pre-wrap; word-break: break-word; font: 13px/1.55 var(--mono); max-height: 14rem; overflow: auto; }
+.abox pre.answer { margin: 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); white-space: pre-wrap; word-break: break-word; font: 13px/1.55 var(--mono); }
 .abox .empty { min-height: 0; padding: 8px 10px; justify-content: flex-start; text-align: left; font-size: 13px; }
 .abox textarea { width: 100%; box-sizing: border-box; font: 13px/1.55 var(--mono); }
 .aact { flex-wrap: nowrap; white-space: nowrap; align-items: center; margin: 0; }
@@ -435,7 +449,7 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .arow.shut .aq, .arow.shut .abox { opacity: .55; }
 .arow.shut .seg label, .arow.shut textarea { cursor: not-allowed; }
 .arow .nd { margin: 4px 0 0; font-size: 12px; }
-.abox textarea[data-answer-text] { resize: vertical; min-height: 2.4rem; }
+.abox textarea[data-answer-text] { resize: none; min-height: 2.4rem; }   /* the height follows the text, so there is no drag handle */
 .savebar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 8px 0; background: var(--panel, var(--bg)); border-bottom: 1px solid var(--line); }
 .savebar.dirty .status-msg { color: var(--text); font-weight: 600; }
 .savebar button[disabled] { opacity: .5; }
@@ -447,6 +461,11 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .qedit { margin: 0 0 12px; }
 .qedit textarea { width: 100%; box-sizing: border-box; }
 @media (max-width: 960px) {
+  .arow { grid-template-columns: minmax(0, 1fr) auto; }
+  .arow .aqwrap { grid-column: 1 / -1; }
+}
+/* A form in half the width stacks its rows the same way, whatever the window is. */
+@container (max-width: 760px) {
   .arow { grid-template-columns: minmax(0, 1fr) auto; }
   .arow .aqwrap { grid-column: 1 / -1; }
 }

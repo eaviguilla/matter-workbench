@@ -1,20 +1,5 @@
-{% set paste_block %}
-<section class="paste" id="paste">
-  <h2>Paste Claude's reply</h2>
-  <p class="muted">It is checked first and saved to this transcript only after you confirm. Under [OUTPUT: name] lines, each part becomes a new version of that output.</p>
-  <form method="post" action="/clients/{{ cid }}/import" class="stack">
-    {{ m.csrf_field(csrf) }}
-    <input type="hidden" name="kind" value="output">
-    <input type="hidden" name="tx_id" value="{{ sel.id }}">
-    <label for="paste-text" class="sr">Claude's reply</label>
-    <textarea id="paste-text" name="text" rows="5" required data-keep spellcheck="false"></textarea>
-    <p class="actions"><button type="submit">Check reply</button></p>
-  </form>
-</section>
-{% endset %}
 <p class="notice" role="status" data-new-version hidden>New version available. <a href="" data-leave-guard>Reload to see it</a>. The text you typed is kept until you do.</p>
 <p class="notice" role="status" data-stale-version hidden>A newer version of this output was saved after this page opened, so nothing was copied. <a href="">Reload to see it</a>. The change you typed in the box is kept and will be there after the reload.</p>
-{% if waiting_any %}{{ paste_block }}{% endif %}
 {% set text_on = blocks|selectattr('on_page')|rejectattr('is_form')|list %}
 {% set forms_on = blocks|selectattr('on_page')|selectattr('is_form')|list %}
 <div class="outview" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
@@ -27,7 +12,7 @@
 <div class="board" data-cols="{{ text_on|length }}">
 {% for b in text_on %}
 <section class="col" id="out-{{ b.slug }}">
-  <h3 class="colname">{{ b.name }}</h3>
+  {{ m.foldhead(b.name, b.slug) }}
   {% if b.current %}
   {% set res, rsegs = b.shown %}
   {{ m.vctl(b, cid) }}
@@ -56,7 +41,7 @@
   {% endif %}
   <div class="change" data-change data-version="{{ b.current.version }}" data-latest="{{ b.latest }}" data-store-key="change-{{ sel.id }}-{{ b.slug }}" data-preview-url="/transcripts/{{ sel.id }}/scrub-preview" data-hide-url="/transcripts/{{ sel.id }}/hide-word">
     <label for="chg-{{ b.slug }}">Ask Claude to change this</label>
-    <textarea id="chg-{{ b.slug }}" rows="3" data-keep data-change-text spellcheck="false" placeholder="For example: shorten it, or add the deadline."></textarea>
+    <textarea id="chg-{{ b.slug }}" rows="1" data-grow data-keep data-change-text spellcheck="false" placeholder="For example: shorten it, or add the deadline."></textarea>
     <div class="flagbox" data-change-flags hidden></div>
     <p class="status-msg" data-box-msg role="status" hidden></p>
     <div class="actions">
@@ -68,7 +53,7 @@
   <div class="vctl"></div>
   <div class="warnings"></div>
   <div class="textbox">
-    <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Paste Claude's reply in the box above.{% if mcp_on %} The connector can also save it. This page checks every few seconds.{% endif %}</span></p>
+    <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Claude saves it with the connector, and this page checks every few seconds.{% if not mcp_on %} The connector is off. Turn it on in Settings.{% endif %}</span></p>
   </div>
   <div class="actions"></div>
   <div class="change"></div>
@@ -78,12 +63,10 @@
 </div>
 {% endif %}
 {% if forms_on %}
-<section class="forms" id="intake-forms">
-  <h2>Intake forms</h2>
+<div class="formgrid" id="intake-forms" data-cols="{{ forms_on|length }}">
   {% for b in forms_on %}{% include "_form_panel.html" %}{% endfor %}
-</section>
+</div>
 {% endif %}
-{% if not waiting_any %}{{ paste_block }}{% endif %}
 <section class="request" id="request-more">
   <h2>Request more outputs</h2>
   {{ m.copy_box(sel.id, output_choices, more_ticked, sel.status == 'draft', 'more', href_after_copy, directions, directions_ok, tags) }}

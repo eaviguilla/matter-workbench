@@ -764,7 +764,9 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                 if wf.is_form(slug):
                     rows = block["shown"][1]
                     block.update(rows=rows, counts=wf.form_counts(rows), entries=wf.form_items(rows),
-                                 all_text=wf.forms_listing(rows, "text"), all_raw=wf.forms_listing(rows, "raw"))
+                                 all_text=wf.clio_text(slug, rows, s.get_client(cid)["first_name"], str(tx["call_date"]),
+                                                       current["version"]),
+                                 all_raw=wf.forms_listing(rows, "raw"))
                 if other and wf.is_form(slug):
                     block.update(compare=other, diff=wf.form_diff(
                         slug, wf.view_form(s, tx["client_id"], slug, other["content"])[0].text, block["shown"][0].text))
@@ -956,7 +958,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     async def save_answer(request: Request, tx_id: str, slug: str):
         """Save the edited answers of a form as one new version (JSON: changes {number: text}, version, or the older
         shape n and text for one answer). version is the one the page showed. If a newer one exists nothing is saved
-        and the answer is 409 stale. Every other answer is copied as stored. The reply holds the Copy all texts of
+        and the answer is 409 stale. Every other answer is copied as stored. The reply holds the Copy for Clio texts of
         the version just saved, so a copy right after a save needs no second request."""
         data = await json_object(request)
         base, changes = data.get("version"), data.get("changes")
@@ -981,7 +983,8 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             rows = wf.view_form(s, tx["client_id"], slug, saved["content"])[1]
         log.info("answers edited %s %s q%s v%d", tx_id, slug, ",".join(map(str, sorted(changes))), version)
         return JSONResponse({"ok": True, "version": version, "masked": masked,
-                             "all": wf.forms_listing(rows, "text"), "allraw": wf.forms_listing(rows, "raw")})
+                             "all": wf.clio_text(slug, rows, s.get_client(tx["client_id"])["first_name"], str(tx["call_date"]), version),
+                             "allraw": wf.forms_listing(rows, "raw")})
 
     @router.post("/transcripts/{tx_id}/hide", response_class=HTMLResponse)
     async def hide_text(request: Request, tx_id: str):
