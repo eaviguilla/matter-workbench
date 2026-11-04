@@ -40,8 +40,8 @@ ESTATE_PLAN_FORM = (
     Question("Are you a California resident?", "yesno"),
     Question("Are you planning to move out of California soon?", "yesno"),
     Question("Do you have children?", "yesno"),
-    Question("Do they have special needs?", when=(8, "Yes"), limit=CLIO_TEXT),
-    Question("Are they minors?", when=(8, "Yes"), limit=CLIO_TEXT),
+    Question("Do they have special needs?", "yesno", when=(8, "Yes")),
+    Question("Are they minors?", "yesno", when=(8, "Yes")),
     Question("Do you currently own your home?", "yesno"),
     Question("Do you have any estate planning done?", "checkbox", options=PLAN_DONE),
     Question("Any deadlines we need to know about? For example, are you going on vacation soon and want your plan "
@@ -73,7 +73,7 @@ PROBATE_FORM = (
              "accounts)?", "textarea"),
     Question("Did your loved one own real estate when they died?", "yesno"),
     Question("Please share the full address.", when=(7, "Yes"), limit=CLIO_TEXT),
-    Question("Are you planning to sell the property?", when=(7, "Yes"), limit=CLIO_TEXT),
+    Question("Are you planning to sell the property?", "yesno", when=(7, "Yes")),
     Question("What family members did your loved one leave behind?", "checkbox", options=FAMILY),
     Question("Are there any disagreements or unresolved matters among family members regarding your loved one's "
              "belongings or affairs?", "yesno",

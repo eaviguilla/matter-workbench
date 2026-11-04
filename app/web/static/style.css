@@ -419,6 +419,11 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .abox textarea { width: 100%; box-sizing: border-box; font: 13px/1.55 var(--mono); }
 .aact { flex-wrap: nowrap; white-space: nowrap; align-items: center; margin: 0; }
 .arow.state-not_discussed pre.answer { color: var(--muted); }
+.abox pre.answer.pick { display: inline-block; min-width: 3.5rem; text-align: center; font: 600 13px/1.4 var(--sans, inherit); border-radius: 999px; padding: 4px 14px; }
+.abox pre.answer.pick-yes { border-color: var(--ok, #2f7d4f); color: var(--ok, #2f7d4f); }
+.abox pre.answer.pick-no { color: var(--muted); }
+.aedit .quick { margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.aedit .quick button { padding: 3px 12px; font-size: 13px; }
 .arow.kept .aq { color: var(--muted); }
 .foldgroup { border-top: 1px solid var(--line); padding: 8px 0; }
 .foldgroup > details > summary { cursor: pointer; font-size: 13px; color: var(--muted); }

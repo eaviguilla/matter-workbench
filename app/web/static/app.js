@@ -835,6 +835,12 @@
     e.preventDefault();
     openAnswer(a.closest(".arow"));
   });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-fill]");
+    if (!b) { return; }
+    var ta = b.closest(".aedit").querySelector("textarea");
+    ta.value = b.dataset.fill; ta.focus();
+  });
   document.addEventListener("keydown", function (e) {
     var ta = e.target.closest && e.target.closest("textarea[data-answer-text]");
     if (!ta) { return; }

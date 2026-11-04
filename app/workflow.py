@@ -1574,7 +1574,10 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
         text = shown.get(n, "")
         state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
         vis, parent, why = seen[n]
+        got = forms.choice(slug, n, text) if forms.DETAILS[slug][n - 1].kind == "yesno" else None
         rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
+                         yesno=forms.DETAILS[slug][n - 1].kind == "yesno",
+                         pick=got[0][0].lower() if got and got[1] else "",     # yes or no, only for an exact answer
                          hint=forms.hint(slug, n), over=forms.over(slug, n, text),
                          problem=forms.choice_problem(slug, n, text),
                          vis=vis, parent=parent, why=why, wanted=forms.DETAILS[slug][n - 1].when[1] if vis != "always" else "",

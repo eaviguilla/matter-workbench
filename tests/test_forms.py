@@ -53,7 +53,7 @@ def test_the_estate_plan_form_follows_the_clio_page():
 def test_the_probate_form_follows_the_clio_page():
     q = forms.DETAILS[PRO]
     assert [x.text for x in q] == list(forms.QUESTIONS[PRO]) and len(q) == forms.count(PRO)
-    assert [x.kind for x in q] == ["text", "checkbox", "text", "text", "date", "textarea", "yesno", "text", "text",
+    assert [x.kind for x in q] == ["text", "checkbox", "text", "text", "date", "textarea", "yesno", "text", "yesno",
                                    "checkbox", "yesno", "text", "yesno", "text", "text", "textarea"]
     for n, x in enumerate(q, 1):
         if x.when:
@@ -297,7 +297,25 @@ def test_the_estate_plan_form_shows_hints_and_warns_about_an_answer_over_the_cli
     assert "Only if answer 1 is Yes. 255 characters at most." in panel and "Only if answer 8 is Yes." in panel
     assert panel.count("5 characters over what the Clio box takes") == 1
     edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
-    assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 19 and "Only if answer 15 is No." in edit
+    assert len(re.findall(r'name="answer_\d+"', edit)) == 19 and "Only if answer 15 is No." in edit
+    assert edit.count("<select ") == 12 and edit.count("<textarea ") == 7         # a Yes or No entry is a drop-down
+
+
+def test_a_yes_or_no_entry_shows_as_a_yes_or_no_pick_and_flags_extra_words(env):
+    """Do they have special needs and Are they minors are Yes or No boxes on Clio, so a plain Yes shows as a pick, an
+    answer with detail is flagged, and both can be set with Yes, No or Not discussed."""
+    web, cid, tx, tmp = env
+    copy(web, tx, [NOTE, EST])
+    do_import(web, cid, reply(cid, tx, EST, "[ANSWER: 8]\nYes\n[ANSWER: 9]\nNo\n[ANSWER: 10]\nYes, Clara is 16"))
+    panel = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{EST}"')[1]
+    assert panel.count('class="answer pick pick-yes"') == 1 and panel.count('class="answer pick pick-no"') == 1
+    assert panel.count("Has extra words. Clio takes only Yes or No here.") == 1
+    assert panel.count('data-fill="No"') == 12 and "255 characters at most" not in panel.split('id="q-' + EST + '-9"')[1][:400]
+    edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
+    assert '<select id="edit-answer-9"' in edit and '<option value="No" selected>' in edit
+    assert "Yes, Clara is 16 (not Yes or No)" in edit
+    for slug, n in ((PRO, 9), (EST, 9), (EST, 10)):
+        assert forms.DETAILS[slug][n - 1].kind == "yesno" and forms.DETAILS[slug][n - 1].limit is None
 
 
 def test_the_trust_admin_form_saves_and_shows_a_follow_up_opened_by_a_radio_option(env):
@@ -310,7 +328,7 @@ def test_the_trust_admin_form_saves_and_shows_a_follow_up_opened_by_a_radio_opti
     assert "4 of 8 answered, 1 follow-up not shown in Clio" in panel and panel.count("Only if answer 2 is Not available. 255 characters at most.") == 1
     assert "One of: Mail | Drop Off | Email | Not available" in panel
     edit = web.get(f"/transcripts/{tx}/outputs/{TRU}/edit").text
-    assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 9 and "Only if answer 4 is Not available." in edit
+    assert len(re.findall(r'name="answer_\d+"', edit)) == 9 and "Only if answer 4 is Not available." in edit
 
 
 def panel_of(web, cid, tx, slug):
@@ -360,7 +378,7 @@ def test_the_edit_page_keeps_every_box_so_saving_it_never_clears_a_closed_answer
     copy(web, tx, [NOTE, TRU])
     do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 6]\nNo\n[ANSWER: 7]\nA family quarrel"))
     edit = web.get(f"/transcripts/{tx}/outputs/{TRU}/edit").text
-    assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 9 and "A family quarrel" in edit
+    assert len(re.findall(r'name="answer_\d+"', edit)) == 9 and "A family quarrel" in edit
     assert "Clio does not show this box now, answer 6 is No." in edit
     do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 7]\nA different quarrel"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs&{TRU}=2&cmp-{TRU}=1").text
@@ -443,7 +461,7 @@ def test_the_no_script_edit_page_has_one_box_per_question_and_clearing_a_box_cle
     web, cid, tx, tmp = env
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna\n[ANSWER: 2]\nYes"))
     page = web.get(f"/transcripts/{tx}/outputs/{PRO}/edit").text
-    assert len(re.findall(r'<textarea id="edit-answer-\d+"', page)) == 16
+    assert len(re.findall(r'name="answer_\d+"', page)) == 16
     data = {f"answer_{n}": "" for n in range(1, 17)} | {"answer_1": "Ana", "answer_5": "05/05/2026"}
     r = web.post(f"/transcripts/{tx}/outputs/{PRO}/edit?v=1", data, follow_redirects=False)
     assert r.status_code == 303

@@ -908,14 +908,15 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         return tx, next((o for o in versions if o["version"] == maybe_int(v)), versions[-1])
 
     def form_fields(s: Store, cid: str, slug: str, content: str, typed: dict | None = None) -> list:
-        """The edit page's boxes for a form: [(number, question, text)], the text with hidden names as stored."""
+        """The edit page's boxes for a form: [(number, question, text, hint, yesno)], the text with hidden names as stored."""
         if not wf.is_form(slug):
             return []
         shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
         seen = wf.forms.visibility(slug, shown if typed is None else typed)
         return [(n, q, typed[n] if typed is not None else shown.get(n, ""),
                  " ".join(x for x in (wf.forms.hint(slug, n),
-                                      f"Clio does not show this box now, {seen[n][2]}." if seen[n][0] == "closed" else "") if x))
+                                      f"Clio does not show this box now, {seen[n][2]}." if seen[n][0] == "closed" else "") if x),
+                 wf.forms.DETAILS[slug][n - 1].kind == "yesno")
                 for n, q in enumerate(wf.forms.QUESTIONS[slug], 1)]
 
     @router.get("/transcripts/{tx_id}/outputs/{slug}/edit", response_class=HTMLResponse)

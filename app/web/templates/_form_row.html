@@ -11,11 +11,12 @@
         {% if r.state == 'empty' %}
         <p class="empty"><span>No answer yet.</span></p>
         {% else %}
-        <pre class="answer" id="ans-{{ b.slug }}-{{ r.n }}">{% for t, ty in r.segs %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
+        <pre class="answer{{ ' pick pick-' ~ r.pick if r.pick }}" id="ans-{{ b.slug }}-{{ r.n }}">{% for t, ty in r.segs %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
         {% endif %}
         <div class="aedit" hidden>
           <label class="sr" for="aedit-{{ b.slug }}-{{ r.n }}">Answer {{ r.n }}, hidden names as stored</label>
-          <textarea id="aedit-{{ b.slug }}-{{ r.n }}" rows="3" spellcheck="false" data-answer-text data-start="{{ r.raw }}">{{ r.raw }}</textarea>
+          {% if r.yesno %}<p class="quick" role="group" aria-label="Set answer {{ r.n }}"><button type="button" class="secondary" data-fill="Yes">Yes</button> <button type="button" class="secondary" data-fill="No">No</button> <button type="button" class="secondary" data-fill="Not discussed">Not discussed</button></p>{% endif %}
+          <textarea id="aedit-{{ b.slug }}-{{ r.n }}" rows="{{ 1 if r.yesno else 3 }}" spellcheck="false" data-answer-text data-start="{{ r.raw }}">{{ r.raw }}</textarea>
           <p class="status-msg" data-answer-msg role="status" hidden></p>
           <div class="actions"><button type="button" data-answer-save="1">Save</button> <button type="button" class="textbtn" data-answer-cancel="1">Cancel</button> <span class="muted">Ctrl or Cmd + Enter saves, Esc cancels.</span></div>
         </div>
