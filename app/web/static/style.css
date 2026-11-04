@@ -451,6 +451,8 @@ section.col.folded, .fpanel.folded { align-self: start; }
 .arow .nd { margin: 4px 0 0; font-size: 12px; }
 .abox textarea[data-answer-text] { resize: none; min-height: 2.4rem; }   /* the height follows the text, so there is no drag handle */
 .savebar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 8px 0; background: var(--panel, var(--bg)); border-bottom: 1px solid var(--line); }
+.savebar { flex-wrap: wrap; }
+.saveend { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .savebar.dirty .status-msg { color: var(--text); font-weight: 600; }
 .savebar button[disabled] { opacity: .5; }
 .arow.kept .aq { color: var(--muted); }

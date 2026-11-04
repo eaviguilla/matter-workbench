@@ -871,7 +871,7 @@
     bar.querySelector("[data-save-all]").disabled = n === 0;
     bar.querySelector("[data-discard]").hidden = n === 0;
     bar.classList.toggle("dirty", n > 0);
-    msg.textContent = n ? n + " answer" + (n === 1 ? "" : "s") + " changed, not saved yet" : "Type in any box, then save once.";
+    msg.textContent = n ? "Not saved yet" : "";
   }
   function saveRows(panel) {
     var list = panel.querySelector("[data-answers]"), changes = {};
