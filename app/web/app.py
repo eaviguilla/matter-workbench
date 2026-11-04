@@ -68,6 +68,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     app.state.ner = ner or NerModel(NerConfig(model_dir=model_dir or DEFAULT_MODEL_DIR))
     app.state.data_dir, app.state.home = data_dir, home
     templates = Jinja2Templates(directory=HERE / "templates")
+    templates.env.globals["FORM_SLUGS"] = wf.FORM_SLUGS
     templates.env.filters["local_day"] = wf.local_day
     templates.env.filters["local_time"] = wf.local_time
     templates.env.filters["long_day"] = wf.long_day
@@ -702,7 +703,8 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     # ---- transcript view, copy, outputs -----------------------------------------------------
 
     def output_blocks(s: Store, tx: dict, params, cid: str) -> list:
-        """Always one block for each of the 3 outputs, in the app's order, so the board never changes shape. A block
+        """Always one block for each of the 5 outputs, in the app's order (the 3 text outputs make the board, the 2
+        forms sit under it as panels), so the page never changes shape. A block
         is received (has a version), waiting (asked for at the last copy) or none. Each block opens on its latest
         version. ?<output>=N shows an older one and ?cmp-<output>=M (or "prev") compares it, per output, so choosing
         in one column leaves the others as they are."""
@@ -725,7 +727,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         blocks, registry = [], s.load_registry(cid)
         for slug, name in wf.OUTPUTS:
             versions = s.list_outputs(tx["id"], slug)
-            block = dict(slug=slug, name=name, versions=versions, waiting=not versions and slug in tx["requested_outputs"],
+            block = dict(slug=slug, name=name, is_form=wf.is_form(slug), rows=[], answered=0, versions=versions, waiting=not versions and slug in tx["requested_outputs"],
                          current=None, raw="", shown=None, compare=None, diff=None, latest=None, plain_href=None,
                          version_options=[], compare_options=[], older_href=None, newer_href=None, back_href=None,
                          hidden=[], compare_value="", is_latest=True)
@@ -741,7 +743,8 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                     other = next((o for o in versions if o["version"] == cmp and o["version"] != current["version"]), None)
                 block.update(
                     current=current, raw=wf.placeholder_text(s, cid, current["content"], registry),
-                    shown=wf.view_output(s, tx["client_id"], current["content"]), latest=latest,
+                    shown=(wf.view_form if wf.is_form(slug) else wf.view_output)(s, tx["client_id"], *(
+                        (slug,) if wf.is_form(slug) else ()), current["content"]), latest=latest,
                     plain_href=href(slug, v=current["version"]), is_latest=current is versions[-1],
                     version_options=[dict(value=o["version"], selected=o is current, label=", ".join((
                         f"v{o['version']}" + (" latest" if o["version"] == latest else ""), wf.short_day(o["created_at"]),
@@ -756,7 +759,14 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                        for o in reversed(versions) if o is not current and not (at > 0 and o is versions[at - 1])],
                     hidden=[("tx", tx["id"]), ("view", "outputs")] + [(k, v) for k, v in state.items()
                                                                        if k not in (slug, f"cmp-{slug}")])
-                if other:
+                if wf.is_form(slug):
+                    rows = block["shown"][1]
+                    block.update(rows=rows, answered=sum(r["state"] != "empty" for r in rows), total=wf.forms.count(slug),
+                                 all_text=wf.forms_listing(rows, "text"), all_raw=wf.forms_listing(rows, "raw"))
+                if other and wf.is_form(slug):
+                    block.update(compare=other, diff=wf.form_diff(
+                        slug, wf.view_form(s, tx["client_id"], slug, other["content"])[0].text, block["shown"][0].text))
+                elif other:
                     block.update(compare=other, diff=wf.diff_rows(wf.view_output(s, tx["client_id"], other["content"])[0].text,
                                                                    block["shown"][0].text))
             blocks.append(block)
@@ -895,6 +905,14 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             raise HTTPException(404, "No such output")
         return tx, next((o for o in versions if o["version"] == maybe_int(v)), versions[-1])
 
+    def form_fields(s: Store, cid: str, slug: str, content: str, typed: dict | None = None) -> list:
+        """The edit page's boxes for a form: [(number, question, text)], the text with hidden names as stored."""
+        if not wf.is_form(slug):
+            return []
+        shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
+        return [(n, q, typed[n] if typed is not None else shown.get(n, ""))
+                for n, q in enumerate(wf.forms.QUESTIONS[slug], 1)]
+
     @router.get("/transcripts/{tx_id}/outputs/{slug}/edit", response_class=HTMLResponse)
     async def output_edit_page(request: Request, tx_id: str, slug: str, v: str | None = None):
         with open_store() as s:
@@ -902,6 +920,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             return workspace(request, s, tx["client_id"], "output_edit.html", tab="overview", tx=tx, slug=slug,
                              out_name=wf.OUTPUT_NAMES[slug], base=base,
                              text=wf.placeholder_text(s, tx["client_id"], base["content"]),
+                             qrows=form_fields(s, tx["client_id"], slug, base["content"]),
                              back=client_url(tx["client_id"], tx_id, "outputs", anchor=f"#out-{slug}"))
 
     @router.post("/transcripts/{tx_id}/outputs/{slug}/edit", response_class=HTMLResponse)
@@ -910,14 +929,40 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         with open_store() as s:
             tx, base = editable(s, tx_id, slug, v)
             text = str(form.get("content", ""))
+            typed = None
+            if wf.is_form(slug):
+                typed = {n: str(form.get(f"answer_{n}", "")) for n in range(1, wf.forms.count(slug) + 1)}
+                text = wf.forms.render(slug, typed)
             try:
                 version, masked = wf.edit_output(s, tx["client_id"], tx_id, slug, text, wf.load_settings(s).keep_first_names)
             except wf.ImportProblem as e:
                 return workspace(request, s, tx["client_id"], "output_edit.html", tab="overview", tx=tx, slug=slug,
                                  out_name=wf.OUTPUT_NAMES[slug], base=base, text=text, error=str(e),
+                                 qrows=form_fields(s, tx["client_id"], slug, base["content"], typed),
                                  back=client_url(tx["client_id"], tx_id, "outputs", anchor=f"#out-{slug}"))
         log.info("output edited %s %s v%d", tx_id, slug, version)
         return go(client_url(tx["client_id"], tx_id, "outputs", {"edited": slug, "masked": masked}, f"#out-{slug}"))
+
+    @router.post("/transcripts/{tx_id}/outputs/{slug}/answers")
+    async def save_answer(request: Request, tx_id: str, slug: str):
+        """Save one edited answer of a form as a new version (JSON: number, text, version). version is the one the page
+        showed. If a newer one exists nothing is saved and the answer is 409 stale. Every other answer is copied as
+        stored."""
+        data = await json_object(request)
+        n, base = data.get("n"), data.get("version")
+        if not wf.is_form(slug) or not isinstance(n, int) or isinstance(n, bool) or not isinstance(base, int) or isinstance(base, bool):
+            return JSONResponse({"error": "The request is not a form answer."}, status_code=400)
+        with open_store() as s:
+            tx = tx_or_404(s, tx_id)
+            try:
+                version, masked = wf.edit_answers(s, tx["client_id"], tx_id, slug, {n: str(data.get("text", ""))},
+                                                  wf.load_settings(s).keep_first_names, base)
+            except wf.StaleVersion as e:
+                return JSONResponse({"error": str(e), "stale": True}, status_code=409)
+            except wf.ImportProblem as e:
+                return JSONResponse({"error": str(e)}, status_code=400)
+        log.info("answer edited %s %s q%d v%d", tx_id, slug, n, version)
+        return JSONResponse({"ok": True, "version": version, "masked": masked})
 
     @router.post("/transcripts/{tx_id}/hide", response_class=HTMLResponse)
     async def hide_text(request: Request, tx_id: str):
@@ -1126,18 +1171,13 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
 
     # ---- settings ---------------------------------------------------------------------------
 
-    def instruction_rows(s: Store, typed: dict | None = None) -> list:
-        """(slug, name, text shown in the box, starter text). A box that was never changed shows the starter text."""
-        return [(slug, name, typed[slug] if typed is not None else wf.output_instruction(s, slug),
-                 wf.DEFAULT_INSTRUCTIONS[slug]) for slug, name in wf.OUTPUTS]
-
     def wants_json(request: Request) -> bool:
         return "application/json" in request.headers.get("accept", "")
 
     def settings_view(request, s, **extra):
         ner_model = app.state.ner
         ctx = dict(settings=wf.load_settings(s), ner=ner_model, saved=False, error=None, saved_section=None,
-                   model_dir=str(ner_model.config.model_dir), mcp_command=MCP_COMMAND, instructions=instruction_rows(s),
+                   model_dir=str(ner_model.config.model_dir), mcp_command=MCP_COMMAND,
                    project_on=wf.project_instructions(True), project_off=wf.project_instructions(False))
         ctx.update(extra)
         return render(request, "settings.html", **ctx)
@@ -1154,19 +1194,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     @router.get("/settings", response_class=HTMLResponse)
     async def settings_page(request: Request, saved: str = ""):
         with open_store() as s:
-            return settings_view(request, s, saved_section=saved if saved in ("model", "connector", "instructions") else ("all" if saved == "1" else None))
-
-    @router.post("/settings/outputs")
-    async def settings_outputs(request: Request):
-        form = await security.read_form(request)
-        typed = {slug: str(form.get(f"instructions_{slug}", "")) for slug in wf.OUTPUT_SLUGS}
-        with open_store() as s:
-            try:
-                # A box left on the starter text is stored as empty, so a later change to the starter text still applies.
-                wf.save_output_instructions(s, {k: ("" if v.strip() == wf.DEFAULT_INSTRUCTIONS[k] else v) for k, v in typed.items()})
-            except ValueError as e:
-                return settings_done(request, "instructions", str(e), instructions=instruction_rows(s, typed))
-        return settings_done(request, "instructions")
+            return settings_view(request, s, saved_section=saved if saved in ("model", "connector") else ("all" if saved == "1" else None))
 
     @router.post("/settings")
     async def settings_save(request: Request):

@@ -20,22 +20,9 @@
 </section>
 <section>
   <h2>Instructions to save in Claude</h2>
-  <p class="muted">Paste this once into your claude.ai Project, under the Project's instructions. It holds the standing rules, so Claude keeps placeholders unchanged and answers in a form this app can save. Copy for Claude sends the wording for each output every time, so it is not repeated here. The text follows the connector switch below.</p>
+  <p class="muted">Paste this once into your claude.ai Project, under the Project's instructions. It holds the rules this app depends on, such as keeping placeholders unchanged, the header line and the markers it reads. How each output is written is up to you. Add your own rules for the notes and the intake forms below this text. Copy for Claude names the outputs it wants and sends no writing rules. The text follows the connector switch below.</p>
   <pre id="claude-instructions" class="text" data-on="{{ project_on }}" data-off="{{ project_off }}">{{ project_on if settings.mcp_enabled else project_off }}</pre>
   <p class="actions"><button type="button" data-copy-text="#claude-instructions">Copy instructions</button> <span class="status-msg" data-status></span></p>
-</section>
-<section>
-  <h2>Output instructions</h2>
-  <p class="muted">Copy for Claude puts the instructions for the ticked outputs at the top of the text. Each box starts with the starter text, which you can change. Write the task only. Do not type client names here, because this text is sent to Claude as written.</p>
-  <form method="post" action="/settings/outputs" class="stack" data-save-form>
-    {{ m.csrf_field(csrf) }}
-    {% for slug, name, text, default in instructions %}
-    <label for="instr-{{ slug }}">{{ name }}</label>
-    <textarea id="instr-{{ slug }}" name="instructions_{{ slug }}" rows="4" maxlength="4000" data-starter="{{ default }}">{{ text }}</textarea>
-    <p class="actions"><button type="button" class="textbtn" data-reset-starter="#instr-{{ slug }}">Reset to starter text</button></p>
-    {% endfor %}
-    <p class="actions"><button type="submit">Save</button> <span class="status-msg" data-save-status role="status">{% if saved_section in ('instructions', 'all') %}Saved.{% endif %}</span></p>
-  </form>
 </section>
 <section>
   <h2>Claude Desktop connector (optional)</h2>

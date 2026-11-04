@@ -15,7 +15,12 @@
 {% macro pick_outputs(choices, ticked) -%}
 <fieldset class="pick">
   <legend>Ask Claude for</legend>
-  {% for slug, name in choices %}
+  <p class="pickgroup">Notes</p>
+  {% for slug, name in choices if slug not in FORM_SLUGS %}
+  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span></label>
+  {% endfor %}
+  <p class="pickgroup">Intake forms</p>
+  {% for slug, name in choices if slug in FORM_SLUGS %}
   <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span></label>
   {% endfor %}
 </fieldset>
@@ -43,4 +48,30 @@
     <span class="status-msg" data-status{% if locked or not ticked %} data-reason="1"{% endif %}>{% if locked %}Finish the review first{% elif not ticked %}Tick at least one output{% endif %}</span>
   </p>
 </div>
+{%- endmacro %}
+
+{% macro vctl(b, cid) -%}
+  <form method="get" action="/clients/{{ cid }}" class="vctl" data-nav-form>
+    {% for k, v in b.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    <div class="vrow">
+      {% if b.older_href %}<a class="arrow" href="{{ b.older_href }}" data-leave-guard aria-label="Older version of {{ b.name }}" title="Older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></span>{% endif %}
+      <label class="sr" for="ver-{{ b.slug }}">Version of {{ b.name }}</label>
+      <select id="ver-{{ b.slug }}" name="{{ b.slug }}" data-nav-select data-current="{{ b.current.version }}">
+        {% for o in b.version_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+      </select>
+      {% if b.newer_href %}<a class="arrow" href="{{ b.newer_href }}" data-leave-guard aria-label="Newer version of {{ b.name }}" title="Newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>{% endif %}
+    </div>
+    <div class="crow">
+      {% if b.version_options|length > 1 %}
+      <label for="cmp-{{ b.slug }}">Compare with</label>
+      <select id="cmp-{{ b.slug }}" name="cmp-{{ b.slug }}" data-nav-select data-current="{% for o in b.compare_options if o.selected %}{{ o.value }}{% endfor %}">
+        {% for o in b.compare_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      {% if b.back_href %}<a class="backlatest" href="{{ b.back_href }}" data-leave-guard>Back to latest</a>{% endif %}
+    </div>
+    <noscript><button type="submit" class="secondary">Show</button></noscript>
+  </form>
 {%- endmacro %}

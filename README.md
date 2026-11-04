@@ -100,12 +100,12 @@ Any text. The app never refuses a transcript for its layout. It looks for speake
    - Versions. Each output column has an older arrow, a drop-down (for example "v9 latest, 3 Nov, Claude", where the source is Claude, Pasted or Hand edit), a newer arrow, and a Compare with drop-down (Off, Previous with its version number, or any other version, with no version listed twice). Compare marks changed words and ignores differences in punctuation alone. A Back to latest link shows when an older version is on screen. Columns are independent.
    - Scrub this. If a name, email or address got through, select it in the transcript (or type it) and press Scrub this. The app hides it in this call, adds it to the client's hidden names and updates any output that contains it as a new hand-edit version. It tells you how many places changed. There is no undo, and it warns when Claude has already received the call. It refuses text that overlaps a placeholder, empty text and over-long text. Scrub this is on the Transcript view only. Selecting text there also shows a small Scrub 'text' button beside the selection, with a type choice. It fills this form and submits it with the same confirmation.
    - Title. A call can have a short optional title, set on the review page or from Edit title on the client page. It is saved as typed, with no flagged-word check, because it is shown on this computer only and is never part of any text copied for Claude.
-5. Copy for Claude, in the request bar. Tick the outputs you want from the checklist: Clio Note, Overview for Jordan's calendar notes and Clio form note. Copy stays off until at least one is ticked, and the app refuses a copy with none. The copied text starts with the instructions for only the ticked outputs, then the line `[CLIENT: <id> | TX: <id>]`, then the scrubbed transcript. It tells Claude to keep every placeholder unchanged and to reply with each output under a line that reads exactly like `[OUTPUT: clio-note]`. Only when the connector is switched on in Settings does it also mention the `save_output` tool (the same holds for change requests). The directions box shows the saved directions with real names, because a copy scrubs whatever it holds. The directions are stored only in scrubbed form and stay in the box after a copy, so a second copy sends them again, until you clear the box and copy. Paste it into that client's chat in your claude.ai Project. The next Copy starts with the same boxes ticked. The instructions for each output start as plain defaults and you can edit them in Settings under Output instructions. Jordan is staff, so the name in the output title is sent as written.
-6. When Claude replies, the board always shows all 3 outputs in the same order. An output you asked for shows "Waiting for Claude" until it arrives, and one you did not ask for shows "Not requested", so the layout never shifts. Columns sit side by side from about 1200px of window width and stack below that. There are two ways to get the reply in, and both work.
+5. Copy for Claude, in the request bar. Tick the outputs you want from the checklist, grouped as Notes (Clio Note, Overview for Jordan's calendar notes, Clio form note) and Intake forms (Probate intake form, Estate plan intake form). Copy stays off until at least one is ticked, and the app refuses a copy with none. The copied text starts with one line, `Outputs to write: Clio Note (clio-note), ...`, then your directions, then the line `[CLIENT: <id> | TX: <id>]`, then the scrubbed transcript. The app writes no rules for how an output is written. Those rules live in your claude.ai Project, and Settings has the text that tells Claude the format this app reads. The directions box shows the saved directions with real names, because a copy scrubs whatever it holds. The directions are stored only in scrubbed form and stay in the box after a copy, so a second copy sends them again, until you clear the box and copy. Paste it into that client's chat in your claude.ai Project. The next Copy starts with the same boxes ticked. There is no Output instructions section in Settings any more. Jordan is staff, so the name in the output title is sent as written.
+6. When Claude replies, the board always shows the 3 text outputs in the same order, and the two intake forms sit below it in full-width Intake forms panels. An output you asked for shows "Waiting for Claude" until it arrives, and one you did not ask for shows "Not requested", so the layout never shifts. Board columns sit side by side from about 1200px of window width and stack below that. Each answer of a form has its own box with a Copy button and an Edit link (Ctrl or Cmd plus Enter saves, Esc cancels). A reply that answers only some questions changes only those answers, and writing Not discussed clears one. A form reply needs a line `[ANSWER: 5]` above each answer, and a repeated or unknown number blocks the save. Each form also has a Copy next answer button. Each click copies the next answer you have not copied yet, marks it Copied, and shows how many are left. After the last one the button offers to start over. There are two ways to get the reply in, and both work.
    - Connector. If Claude has the `save_output` tool, each output is saved as it is written, and an open call page picks it up within a few seconds.
    - Paste Claude's reply, under the board. Paste the whole reply and choose Check reply. It is saved to this call after you confirm. If it has `[OUTPUT: slug]` lines, the app splits it and saves each part as a new version of that output, all in one save. If a marker names an unknown output, the check page says so and nothing is saved until you fix the line. If the reply has no markers, you choose which output it is. The older Import page still works and is linked from Running summary on the client page, which is where a summary is imported.
    Each column opens on its latest version, shown with the latest marked. The version chips switch only that column. Compare appears once an output has 2 or more versions. "Copy" is the one button and copies the version on screen with real values filled in. "Copy with placeholders" and "Edit" are quieter text actions beside it. The first copies the placeholder text and the second opens the placeholder text, where a save adds a new version with the source `edit`. Old versions are never changed. The import check still reports placeholders the reply did not use. A version saved before a name was hidden still shows the real name on screen, but "Copy with placeholders", the edit form and a change request mask every known real value again, for any version, and the saved file is not rewritten.
-7. To change one output, type the change in that column's "Ask Claude to change this" box and choose Copy for Claude. The app replaces known names, emails and addresses in what you typed, using this client's registry, before anything is copied or stored. The copied text holds, in order, what to do (revise only this output, keep placeholders, return the full text), the output's instructions from Settings, the header line, your scrubbed request, the current text of the version on screen with placeholders, and the scrubbed transcript. It is saved as a message of kind `correction`. If the scrubber flags capitalized words it could not place, the column lists them and the copy waits until you tick each one or edit the text.
+7. To change one output, type the change in that column's "Ask Claude to change this" box and choose Copy for Claude. The app replaces known names, emails and addresses in what you typed, using this client's registry, before anything is copied or stored. The copied text holds, in order, `Change request for <name> (output ID <slug>).`, the header line, your scrubbed request, the current text of the version on screen with placeholders, and the scrubbed transcript. It is saved as a message of kind `correction`. If the scrubber flags capitalized words it could not place, the column lists them and the copy waits until you tick each one or edit the text.
 8. Text you typed is never thrown away by the page. While a change box or the reply box holds text, the automatic refresh and the reload after a copy are skipped. A "New version available" note with a reload link appears instead, and version links ask before leaving.
 9. For a comment that is not about one output, use "More" on the client page, which links to Message to Claude. Real names typed there are replaced before you copy. Corrections add `[CORRECTION]` and the header.
 
@@ -124,32 +124,26 @@ One claude.ai Project holds all client work. Each client gets one chat, titled w
 - Privacy settings: whether chats may be used for model training.
 - Project memory: keep it separate from account memory so client context stays out of other chats.
 
-Paste this into the Project instructions, and adjust it if you wish. The per-output instructions come from Settings:
+Paste this into the Project instructions, and adjust it if you wish. Settings has the current text. Add your own rules for how each note and form is written, because the app does not send any:
 
 ```
-You help a law office with client intake. Every message starts with a header
-line [CLIENT: <client ID> | TX: <transcript ID>].
-- Personal data has been replaced with placeholders such as [PERSON_1],
-  [PERSON_1.first], [EMAIL_1], [ADDRESS_1].
+You help a law office with client intake. Every message starts with a header line, [CLIENT: <client ID> | TX: <transcript ID>].
 
-Rules:
-- Copy placeholders exactly as written. Never change their case or format,
-  never invent new ones, never guess the real values.
-- The same placeholder always means the same entity across this chat.
+Personal data has been replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [EMAIL_1] and [ADDRESS_1].
+
+Rules
+- Copy placeholders exactly as written. Never change their case or format, never invent new ones, and never guess the real values.
+- The same placeholder always means the same person or thing across this chat.
+- Do only the outputs the message asks for. Do not write the others.
 - Start every output with the header line of the transcript it is based on.
-- When you produce or revise an output and the save_output tool is available,
-  call it once per output with the client ID, the transcript ID, the output ID
-  (clio-note, jordan-calendar-overview or clio-form-note) and the full text.
-- If you cannot call it, put each output under a line that reads exactly like
-  [OUTPUT: clio-note].
+- Saving. Reply with each output under a line that reads exactly like [OUTPUT: clio-note], using the output ID (clio-note, jordan-calendar-overview or clio-form-note, probate-intake-form, estate-plan-intake-form), with nothing else on that line. The person saves your reply into the app.
+- The two intake forms (probate-intake-form, Probate intake form and estate-plan-intake-form, Estate plan intake form) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
 
-Outputs:
-- The three outputs and their instructions come with each copied transcript.
-  Do the ones listed there and no others.
+Changes
+- A message that starts with "Change request" revises one output for the transcript named in its header. Return the full revised output, not only the changes, and save it the same way as above.
 
-Corrections:
-- Messages starting with [CORRECTION] revise the latest output for the
-  transcript named in their header. Return the full revised output.
+Summaries
+- If asked for a running summary of the chat, keep every placeholder exactly as written.
 ```
 
 ## Where the data is
@@ -239,7 +233,7 @@ Tests use synthetic data only and temp folders. They never touch the real data f
 
 ## Test clients
 
-`scripts/seed_test_cases.py` adds 14 invented clients, all with names that start with Test, so you can look at the client page in every state. They cover 3 outputs with several versions and a hand edit, 1 output, 2 outputs waiting, a call with nothing asked for, a very long output, an unknown placeholder and a real value in a reply, 6 calls on different dates, a very long first name, an archived client and a client with no calls. Four newer cases have call titles. Testk has an output with 9 versions, Testl has 40 calls, Testm has a transcript and a note that still hold the name Hartley Quimby for trying Scrub this, and Testn has no calls, so you can paste `samples/review_may.txt` and try Choose each place. Every name, email and address in them is made up, and the registries hold those values so restored names show.
+`scripts/seed_test_cases.py` adds 14 invented clients, all with names that start with Test, so you can look at the client page in every state. They cover 3 text outputs with several versions and a hand edit (Testa also has a probate form), 1 output, 2 outputs waiting, a call with nothing asked for, a very long output, an unknown placeholder and a real value in a reply, 6 calls on different dates, a very long first name, an archived client and a client with no calls. Four newer cases have call titles. Testk has an output with 9 versions, Testl has 40 calls, Testm has a transcript and a note that still hold the name Hartley Quimby for trying Scrub this, and Testn has no calls, so you can paste `samples/review_may.txt` and try Choose each place. Every name, email and address in them is made up, and the registries hold those values so restored names show.
 
 ```bash
 .venv/bin/python scripts/seed_test_cases.py
@@ -294,4 +288,4 @@ Delete client sits at the top right of a client page, and Delete transcript at t
 
 ## Instructions to save in Claude
 
-Settings has a section "Instructions to save in Claude" with a Copy button. Paste it once into the claude.ai Project's instructions. It holds the standing rules (keep placeholders unchanged, do only the listed outputs, how to save or reply, how to revise one output). It names the `save_output` tool only while the connector is on. The wording for each output still comes with every copy.
+Settings has a section "Instructions to save in Claude" with a Copy button. Paste it once into the claude.ai Project's instructions. It holds the standing rules (keep placeholders unchanged, do only the listed outputs, how to save or reply, how to revise one output). It names the `save_output` tool only while the connector is on. The names of the outputs still come with every copy, and the writing rules are yours to add in the Project.

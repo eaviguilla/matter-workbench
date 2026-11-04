@@ -8,13 +8,13 @@ import pytest
 
 from app import workflow as wf
 from app.check import check
-from app.outputs import SLUGS
+from app.outputs import FORM_SLUGS, SLUGS, TEXT_SLUGS
 from app.scrub.pipeline import ScrubConfig, scrub_message
 from app.scrub.registry import Registry
 from app.store import Store
 from tests.webhelp import Session, fixture_text, make_app, review_form, saved_tx
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def add_client(web, first, people, office=()):
 
 def test_the_review_page_saves_the_checklist_and_scrubbed_directions_and_the_client_page_shows_them(web):
     r = paste(web, fixture_text(1))
-    assert r.text.count('name="output"') == 3 and 'name="directions"' in r.text and "Specific directions for Claude" in r.text
+    assert r.text.count('name="output"') == 5 and 'name="directions"' in r.text and "Specific directions for Claude" in r.text
     assert r.text.index("Specific directions for Claude") < r.text.index("data-gate-save")      # above Save
     cid, tx = save_call(web, fixture_text(1), outputs=[NOTE, FORM], directions="Mention Maria Lopez by role only.")
     with store_of(web) as s:
@@ -73,7 +73,7 @@ def test_the_review_page_saves_the_checklist_and_scrubbed_directions_and_the_cli
     page = web.get(f"/clients/{cid}?saved={tx}").text
     assert 'id="scrubbed-view"' in page and 'class="board"' not in page                         # opens on the Transcript view
     box = page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
     assert "Mention Maria Lopez by role only.</textarea>" in page         # real names in the box, because a copy scrubs them
     assert "Copy for Claude" in page and re.search(r'data-copy-url="[^"]*">Copy for Claude', page)   # enabled, not locked
     assert page.count("Transcript saved") == 1 and '<section class="saved"' not in page
@@ -83,7 +83,7 @@ def test_a_brand_new_clients_review_starts_from_the_last_choice_made_anywhere(we
     save_call(web, fixture_text(1), outputs=[CAL, FORM])
     r = paste(web, fixture_text(3))
     box = r.text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, ""), (CAL, " checked"), (FORM, " checked")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, ""), (CAL, " checked"), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
 
 
 def test_flagged_words_in_review_directions_stop_the_save_until_confirmed(web):
@@ -469,11 +469,9 @@ def test_the_manage_link_opens_more_and_manage_client(web):
 
 def test_settings_sections_save_alone_in_place_and_use_plain_words(web):
     page = web.get("/settings").text
-    assert page.count('<button type="submit">Save</button>') == 3 and "Reset to starter text" in page
+    assert page.count('<button type="submit">Save</button>') == 2 and "Reset to starter text" not in page
     assert "slug" not in page.lower() and ">clio-note<" not in page and "Confidence threshold" not in page
     assert "Download history with real names" in page and "Export history" not in page
-    first = re.search(r'<textarea id="instr-clio-note"[^>]*>(.*?)</textarea>', page, re.S).group(1)
-    assert h.unescape(first) == wf.DEFAULT_INSTRUCTIONS[NOTE]                           # prefilled with the starter text
     json_ok = lambda r: r.status_code == 200 and r.json() == {"ok": True}
     r = web.c.post("/settings", data={"csrf": web.token, "section": "connector", "mcp_enabled": "1"}, headers={"Accept": "application/json"})
     assert json_ok(r)
@@ -490,18 +488,6 @@ def test_settings_sections_save_alone_in_place_and_use_plain_words(web):
     plain = web.post("/settings", {"section": "model", "threshold": "0.6", "idle_minutes": "5"}, follow_redirects=False)
     assert plain.status_code == 303 and plain.headers["location"] == "/settings?saved=model"
     assert "Saved." in web.get("/settings?saved=model").text
-
-
-def test_instruction_boxes_keep_only_real_changes(web):
-    r = web.c.post("/settings/outputs", data={"csrf": web.token, f"instructions_{NOTE}": wf.DEFAULT_INSTRUCTIONS[NOTE],
-                                              f"instructions_{CAL}": "Write two lines.", f"instructions_{FORM}": ""},
-                   headers={"Accept": "application/json"})
-    assert r.status_code == 200
-    with store_of(web) as s:
-        assert s.get_setting(f"instructions.{NOTE}") == "" and s.get_setting(f"instructions.{CAL}") == "Write two lines."
-        assert wf.output_instruction(s, NOTE) == wf.DEFAULT_INSTRUCTIONS[NOTE]
-    page = web.get("/settings").text
-    assert "Write two lines.</textarea>" in page
 
 
 # ---- 14. hidden names ------------------------------------------------------------------------------------

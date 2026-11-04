@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 
 from app import workflow as wf
-from app.outputs import SLUGS
+from app.outputs import SLUGS, TEXT_SLUGS
 from app.scrub.ner import NerModel
 from app.scrub.pipeline import ScrubConfig, scrub_message, scrub_transcript
 from app.scrub.registry import Registry
@@ -21,7 +21,7 @@ from app.web import create_app
 from tests.fake_ner import FakeBackend
 from tests.webhelp import Session, make_app, review_form, saved_tx
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 ROOT = Path(__file__).resolve().parent.parent
 REAL = ROOT / "models" / "gliner_pii"
 needs_model = pytest.mark.skipif(not (REAL / "model_quantized.onnx").exists()
@@ -132,7 +132,7 @@ def test_the_view_opens_on_the_transcript_until_something_is_asked_or_received(e
     assert 'class="board"' in busy and 'id="scrubbed-view"' not in busy and "Request more outputs" in busy
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[2]}&view=transcript").text
     asked = web.get(f"/clients/{cid}?tx={txs[1]}&view=outputs").text
-    assert asked.count("Not requested") == 3 and 'class="board"' in asked
+    assert asked.count("Not requested") == 5 and 'class="board"' in asked
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[1]}&view=sideways").text      # unknown means the default
     web.post_json(f"/transcripts/{txs[1]}/copy", {"outputs": [NOTE]})
     assert 'class="board"' in web.get(f"/clients/{cid}?tx={txs[1]}").text and "Waiting for Claude" in web.get(f"/clients/{cid}?tx={txs[1]}").text
@@ -155,7 +155,7 @@ def test_the_transcript_view_holds_the_text_the_checklist_directions_and_copy_bu
     order = ["Transcript", 'id="scrubbed-view"', "Ask Claude for", "Specific directions for Claude", "Copy for Claude", "Scrub this"]
     spots = [page.index(m) for m in order]
     assert spots == sorted(spots)
-    assert page.count('name="output"') == 3 and "<details class=\"request\"" not in page
+    assert page.count('name="output"') == 5 and "<details class=\"request\"" not in page
     assert 'data-after-copy="' in page and 'class="legend"' in page
 
 
@@ -505,7 +505,7 @@ def test_directions_are_scrubbed_ordered_and_saved_as_a_comment(env):
     text = r.json()["text"]
     body = text.replace(f"[CLIENT: {cid} | TX: {txs[1]}]", "")
     assert "Lopez" not in text and "Maria" not in body and "Ask [PERSON_1] about the roof." in text
-    marks = ["Keep every placeholder", "1. clio-note", "2. clio-form-note", "Specific directions:\nAsk", f"[CLIENT: {cid} | TX: {txs[1]}]",
+    marks = ["Outputs to write: Clio Note (clio-note), Clio form note (clio-form-note).", "Specific directions:\nAsk", f"[CLIENT: {cid} | TX: {txs[1]}]",
              "[PERSON_1]: Call on"]
     spots = [text.index(m) for m in marks]
     assert spots == sorted(spots) and len(set(spots)) == len(spots)
@@ -820,9 +820,9 @@ def test_the_new_seed_cases_have_what_they_promise(tmp_path):
     with Store.open(tmp_path / "data", env={}, home=tmp_path) as s:
         by = {c["first_name"]: c["id"] for c in s.list_clients(include_archived=True)}
         k = s.list_transcripts(by["Testk"])
-        assert len(k) == 1 and [len(s.list_outputs(k[0]["id"], slug)) for slug in SLUGS] == [9, 2, 2] and k[0]["title"]
+        assert len(k) == 1 and [len(s.list_outputs(k[0]["id"], slug)) for slug in TEXT_SLUGS] == [9, 2, 2] and k[0]["title"]
         calls = s.list_transcripts(by["Testl"])
-        states = {(len([1 for slug in SLUGS if s.list_outputs(t["id"], slug)]), t["status"]) for t in calls}
+        states = {(len([1 for slug in TEXT_SLUGS if s.list_outputs(t["id"], slug)]), t["status"]) for t in calls}
         assert len(calls) == 40 and all(t["title"] for t in calls) and len(states) >= 4
         assert len({t["call_date"][:7] for t in calls}) >= 4
         m = s.list_transcripts(by["Testm"])[0]

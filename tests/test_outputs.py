@@ -6,10 +6,10 @@ import pytest
 
 from app import workflow as wf
 from app.store import Store
-from app.outputs import DEFAULT_INSTRUCTIONS, SLUGS
+from app.outputs import FORM_SLUGS, SLUGS, TEXT_SLUGS
 from tests.webhelp import Session, fixture_text, make_app, review_form, saved_tx
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 
 
 @pytest.fixture
@@ -142,54 +142,45 @@ def test_the_page_disables_copy_until_something_is_ticked_and_boxes_follow_the_l
     web, cid, tx, tmp = env
     page = web.get(f"/transcripts/{tx}").text
     assert re.search(r'<button type="button" data-copy-url="[^"]*" disabled>Copy for Claude', page)
-    assert page.count('name="output"') == 3 and " checked" not in page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
+    assert page.count('name="output"') == 5 and " checked" not in page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
     assert copy(web, tx, [FORM, NOTE]).status_code == 200
     fields = web.get(f"/transcripts/{tx}").text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
     assert re.search(r'data-copy-url="[^"]*">Copy for Claude', web.get(f"/transcripts/{tx}").text)
     # a later call starts from the last choice
     r = web.post(f"/clients/{cid}/intake", {"text": fixture_text(1).replace("Hello", "Hi there"), "call_date": "2026-11-01"})
     tx2 = saved_tx(web.post(f"/clients/{cid}/intake/save", review_form(r.text), follow_redirects=False))
     assert tx2 != tx
     fields = web.get(f"/transcripts/{tx2}").text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
 
 
-def test_the_copied_text_has_only_the_ticked_instructions_then_the_header_then_the_transcript(env):
+def test_the_copied_text_names_the_ticked_outputs_then_the_header_then_the_transcript_and_no_writing_rules(env):
     web, cid, tx, tmp = env
     text = copy(web, tx, [CAL]).json()["text"]
     head, rest = text.split(f"[CLIENT: {cid} | TX: {tx}]\n", 1)
-    assert DEFAULT_INSTRUCTIONS[CAL] in head and DEFAULT_INSTRUCTIONS[NOTE] not in text and DEFAULT_INSTRUCTIONS[FORM] not in text
-    assert "Overview for Jordan's calendar notes" in head and "Clio Note" not in text and "Clio form note" not in text
-    assert "exactly as written" in head and "save_output" not in head          # the connector is off, so the tool is not named
-    assert head.count("Reply with each output under a line that reads exactly like [OUTPUT:") == 1
-    assert f"[OUTPUT: {CAL}]" in head and "[OUTPUT: clio-note]" not in text   # the example names a ticked output
+    assert head == f"Outputs to write: Overview for Jordan's calendar notes ({CAL}).\n\n"
+    assert "Clio Note" not in text and "Clio form note" not in text and "[OUTPUT:" not in text and "save_output" not in text
     with store_of(web) as s:
         scrubbed = s.get_transcript(tx)["scrubbed_text"]
         assert rest == scrubbed and s.get_transcript(tx)["requested_outputs"] == [CAL]
         assert s.list_messages(cid)[0]["scrubbed_text"] == text
-    both = copy(web, tx, [FORM, NOTE]).json()["text"]
+    both = copy(web, tx, [FORM, NOTE, FORM_SLUGS[0]]).json()["text"]
     head = both.split("[CLIENT:")[0]
-    assert head.index(DEFAULT_INSTRUCTIONS[NOTE]) < head.index(DEFAULT_INSTRUCTIONS[FORM]) and DEFAULT_INSTRUCTIONS[CAL] not in both
+    assert head == f"Outputs to write: Clio Note ({NOTE}), Clio form note ({FORM}), Probate intake form ({FORM_SLUGS[0]}).\n\n"
     assert "Lopez" not in both
     doc = json.loads((tmp / "data" / "clients" / cid / "client.json").read_text(encoding="utf-8"))
-    assert doc["transcripts"][tx]["requested_outputs"] == [NOTE, FORM]
+    assert doc["transcripts"][tx]["requested_outputs"] == [NOTE, FORM, FORM_SLUGS[0]]
 
 
-def test_instructions_are_edited_in_settings_and_an_empty_box_returns_to_the_starter_text(env):
+def test_settings_has_no_output_instructions_and_the_old_routes_are_gone(env):
     web, cid, tx, tmp = env
     page = web.get("/settings").text
-    import html as h
-    assert all(f'name="instructions_{slug}"' in page for slug in SLUGS) and DEFAULT_INSTRUCTIONS[NOTE] in h.unescape(page)
-    r = web.post("/settings/outputs", {f"instructions_{NOTE}": "Write two lines only.", f"instructions_{CAL}": "",
-                                       f"instructions_{FORM}": ""}, follow_redirects=False)
-    assert r.status_code == 303
-    text = copy(web, tx, [NOTE, CAL]).json()["text"]
-    assert "Write two lines only." in text and DEFAULT_INSTRUCTIONS[NOTE] not in text and DEFAULT_INSTRUCTIONS[CAL] in text
-    assert "Write two lines only." in web.get("/settings").text
-    r = web.post("/settings/outputs", {f"instructions_{NOTE}": "x" * 4001})
-    assert "over 4000" in r.text
-    assert "Write two lines only." in copy(web, tx, [NOTE]).json()["text"]
+    assert "Output instructions" not in page and "instructions_" not in page and "Instructions to save in Claude" in page
+    assert web.c.post("/settings/outputs", data={"csrf": web.token}).status_code in (404, 405)
+    with store_of(web) as s:
+        s.set_setting(f"instructions.{NOTE}", "Write two lines only.")        # an old stored setting is ignored
+    assert "Write two lines only." not in copy(web, tx, [NOTE]).json()["text"]
 
 
 # ---- getting outputs in -------------------------------------------------------------------------------
@@ -442,7 +433,7 @@ def test_an_import_with_a_header_and_markers_stores_no_header_in_any_file(env):
             f"[OUTPUT: {CAL}]\nCalendar body.\n[CLIENT: {cid} | TX: {tx}]\n[OUTPUT: {FORM}]\n\nForm body.")
     do_import(web, cid, text)
     got = stored_texts(web, tx)
-    assert got == {NOTE: ["Note body."], CAL: ["Calendar body."], FORM: ["Form body."]}
+    assert got == {NOTE: ["Note body."], CAL: ["Calendar body."], FORM: ["Form body."], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
     assert HEADER_TEXT not in all_output_text(tmp)
 
 
@@ -457,7 +448,7 @@ def test_a_section_with_only_a_header_counts_as_empty_and_nothing_is_saved(env):
         for c in (check, plain):
             with pytest.raises(wf.ImportProblem):
                 wf.save_import(s, cid, c)
-    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: []}
+    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
 
 
 def test_the_connector_stores_no_header(env):
@@ -487,7 +478,7 @@ def test_a_mismatched_header_is_still_refused_and_stores_nothing(env):
                 wf.save_import(s, cid, check)
     chk = web.post(f"/clients/{cid}/import", {"text": f"[CLIENT: {other} | TX: {tx}]\nText.", "output": NOTE})
     assert f"This reply is for client {other}" in chk.text
-    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: []}
+    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
 
 
 def test_a_hand_edit_never_stores_a_header(env):

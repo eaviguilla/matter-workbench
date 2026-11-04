@@ -6,7 +6,7 @@ Last updated 4 Nov 2026. 721 tests pass (`.venv/bin/python -m pytest -q`, about 
 
 ## 1. What this is and who uses it
 
-A local web app for one paralegal at a law office. She pastes a client call transcript. The app removes names, emails and street addresses and swaps each for a code such as `[PERSON_1]`. She copies the scrubbed text into a claude.ai Project chat. Claude writes three outputs (Clio Note, Overview for Jordan's calendar notes, Clio form note) using the codes. She pastes Claude's reply back, and the app puts the real values back so she can copy the outputs into Clio.
+A local web app for one paralegal at a law office. She pastes a client call transcript. The app removes names, emails and street addresses and swaps each for a code such as `[PERSON_1]`. She copies the scrubbed text into a claude.ai Project chat. Claude writes up to five outputs (Clio Note, Overview for Jordan's calendar notes, Clio form note, and the Probate and Estate plan intake forms) using the codes. She pastes Claude's reply back, and the app puts the real values back so she can copy the outputs into Clio.
 
 The one promise the app makes is that a real name, email or address never reaches Claude. "A miss is a leak" is the guiding rule. Over-scrubbing only costs readability.
 
@@ -45,7 +45,8 @@ Never run `scripts/seed_test_cases.py` against the real data folder unless the o
 | `app/store.py` | File storage, locking, transactions, delete, audit log. |
 | `app/scrub/` | The scrubber. `parse.py`, `regex_rules.py`, `ner.py` (GLiNER via ONNX), `pipeline.py`, `registry.py`, `spans.py`, `evaluate.py`. |
 | `app/rehydrate.py` | Turns codes in text back into real values, and warns about unknown codes and plain real values. |
-| `app/outputs.py` | The three outputs, defined once (slug, name, default instructions, `[OUTPUT: slug]` parser). |
+| `app/outputs.py` | The five outputs, defined once (slug, name, text or form, `[OUTPUT: slug]` parser). No instruction text. |
+| `app/forms.py` | The two intake forms: question lists, `[ANSWER: n]` parser, canonical `render`, `merge` (a reply patches the latest version), `rows`. |
 | `app/ids.py` | Client and transcript ID formats, the header line `[CLIENT: id | TX: id]`. |
 | `app/paths.py` | Data folder choice and safety checks. |
 | `app/check.py` | `python -m app.check [--fix]`, a report of stored files with no stored values in it. |
@@ -58,6 +59,7 @@ Never run `scripts/seed_test_cases.py` against the real data folder unless the o
 | `samples/` | Synthetic transcripts for trying the UI (`sample_call.txt`, `review_may.txt`, `long_call.txt`). |
 | `docs/` | This file and `FUNCTIONS.md`. |
 | `README.md`, `CLAUDE.md` | User guide, and agent rules with per-round notes. Both stay at the project root. |
+| `docs/CLIO-EXTENSION-PLAN.md` | The next step. A Chrome extension that fills the Clio intake form from the copied answers. Waiting on saved Clio form pages. |
 | `docs/history/PLAN.md`, `docs/history/UI-PLAN.md` | History only. The storage plan and the UI plan with update notes per round, kept for the reasons behind earlier choices. Superseded by this file where they disagree. |
 
 ## 4. Data model on disk
@@ -76,11 +78,13 @@ All plain files, no database, no encryption (the owner decided that). Every real
       clio-note.json          one file per output, append-only list of versions
       jordan-calendar-overview.json
       clio-form-note.json
+      probate-intake-form.json      forms use the same append-only file, one text per version
+      estate-plan-intake-form.json
 ```
 
 IDs. A client ID is the first name plus the creation date plus a counter, such as `Maria-20261102-1`. Renaming a client changes the display name and never the ID. The ID goes to Claude in the header line of every copy, which is a known leak of the client's first name (see section 13). A transcript ID is `TX-<call date>-<n>`.
 
-Settings in `settings.json` (keys): `threshold`, `idle_minutes`, `mcp_enabled`, `last_outputs`, `instructions.<slug>` (editable output instructions), and per-client options `client.<id>.types`, `client.<id>.first_names`, `client.<id>.last_names`. The old global `keep_first_names` is no longer settable. `load_settings` ignores any stored value.
+Settings in `settings.json` (keys): `threshold`, `idle_minutes`, `mcp_enabled`, `last_outputs` (an old `instructions.<slug>` key is ignored), and per-client options `client.<id>.types`, `client.<id>.first_names`, `client.<id>.last_names`. The old global `keep_first_names` is no longer settable. `load_settings` ignores any stored value.
 
 Output versions have a `source`: `import` (pasted), `mcp` (connector), `edit` (hand edit), `hide` (a name was scrubbed after the fact, label "Name hidden"), `unhide` (a name was unscrubbed, label "Name restored"). Versions are never rewritten. A change adds a version.
 
@@ -136,15 +140,17 @@ The first name is the first word of a name, the last name is everything after it
 3. `hide_known_now` masks any real value the registry knows now that the saved text still holds (a name hidden after the call was saved). If it changed anything it saves the masked text back and writes an audit line. A word kept at review (`Store.decided_keep`) stays as written, and so does the client's own first name.
 4. `restore_switched_off` puts real values back for types switched off and for name parts the options leave visible.
 5. The message stored in `client.json` keeps the hidden form. Only the clipboard text has the restored values.
-6. Order of the copied text: intro (`copy_intro`), ticked outputs and their instructions, directions, header line `[CLIENT: id | TX: id]`, transcript.
+6. Order of the copied text: `Outputs to write: Name (slug), ...`, directions, header line `[CLIENT: id | TX: id]`, transcript. The app sends no writing rules (decided Nov 2026), so every rule lives in the Claude Project text from `project_instructions`.
 
-`prepare_change_request` does the same for a change box: intro, the output's instructions, header, scrubbed change request, the chosen version with codes, the transcript. A stale version is refused. `prepare_message` does it for the Message page. Typed boxes (change, directions, message) always hide last names.
+`prepare_change_request` does the same for a change box: `Change request for <name> (output ID <slug>).`, header, scrubbed change request, the chosen version with codes, the transcript. A stale version is refused. `prepare_message` does it for the Message page. Typed boxes (change, directions, message) always hide last names.
 
 `copy_intro` and `change_intro` mention the `save_output` tool only when the connector is on in Settings.
 
 ## 9. Import and rehydration
 
 `check_import(store, client_id, text, tx_id, keep_first_names, output)` reads the pasted reply, finds the header line to learn the client and transcript (if there is none it uses the transcript open on screen), splits `[OUTPUT: slug]` sections, masks any real value the registry knows (`mask_known_values`), rehydrates a preview (`rehydrate`), and lists replaced words, unknown codes and plain real values. Nothing is saved until the user confirms (`POST /clients/{cid}/import/save`, one transaction, one new version per output). Output files only accept slugs from `app/outputs.py`. Any text leaving as codes goes through `wf.placeholder_text`, which masks known values again for every version.
+
+Forms (`app/forms.py`). `check_import` reads a form piece with `forms.parse`: lines `[ANSWER: n]` start each answer, the n is the question number, text on the marker line counts, bold or heading marks around the marker are ignored. A duplicate number, an unknown number or a reply with no marker goes to `ImportCheck.bad_answers` and `save_import` refuses the whole save. Questions the reply leaves out are listed in `form_notes` and keep their old answer, because `save_import` lays the answers over the latest version with `forms.merge` inside the transaction. The stored text is always canonical (`forms.render`: every marker in order). `[ANSWER: n]` lines do not match `PLACEHOLDER_RE`, so rehydrate never flags them. A person edits one answer inline with `wf.edit_answers` (`POST /transcripts/{tx}/outputs/{slug}/answers`, refused with 409 when the base version is not the latest, other answers copied as stored, known real values masked) or all answers on the edit page (`wf.edit_output` delegates for forms). `wf.view_form` splits a version into per-question rows for the page and `wf.form_diff` lists the changed questions for Compare. Scrub this and Unscrub rewrite the whole text, so the markers stay. `app/check.py` reports a stored form version with an unknown, repeated or missing marker, by file and version only.
 
 `rehydrate` flags `unknown` codes (not in the registry, so Claude may have invented them) and `possible_real` (a real value in plain text in the reply).
 
@@ -172,7 +178,7 @@ No frameworks. Notable behaviours, all with tests that read the file:
 
 ## 12. The MCP connector
 
-`python -m mcp_server` speaks MCP over stdio (JSON lines). One tool, `save_output(client_id, transcript_id, output, content)`. Write-only. It uses the same code as the Import box, so known real values are masked before saving, and its replies never include stored data. Verified end to end with a real subprocess (`scratchpad/mcp_e2e.py` in an earlier session). It is NOT registered in Claude Desktop. Registering means adding an `mcpServers` entry to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS), and the owner has not asked for that yet. Do not edit their Claude config without their word. Until then the user pastes replies into the Paste Claude's reply box.
+`python -m mcp_server` speaks MCP over stdio (JSON lines). One tool, `save_output(client_id, transcript_id, output, content)`. The output enum has all five slugs, and for a form the content is `[ANSWER: n]` lines that patch the latest version. Write-only. It uses the same code as the Import box, so known real values are masked before saving, and its replies never include stored data. Verified end to end with a real subprocess (`scratchpad/mcp_e2e.py` in an earlier session). It is NOT registered in Claude Desktop. Registering means adding an `mcpServers` entry to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS), and the owner has not asked for that yet. Do not edit their Claude config without their word. Until then the user pastes replies into the Paste Claude's reply box.
 
 ## 13. Known limits and open items
 
@@ -205,6 +211,9 @@ Open decisions and known gaps, roughly by importance.
 - A new transcript that matches a client by full name or by the same first name stops and asks, showing the last call date.
 - A name added to Hidden names after a call was saved is hidden in every later copy and change request, and shown highlighted on the Transcript tab.
 - Typed reply and directions boxes survive a reload, and unsent text asks before the page is left.
+- Copy next answer (`_form_panel.html`, `copyNext` in `app.js`): one script-only button on a form with answers. Each click copies the next answer not marked Copied and marks it, and when all are marked the next click clears the marks. An earlier step-through Paste helper panel was removed as too complicated. Its button carries the value `1` because the script tests `dataset` values for truth, and a bare attribute is empty and falsy. Filling the Clio form itself is planned as a Chrome extension and needs a saved Clio page to build against. See `docs/CLIO-EXTENSION-PLAN.md`.
+- The app writes no rules for how outputs are written. Copy for Claude and change requests name only the outputs. The Output instructions section, its routes and the starter text are gone, and an old `instructions.<slug>` setting is ignored. The rules for format live only in Settings under Instructions to save in Claude.
+- Two new outputs, `probate-intake-form` (12 questions) and `estate-plan-intake-form` (15 questions), each answer in its own copy box under the 3-column board. Decisions: inline edit from the first release, independent checkboxes with none pre-ticked, a reply that skips a question keeps the old answer, Not discussed replaces one, a duplicate or unknown number blocks the whole save, per-question change requests were cut (Ask Claude to change this works on the whole form).
 
 ## 15. How to work in this repo
 

@@ -10,7 +10,7 @@ import pytest
 
 from app import workflow as wf
 from app.check import check, fix, main as check_main
-from app.outputs import SLUGS
+from app.outputs import SLUGS, TEXT_SLUGS
 from app.scrub.ner import NerModel
 from app.scrub.parse import parse_lenient
 from app.scrub.pipeline import ScrubConfig, scrub_message, scrub_transcript
@@ -20,7 +20,7 @@ from tests.fake_ner import FakeBackend
 from tests.test_ux_round import paste, save_call, store_of
 from tests.webhelp import Session, make_app, review_form
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 ROOT = Path(__file__).resolve().parent.parent
 CODES = {f"[PERSON_{n}]": ("person", 0.95) for n in range(1, 9)}
 CODES.update({f"[PERSON_{n}.first]": ("person", 0.95) for n in range(1, 9)})
@@ -271,22 +271,20 @@ def test_the_hidden_names_page_flags_a_code_entry_and_can_delete_it(tmp_path):
 
 # ---- 8. the connector sentence ------------------------------------------------------------------------------
 
-def test_the_save_output_sentence_appears_only_when_the_connector_is_on(web):
+def test_the_copy_and_change_request_never_mention_saving_and_the_project_text_follows_the_connector(web):
     cid, tx = save_call(web, TESTN, outputs=[NOTE])
     with store_of(web) as s:
         s.add_output(cid, tx, NOTE, "Note for [PERSON_1].")
     body = {"text": "Make it shorter.", "version": 1}
-    off_copy = web.post_json(f"/transcripts/{tx}/copy", {"outputs": [NOTE]}).json()["text"]
-    off_change = web.post_json(f"/transcripts/{tx}/outputs/{NOTE}/request-change", body).json()["text"]
-    assert "save_output" not in off_copy and "save_output" not in off_change
-    assert f"Reply with each output under a line that reads exactly like [OUTPUT: {NOTE}]" in off_copy
-    assert f"Reply with the revised text under a line that reads exactly [OUTPUT: {NOTE}]" in off_change
-    web.post("/settings", {"section": "connector", "mcp_enabled": "1"}, follow_redirects=False)
-    on_copy = web.post_json(f"/transcripts/{tx}/copy", {"outputs": [NOTE]}).json()["text"]
-    on_change = web.post_json(f"/transcripts/{tx}/outputs/{NOTE}/request-change", body).json()["text"]
-    assert on_copy.count("save_output") == 1 and on_change.count("save_output") == 1
-    assert "If you do not have it, reply with each output under a line" in on_copy
-    assert "If you do not have it, reply with the revised text under a line" in on_change
+    for on in (False, True):
+        if on:
+            web.post("/settings", {"section": "connector", "mcp_enabled": "1"}, follow_redirects=False)
+        copied = web.post_json(f"/transcripts/{tx}/copy", {"outputs": [NOTE]}).json()["text"]
+        changed = web.post_json(f"/transcripts/{tx}/outputs/{NOTE}/request-change", body).json()["text"]
+        assert "save_output" not in copied and "save_output" not in changed and "[OUTPUT:" not in copied + changed
+        assert changed.startswith(f"Change request for Clio Note (output ID {NOTE}).\n\n[CLIENT: {cid} | TX: {tx}]\n")
+        assert ("save_output" in wf.project_instructions(on)) is on
+        assert "[OUTPUT: clio-note]" in wf.project_instructions(on)
 
 
 # ---- 9. the import check list -----------------------------------------------------------------------------------

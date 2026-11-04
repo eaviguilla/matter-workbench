@@ -247,7 +247,7 @@ def test_the_instructions_name_the_save_tool_only_while_the_connector_is_on(web)
     page = web.get("/settings").text
     shown = re.search(r'<pre id="claude-instructions"[^>]*>(.*?)</pre>', page, re.S).group(1)
     assert "save_output" in shown and "[OUTPUT: clio-note]" in shown
-    assert "[PERSON_1]" in shown and "Revise only the output named below" in shown
+    assert "[PERSON_1]" in shown and "Change request" in shown and "[ANSWER: &lt;question number&gt;]" in shown
 
 
 def test_the_instructions_use_the_wording_the_copy_uses(web):
@@ -549,3 +549,13 @@ def test_the_sidebar_has_no_add_a_client_by_name_box(web):
 def test_typed_boxes_are_kept_in_the_tab_and_a_leave_warning_covers_every_exit():
     assert "mwb-typed:" in JS and "forgetTyped" in JS and 'addEventListener("beforeunload"' in JS
     assert "textarea[data-keep]:not([data-change-text])" in JS
+
+
+def test_the_check_command_accepts_a_name_restored_version(web):
+    from app.check import check
+    cid, tx, _ = make_call(web)
+    with store_of(web) as s:
+        n = s.load_registry(cid).lookup("PERSON", "Tomas Beltran")[0].n
+        s.add_output(cid, tx, NOTE, f"[PERSON_{n}] asked about rent.", "import")
+    web.post(f"/clients/{cid}/registry/delete", {"type": "PERSON", "n": str(n)})
+    assert check(web.c.app.state.data_dir) == []

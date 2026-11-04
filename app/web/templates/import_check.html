@@ -14,6 +14,8 @@
     {% if kind == 'output' %}
     {% for slug in check.bad_markers %}<li class="error">The output name "{{ slug }}" in an [OUTPUT: ...] line is not known. Fix the line and check again. Nothing is saved until every name is known.</li>{% endfor %}
     {% for slug in check.empty_markers %}<li class="error">The output {{ slug }} has an [OUTPUT: ...] line and no text under it.</li>{% endfor %}
+    {% for line in check.bad_answers %}<li class="error">{{ line }}</li>{% endfor %}
+    {% for line in check.form_notes %}<li class="ok">{{ line }}</li>{% endfor %}
     {% if check.loose_text %}<li class="muted">Claude's usual opening line before the first [OUTPUT: ...] line is not saved.</li>{% endif %}
     {% if check.pieces %}<li class="ok">Will save {{ check.pieces|length }} output{{ 's' if check.pieces|length != 1 }} {{ 'as a new version' if check.pieces|length == 1 else 'as new versions' }}: {% for p in check.pieces %}{{ p.name }}{{ ', ' if not loop.last }}{% endfor %}.</li>{% endif %}
     {% if check.needs_output %}<li class="warn">No [OUTPUT: ...] lines found. Pick which output this reply is below.</li>{% endif %}
@@ -58,7 +60,7 @@
     <input type="hidden" name="tx_id" value="{{ check.tx_id or '' }}">
     {% endif %}
     <p class="actions">
-      <button type="submit"{% if kind == 'output' and (check.bad_markers or check.empty_markers or (check.problem and not check.needs_pick and not check.tx_id)) %} disabled{% endif %} {% if check.unknown %}data-confirm="This reply has unknown placeholders. Import it anyway?"{% endif %}>{{ 'Save as summary' if kind == 'summary' else 'Import as a new version' if check.pieces|length == 1 else 'Import as new versions' }}</button>
+      <button type="submit"{% if kind == 'output' and (check.bad_markers or check.empty_markers or check.bad_answers or (check.problem and not check.needs_pick and not check.tx_id)) %} disabled{% endif %} {% if check.unknown %}data-confirm="This reply has unknown placeholders. Import it anyway?"{% endif %}>{{ 'Save as summary' if kind == 'summary' else 'Import as a new version' if check.pieces|length == 1 else 'Import as new versions' }}</button>
       <a class="button secondary" href="/clients/{{ cid }}/import">Back</a>
     </p>
   </form>

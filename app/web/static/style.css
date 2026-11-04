@@ -389,3 +389,42 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .deletelink:hover { background: var(--soft); }
 .confirmdel { max-width: 40rem; }
 .confirmdel .inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+
+/* Intake forms: a full-width panel for each form under the three-column board, one copy box per answer. */
+.forms { margin: 18px 0 14px; }
+.forms > h2 { margin: 0 0 10px; }
+.jump { margin: 0 0 10px; font-size: 13px; }
+.jump a + a { margin-left: 2px; }
+.pickgroup { margin: 8px 0 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.fpanel { margin: 0 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); min-width: 0; }
+.fpanel > * { min-width: 0; }
+.fphead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.fphead h3 { margin: 0; }
+.fpcount { margin: 0; font-size: 13px; }
+.fpall { margin: 8px 0; }
+.fdiff { margin: 8px 0; }
+.fdiff pre.text { max-height: 14rem; }
+.answers { list-style: none; margin: 8px 0 0; padding: 0; }
+.arow { display: grid; grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr) 10.5rem; gap: 6px 16px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+.arow .aq { margin: 0; font-size: 14px; line-height: 1.45; }
+.qn { font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
+.abox { min-width: 0; }
+.abox pre.answer { margin: 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); white-space: pre-wrap; word-break: break-word; font: 13px/1.55 var(--mono); max-height: 14rem; overflow: auto; }
+.abox .empty { min-height: 0; padding: 8px 10px; justify-content: flex-start; text-align: left; font-size: 13px; }
+.abox textarea { width: 100%; box-sizing: border-box; font: 13px/1.55 var(--mono); }
+.aact { flex-wrap: nowrap; white-space: nowrap; align-items: center; margin: 0; }
+.arow.state-not_discussed pre.answer { color: var(--muted); }
+.arow.copied .aq::after { content: " Copied"; font-size: 11px; font-weight: 560; color: var(--muted); margin-left: 6px; }
+.qedit { margin: 0 0 12px; }
+.qedit textarea { width: 100%; box-sizing: border-box; }
+@media (max-width: 960px) {
+  .arow { grid-template-columns: minmax(0, 1fr) auto; }
+  .arow .aq { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .fpanel { padding: 12px; }
+  .arow { grid-template-columns: minmax(0, 1fr); }
+  .aact { flex-wrap: wrap; white-space: normal; }
+}
+.requestbar .pick .pickgroup { clear: both; margin: 6px 0 4px; }
+

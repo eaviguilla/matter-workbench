@@ -15,35 +15,14 @@
 <p class="notice" role="status" data-new-version hidden>New version available. <a href="" data-leave-guard>Reload to see it</a>. The text you typed is kept until you do.</p>
 <p class="notice" role="status" data-stale-version hidden>A newer version of this output was saved after this page opened, so nothing was copied. <a href="">Reload to see it</a>. The change you typed in the box is kept and will be there after the reload.</p>
 {% if waiting_any %}{{ paste_block }}{% endif %}
+<p class="jump muted">Jump to: {% for b in blocks if b.is_form %}<a href="#out-{{ b.slug }}">{{ b.name }}</a>{{ ', ' if not loop.last }}{% endfor %}</p>
 <div class="board" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
-{% for b in blocks %}
+{% for b in blocks if not b.is_form %}
 <section class="col" id="out-{{ b.slug }}">
   <h3 class="colname">{{ b.name }}</h3>
   {% if b.current %}
   {% set res, rsegs = b.shown %}
-  <form method="get" action="/clients/{{ cid }}" class="vctl" data-nav-form>
-    {% for k, v in b.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-    <div class="vrow">
-      {% if b.older_href %}<a class="arrow" href="{{ b.older_href }}" data-leave-guard aria-label="Older version of {{ b.name }}" title="Older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No older version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></span>{% endif %}
-      <label class="sr" for="ver-{{ b.slug }}">Version of {{ b.name }}</label>
-      <select id="ver-{{ b.slug }}" name="{{ b.slug }}" data-nav-select data-current="{{ b.current.version }}">
-        {% for o in b.version_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
-      </select>
-      {% if b.newer_href %}<a class="arrow" href="{{ b.newer_href }}" data-leave-guard aria-label="Newer version of {{ b.name }}" title="Newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
-      {% else %}<span class="arrow off" aria-disabled="true" aria-label="No newer version"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>{% endif %}
-    </div>
-    <div class="crow">
-      {% if b.version_options|length > 1 %}
-      <label for="cmp-{{ b.slug }}">Compare with</label>
-      <select id="cmp-{{ b.slug }}" name="cmp-{{ b.slug }}" data-nav-select data-current="{% for o in b.compare_options if o.selected %}{{ o.value }}{% endfor %}">
-        {% for o in b.compare_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      {% if b.back_href %}<a class="backlatest" href="{{ b.back_href }}" data-leave-guard>Back to latest</a>{% endif %}
-    </div>
-    <noscript><button type="submit" class="secondary">Show</button></noscript>
-  </form>
+  {{ m.vctl(b, cid) }}
   <div class="warnings">
     {% if res.unknown %}<p class="error" role="alert">Unknown hidden names: {{ res.unknown|join(', ') }}. They are left as written. Check Claude did not invent them.</p>{% endif %}
     {% if res.possible_real %}<p class="warn" role="alert">The reply already contains {{ res.possible_real|length }} real value{{ 's' if res.possible_real|length != 1 }} in plain text. The claude.ai chat may hold a real name.</p>{% endif %}
@@ -93,6 +72,10 @@
 </section>
 {% endfor %}
 </div>
+<section class="forms" id="intake-forms">
+  <h2>Intake forms</h2>
+  {% for b in blocks if b.is_form %}{% include "_form_panel.html" %}{% endfor %}
+</section>
 {% if not waiting_any %}{{ paste_block }}{% endif %}
 <section class="request" id="request-more">
   <h2>Request more outputs</h2>

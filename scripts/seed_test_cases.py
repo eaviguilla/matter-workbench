@@ -17,11 +17,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.outputs import SLUGS  # noqa: E402
+from app import forms  # noqa: E402
+from app.outputs import FORM_SLUGS, SLUGS, TEXT_SLUGS  # noqa: E402
 from app.scrub.registry import Registry  # noqa: E402
 from app.store import Store  # noqa: E402
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 LONG_FIRST = "Testhlongfirstnamethatkeepsongoingandgoing"
 
 
@@ -57,6 +58,12 @@ def overview(p: dict, n: int = 1) -> str:
 def form(p: dict, n: int = 1) -> str:
     return (f"Matter: Lease repair\nContact: {p['me']}\nIssue: repair deadline of 20 November\n"
             f"Next step: send the draft on Friday. Revision {n}.")
+
+
+def probate(p: dict, n: int = 1) -> str:
+    return forms.render(FORM_SLUGS[0], {1: p["first"], 2: "No, there was no estate planning.", 3: "California",
+                                        4: "Orange", 5: "In March", 6: f"A house and a bank account. Revision {n}.",
+                                        10: "Not discussed"})
 
 
 def long_overview(p: dict) -> str:
@@ -104,7 +111,8 @@ def case_list() -> list:
             outputs={NOTE: [(lambda p: note(p, 1), "import"), (lambda p: note(p, 2), "mcp"),
                             (lambda p: note(p, 3) + " Hand edit: added the phone call time.", "edit")],
                      CAL: [(lambda p: overview(p, 1), "import"), (lambda p: overview(p, 2), "mcp")],
-                     FORM: [(lambda p: form(p, 1), "import")]})]),
+                     FORM: [(lambda p: form(p, 1), "import")],
+                     FORM_SLUGS[0]: [(lambda p: probate(p, 1), "import"), (lambda p: probate(p, 2), "edit")]})]),
         dict(first="Testb", last="Onlyone", calls=[dict(
             ago=2, topic="a boundary question", requested=[NOTE], status="copied",
             outputs={NOTE: [(lambda p: note(p), "import")]})]),

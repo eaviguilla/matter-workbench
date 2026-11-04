@@ -10,7 +10,7 @@ import pytest
 
 from app import workflow as wf
 from app.check import check
-from app.outputs import SLUGS
+from app.outputs import SLUGS, TEXT_SLUGS
 from app.scrub.registry import Registry
 from app.store import Store
 from tests.test_round3 import CALL, MAY, NOTE, change, code_of_may, each_form, may_case, review, store_of
@@ -311,7 +311,7 @@ def test_the_settings_connector_save_button_is_only_for_pages_without_script(web
 
 def test_the_import_check_says_a_new_version_for_one_output_and_new_versions_for_more(web):
     cid, tx = may_case(web)
-    one = web.post(f"/clients/{cid}/import", {"text": "A reply.", "kind": "output", "tx_id": tx, "output": SLUGS[2]}).text
+    one = web.post(f"/clients/{cid}/import", {"text": "A reply.", "kind": "output", "tx_id": tx, "output": TEXT_SLUGS[2]}).text
     assert "Import as a new version</button>" in one and "as a new version:" in one and "new versions" not in one
     two = web.post(f"/clients/{cid}/import", {"text": "[OUTPUT: clio-note]\nOne.\n[OUTPUT: clio-form-note]\nTwo.", "kind": "output", "tx_id": tx}).text
     assert "Import as new versions</button>" in two and "as new versions:" in two

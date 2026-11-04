@@ -1,6 +1,6 @@
 # Function list
 
-Total, 506 items.
+Total, 531 items.
 Every function, method and class in the app, the connector, the scripts and `run.py`, in file order. The text after each name is the first line of its docstring, or blank when it has none.
 
 ## app/__main__.py  (3)
@@ -11,11 +11,11 @@ Every function, method and class in the app, the connector, the scripts and `run
 
 ## app/check.py  (5)
 
-- `_load` (def, line 24)
-- `_fields` (def, line 38)
-- `check` (def, line 44). Problems found, as text that holds no stored value.
-- `fix` (def, line 130). Repair the one kind of damage a version of the app caused: a hidden-name entry whose value is a code such as
-- `main` (def, line 151)
+- `_load` (def, line 25)
+- `_fields` (def, line 39)
+- `check` (def, line 45). Problems found, as text that holds no stored value.
+- `fix` (def, line 135). Repair the one kind of damage a version of the app caused: a hidden-name entry whose value is a code such as
+- `main` (def, line 156)
 
 ## app/demo.py  (4)
 
@@ -23,6 +23,17 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `_NoHits.predict` (def, line 22)
 - `seed` (def, line 26)
 - `create_demo_app` (def, line 49)
+
+## app/forms.py  (8)
+
+- `Parsed` (class, line 54)
+- `count` (def, line 63)
+- `parse` (def, line 67). Read the answers out of a reply or a stored version. A stray [OUTPUT: ...] line is ignored.
+- `render` (def, line 89). The canonical stored text: every marker in order, an empty answer where there is none.
+- `merge` (def, line 94). The new answers laid over the latest version. A question the reply did not answer keeps what it had, and an
+- `missing` (def, line 102). Question numbers with no answer.
+- `rows` (def, line 107). [(number, question, answer)] for display, from a stored version.
+- `numbers` (def, line 113). [2, 3, 4, 9] as "2 to 4 and 9" is not needed here, a plain list reads fine: "2, 3, 4 and 9".
 
 ## app/ids.py  (5)
 
@@ -32,9 +43,10 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `header_line` (def, line 33)
 - `find_header` (def, line 39). Return the first valid header match in text, or None. Never guesses.
 
-## app/outputs.py  (1)
+## app/outputs.py  (2)
 
-- `is_slug` (def, line 30)
+- `is_slug` (def, line 31)
+- `is_form` (def, line 35)
 
 ## app/paths.py  (8)
 
@@ -270,225 +282,228 @@ Every function, method and class in the app, the connector, the scripts and `run
 
 - `client_url` (def, line 44). The client page with a call selected. Only IDs, numbers and fixed words go in the address, never a value.
 - `create_app` (def, line 51)
-- `create_app.lifespan` (async def, line 60)
-- `create_app.open_store` (def, line 77)
-- `create_app.guard` (async def, line 83)
-- `create_app.render` (def, line 108)
-- `create_app.friendly_errors` (async def, line 120). A person who submitted a form sees a page with a way back. Scripts keep the JSON they expect.
-- `create_app.storage_errors` (async def, line 136). A damaged file affects one client, so the page names it and the rest of the app keeps working.
-- `create_app.call_day` (def, line 147). The call date, or ValueError. A future date is almost always a typo, and it would sort wrongly. So is
-- `create_app.maybe_int` (def, line 157)
-- `create_app.bad_form` (def, line 163)
-- `create_app.client_or_404` (def, line 166)
-- `create_app.tx_or_404` (def, line 172)
-- `create_app.go` (def, line 178)
-- `create_app.workspace` (def, line 181)
-- `create_app.index` (async def, line 198)
-- `create_app.new_client` (async def, line 206)
-- `create_app.overview` (def, line 217). The client's page. extra can carry a notice, an error or the selected call.
-- `create_app.call_rows` (def, line 229). Each call with the state of the 3 outputs in the fixed order: received (latest version), waiting or none,
-- `create_app.display_args` (def, line 248)
-- `create_app.pick_view` (def, line 254). Transcript while nothing has been requested or received, otherwise Outputs, unless the address says.
-- `create_app.hide_notice` (def, line 260)
-- `create_app.client_context` (def, line 266). Everything the client page needs, with the call chosen by ?tx= (else the one just saved, else the newest).
-- `create_app.client_page` (async def, line 304)
-- `create_app.archive` (async def, line 343)
-- `create_app.export` (async def, line 350)
-- `create_app.intake_form` (async def, line 364)
-- `create_app.flag_body` (def, line 368). The open flags for the page: the words, and (only when there are any) the places that need a choice.
-- `create_app.review_extras` (def, line 376). The checklist, directions and any flagged words in them for the review page. A first review starts from the
-- `create_app.hide_words` (def, line 389). Words hidden with the Hide button in the review's directions box (for this transcript only, or for the client
-- `create_app.place_fields` (def, line 399). Choices for the typed places that need one, from fields "start|hide|word" or "start|send|word".
-- `create_app.begin_review` (def, line 409). Scrub the pasted text for this client and show the review page, or the paste form with the problem.
-- `create_app.intake_review` (async def, line 430)
-- `create_app.intake_new_form` (async def, line 439)
-- `create_app.intake_new` (async def, line 443)
-- `create_app.intake_start` (async def, line 475)
-- `create_app.client_options` (async def, line 503). Save the client's scrubbing options and come back to the page they were changed on.
+- `create_app.lifespan` (def, line 60)
+- `create_app.open_store` (def, line 78)
+- `create_app.guard` (def, line 84)
+- `create_app.render` (def, line 109)
+- `create_app.friendly_errors` (def, line 121). A person who submitted a form sees a page with a way back. Scripts keep the JSON they expect.
+- `create_app.storage_errors` (def, line 137). A damaged file affects one client, so the page names it and the rest of the app keeps working.
+- `create_app.call_day` (def, line 148). The call date, or ValueError. A future date is almost always a typo, and it would sort wrongly. So is
+- `create_app.maybe_int` (def, line 158)
+- `create_app.bad_form` (def, line 164)
+- `create_app.client_or_404` (def, line 167)
+- `create_app.tx_or_404` (def, line 173)
+- `create_app.go` (def, line 179)
+- `create_app.workspace` (def, line 182)
+- `create_app.index` (def, line 199)
+- `create_app.new_client` (def, line 207)
+- `create_app.overview` (def, line 218). The client's page. extra can carry a notice, an error or the selected call.
+- `create_app.call_rows` (def, line 230). Each call with the state of the 3 outputs in the fixed order: received (latest version), waiting or none,
+- `create_app.display_args` (def, line 249)
+- `create_app.pick_view` (def, line 255). Transcript while nothing has been requested or received, otherwise Outputs, unless the address says.
+- `create_app.hide_notice` (def, line 261)
+- `create_app.client_context` (def, line 267). Everything the client page needs, with the call chosen by ?tx= (else the one just saved, else the newest).
+- `create_app.client_page` (def, line 305)
+- `create_app.archive` (def, line 344)
+- `create_app.export` (def, line 351)
+- `create_app.intake_form` (def, line 365)
+- `create_app.flag_body` (def, line 369). The open flags for the page: the words, and (only when there are any) the places that need a choice.
+- `create_app.review_extras` (def, line 377). The checklist, directions and any flagged words in them for the review page. A first review starts from the
+- `create_app.hide_words` (def, line 390). Words hidden with the Hide button in the review's directions box (for this transcript only, or for the client
+- `create_app.place_fields` (def, line 400). Choices for the typed places that need one, from fields "start|hide|word" or "start|send|word".
+- `create_app.begin_review` (def, line 410). Scrub the pasted text for this client and show the review page, or the paste form with the problem.
+- `create_app.intake_review` (def, line 431)
+- `create_app.intake_new_form` (def, line 440)
+- `create_app.intake_new` (def, line 444)
+- `create_app.intake_start` (def, line 475)
+- `create_app.client_options` (def, line 503). Save the client's scrubbing options and come back to the page they were changed on.
 - `create_app.delete_counts` (def, line 533)
-- `create_app.delete_client_page` (async def, line 538). Asks first. Deleting is final, so the page says what goes and has one red button and a way back.
-- `create_app.delete_client` (async def, line 547)
-- `create_app.delete_transcript_page` (async def, line 556)
-- `create_app.delete_transcript` (async def, line 565)
-- `create_app.rename_client` (async def, line 575)
+- `create_app.delete_client_page` (def, line 538). Asks first. Deleting is final, so the page says what goes and has one red button and a way back.
+- `create_app.delete_client` (def, line 547)
+- `create_app.delete_transcript_page` (def, line 556)
+- `create_app.delete_transcript` (def, line 565)
+- `create_app.rename_client` (def, line 575)
 - `create_app.carried_decision` (def, line 585). One decision carried through a rescan, or None when it is not the shape this app writes.
 - `create_app.parse_review_form` (def, line 596). Decisions and extra values from the review form, plus what earlier rescans carried forward. A carry
 - `create_app.carry_json` (def, line 635)
-- `create_app.intake_rescan` (async def, line 639)
-- `create_app.intake_directions_preview` (async def, line 654). Flagged words in the directions box on the review page, for the review as it stands: the choices made so far,
-- `create_app.intake_save` (async def, line 671)
-- `create_app.output_blocks` (def, line 705). Always one block for each of the 3 outputs, in the app's order, so the board never changes shape. A block
-- `create_app.output_blocks.href` (def, line 718)
-- `create_app.transcript_page` (async def, line 767). The call page moved into the client page. Old links land on the right call, with every version and compare
-- `create_app.latest_version` (async def, line 778). Only a number, so the page can notice a version saved by the connector. It counts the versions of all
-- `create_app.copy_choice` (async def, line 786). The ticked output slugs, the optional directions and the confirmed flagged words, from JSON
-- `create_app.copy_transcript` (async def, line 803)
-- `create_app.request_change` (async def, line 822). Copy text that asks Claude to change one output. The typed request is scrubbed first. Words the scrubber
-- `create_app.json_object` (async def, line 852)
-- `create_app.scrub_preview` (async def, line 862). The capitalized words still flagged in text typed for Claude (a change request or directions), checked the
-- `create_app.hide_word` (async def, line 876). Hide one flagged word in the text being sent. By default it is hidden for this transcript only: later text
-- `create_app.editable` (def, line 891). The transcript and the version shown in the editor. 404 unless the output has a version to start from.
-- `create_app.output_edit_page` (async def, line 900)
-- `create_app.output_edit_save` (async def, line 909)
-- `create_app.hide_text` (async def, line 924). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
-- `create_app.set_call_title` (async def, line 944). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
-- `create_app.outgoing_page` (async def, line 966)
-- `create_app.message_input` (async def, line 970). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
-- `create_app.outgoing_preview` (async def, line 985)
-- `create_app.outgoing_hide_word` (async def, line 1000). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
-- `create_app.outgoing_copy` (async def, line 1015)
-- `create_app.import_page` (async def, line 1034). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
-- `create_app.import_check` (async def, line 1045)
-- `create_app.import_save` (async def, line 1063)
-- `create_app.registry_page` (async def, line 1081)
-- `create_app.registry_edit` (async def, line 1088)
-- `create_app.instruction_rows` (def, line 1130). (slug, name, text shown in the box, starter text). A box that was never changed shows the starter text.
-- `create_app.wants_json` (def, line 1135)
-- `create_app.settings_view` (def, line 1138)
-- `create_app.settings_done` (def, line 1146). Saved in place when the page asked for JSON, else back to the page with the result shown.
-- `create_app.settings_page` (async def, line 1156)
-- `create_app.settings_outputs` (async def, line 1161)
-- `create_app.settings_save` (async def, line 1173). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
+- `create_app.intake_rescan` (def, line 639)
+- `create_app.intake_directions_preview` (def, line 654). Flagged words in the directions box on the review page, for the review as it stands: the choices made so far,
+- `create_app.intake_save` (def, line 671)
+- `create_app.output_blocks` (def, line 705). Always one block for each of the 5 outputs, in the app's order (the 3 text outputs make the board, the 2
+- `create_app.output_blocks.href` (def, line 719)
+- `create_app.transcript_page` (def, line 776). The call page moved into the client page. Old links land on the right call, with every version and compare
+- `create_app.latest_version` (def, line 787). Only a number, so the page can notice a version saved by the connector. It counts the versions of all
+- `create_app.copy_choice` (def, line 795). The ticked output slugs, the optional directions and the confirmed flagged words, from JSON
+- `create_app.copy_transcript` (def, line 812)
+- `create_app.request_change` (def, line 831). Copy text that asks Claude to change one output. The typed request is scrubbed first. Words the scrubber
+- `create_app.json_object` (def, line 861)
+- `create_app.scrub_preview` (def, line 871). The capitalized words still flagged in text typed for Claude (a change request or directions), checked the
+- `create_app.hide_word` (def, line 885). Hide one flagged word in the text being sent. By default it is hidden for this transcript only: later text
+- `create_app.editable` (def, line 900). The transcript and the version shown in the editor. 404 unless the output has a version to start from.
+- `create_app.form_fields` (def, line 908). The edit page's boxes for a form: [(number, question, text)], the text with hidden names as stored.
+- `create_app.output_edit_page` (def, line 917)
+- `create_app.output_edit_save` (def, line 927)
+- `create_app.save_answer` (def, line 947). Save one edited answer of a form as a new version (JSON: number, text, version). version is the one the page
+- `create_app.hide_text` (def, line 968). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
+- `create_app.set_call_title` (def, line 988). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
+- `create_app.outgoing_page` (def, line 1010)
+- `create_app.message_input` (def, line 1014). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
+- `create_app.outgoing_preview` (def, line 1029)
+- `create_app.outgoing_hide_word` (def, line 1044). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
+- `create_app.outgoing_copy` (def, line 1059)
+- `create_app.import_page` (def, line 1078). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
+- `create_app.import_check` (def, line 1089)
+- `create_app.import_save` (def, line 1107)
+- `create_app.registry_page` (def, line 1125)
+- `create_app.registry_edit` (def, line 1132)
+- `create_app.wants_json` (def, line 1174)
+- `create_app.settings_view` (def, line 1177)
+- `create_app.settings_done` (def, line 1185). Saved in place when the page asked for JSON, else back to the page with the result shown.
+- `create_app.settings_page` (def, line 1195)
+- `create_app.settings_save` (def, line 1200). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
 
 ## app/web/security.py  (7)
 
-- `read_form` (async def, line 16). The posted form. Starlette's defaults (one field up to 1 MB, 1000 fields) are lower than what the app accepts: a
+- `read_form` (def, line 16). The posted form. Starlette's defaults (one field up to 1 MB, 1000 fields) are lower than what the app accepts: a
 - `host_allowed` (def, line 36)
 - `Csrf` (class, line 43)
 - `Csrf.__init__` (def, line 44)
 - `Csrf.token` (def, line 47)
 - `Csrf.valid` (def, line 50)
-- `csrf_guard` (async def, line 54). Dependency on every router: a state-changing request must carry the token for its session.
+- `csrf_guard` (def, line 54). Dependency on every router: a state-changing request must carry the token for its session.
 
-## app/workflow.py  (120)
+## app/workflow.py  (123)
 
-- `clean_text` (def, line 26). The pasted text as the scrubber should read it. Invisible format characters (zero-width spaces, a byte
-- `local_time` (def, line 35). A stored UTC timestamp as the user's own date and time. Unreadable values are shown as they are.
-- `local_day` (def, line 43)
-- `_same_call_text` (def, line 47). Scrubbed text with the spacing that does not change the call removed, to spot a repeated paste.
-- `project_instructions` (def, line 90). The standing text for the claude.ai Project instructions box. It names the save_output tool only when the
-- `copy_intro` (def, line 96). The opening of Copy for Claude. The save_output tool is mentioned only when the connector is switched on in
-- `ReviewIncomplete` (class, line 103). Some flagged words have no decision yet.
-- `DirectionsFlagged` (class, line 107). The directions hold capitalized words that might be names. `words` are the ones not yet confirmed.
-- `DirectionsFlagged.__init__` (def, line 110)
-- `ImportProblem` (class, line 116). The pasted reply cannot be imported as it is. The message says what to do.
-- `Settings` (class, line 126)
-- `ClientOptions` (class, line 136). What is scrubbed for one client. first_names: 'inherit' uses the global setting.
-- `load_client_options` (def, line 143)
-- `save_client_options` (def, line 152)
-- `client_settings` (def, line 164). The global settings with this client's own scrub options applied on top.
-- `lone_name_is_first` (def, line 171). For a code with no part whose full form is one word: is that word a first name? The word is a surname when a
-- `name_hidden` (def, line 180). (first names hidden, last names hidden) for this client. With names switched off, neither is.
-- `person_pieces` (def, line 186). The pieces of one name code, as [(text, code or None)], or None when the code has no known value. A piece with a
-- `restore_switched_off` (def, line 215). Scrubbed call text as it should leave for Claude under this client's scrubbing options. A code of a kind switched
-- `restore_switched_off.swap` (def, line 226)
-- `load_settings` (def, line 241)
-- `save_settings` (def, line 250)
-- `apply_settings` (def, line 261)
-- `scrub_config` (def, line 266)
-- `segments` (def, line 272). [(text, type or None)] for the original text, given (start, end, type) spans.
-- `real_segments` (def, line 285). [(text, type or None)] for the Transcript tab: each placeholder shows its real value. A value keeps its tag while
-- `tag_segments` (def, line 311). [(text, type or None)] for scrubbed text: each placeholder becomes a tagged piece.
-- `client_full_name` (def, line 322). The real full name of the client as seen locally: the person whose first name matches.
-- `client_rows` (def, line 335)
-- `Person` (class, line 349)
-- `Detection` (class, line 358)
-- `KnownNames` (class, line 365). What every client's hidden names say about who is who, read once for a match.
-- `KnownNames.shared` (def, line 371)
-- `KnownNames.staff` (def, line 374). Office staff by a mark, or stored for more than one client, which only office staff are.
-- `known_names` (def, line 379)
-- `office_speaker` (def, line 394). The entity that answers the calls, from the speaker lines of one call, or None when that cannot be told.
-- `office_speaker.is_client` (def, line 406)
-- `detect_client` (def, line 418). Look at a pasted transcript before any client is chosen. Scrubs against an empty registry, so nothing is
-- `detect_client.rank` (def, line 452)
-- `_client_matches` (def, line 462). Existing clients that one of these non-office people belongs to. A full-name hit is strong, unless that name
-- `FlagGroup` (class, line 489)
-- `Intake` (class, line 496)
-- `_groups` (def, line 508)
-- `is_ask` (def, line 521). The word is a name hidden for this transcript only, and also written there as plain text, so each place in the
-- `ask_list` (def, line 527). The places that need a choice, for the page: [{word, code, places: [{start, end, before, after}]}].
-- `open_groups` (def, line 534). The flag groups still waiting: a word ticked as written is settled, but a place that needs a choice is not
-- `Plan` (class, line 542). What the reviewer decided, as the scrubber needs it.
-- `place_ok` (def, line 550). A per-place span still points at the word it was chosen for. Offsets refer to the cleaned text the review page
-- `plan_decisions` (def, line 557). decisions: dicts with text, decision ('scrub' or 'keep'), spans, and each=True when the choice is for those
-- `run_intake` (def, line 576). Scrub the pasted transcript against a copy of the client's registry. Saves nothing. decisions: the reviewer's
-- `clean_title` (def, line 599). The call title as it is stored: the text as typed, with invisible characters and extra spaces removed. A title
-- `local_names` (def, line 608). Entities hidden in one transcript only: chosen place by place at review (the transcript's text holds their
-- `_plain_word` (def, line 617). The word is written in the transcript as plain text, whole word and same case, outside any code.
-- `local_scope` (def, line 623). (auto, ask) for text typed about one transcript. auto: names hidden in this transcript only whose word no longer
-- `clean_places` (def, line 633). Choices for the places that need one, as sent by the page: [{start, word, choice}] with choice hide or send.
-- `scrub_typed` (def, line 643). Scrub text typed for Claude about one transcript. scope: (auto, ask) from local_scope. kept: a function telling
-- `stored_scope` (def, line 664). (auto, ask) and the Keep test for text typed about a saved transcript. Nothing for another client's or no call.
-- `hide_word_ok` (def, line 672). A word to hide in a message being sent, tidied, or ImportProblem.
-- `_review_scope` (def, line 684)
-- `_kept_in_review` (def, line 688)
-- `review_directions_groups` (def, line 693). The flag groups in directions typed on the review page, for the review as it stands now: the choices made so
-- `review_directions_flags` (def, line 705)
-- `_scrub_review_directions` (def, line 711). Directions typed on the review page, scrubbed like a change request against the registry this review holds
-- `save_transcript` (def, line 737). Re-scrub with the reviewer's decisions and store the scrubbed result. decisions: dicts with
-- `save_transcript.scrubbed_directions` (def, line 762)
-- `set_title` (def, line 807). Change the call title of a saved call. Returns the stored title, which is empty when it was cleared.
-- `output_instruction` (def, line 818). What Claude is told to produce for this output: the text saved in Settings, or the starter text.
-- `save_output_instructions` (def, line 823). texts: slug -> instruction. An empty text goes back to the starter text. Instructions are sent to Claude as
-- `chosen_outputs` (def, line 837). The known output slugs among the ticked values, in the app's order. Refuses none and refuses unknown ones.
-- `planned_outputs` (def, line 847). The known output slugs ticked on the review page, in the app's order. None ticked is allowed there.
-- `preticked_outputs` (def, line 855). What the checklist starts with: this call's last copy, else what was ticked when it was saved, else the last
-- `prepare_directions` (def, line 866). The optional directions typed beside Copy for Claude, scrubbed like a change request. Returns the scrubbed
-- `hide_for_request` (def, line 884). Hide a flagged word in text being sent. By default it is hidden for this transcript only: a transcript-only
-- `copy_for_claude` (def, line 923). The text the user pastes into claude.ai. Records the copy and the ticked outputs. Refuses until the review is
-- `Outgoing` (class, line 964)
-- `prepare_message` (def, line 972)
-- `commit_message` (def, line 999)
-- `last_change_output` (def, line 1006). The output the most recent change request for this call was about, if any.
-- `change_intro` (def, line 1024). The opening of a change request. The save_output tool is mentioned only when the connector is on.
-- `StaleVersion` (class, line 1030). The page was built before another version of this output was saved.
-- `prepare_change_request` (def, line 1034). The text to copy when the user asks Claude to change one output. The typed request is scrubbed with the
-- `short_day` (def, line 1078). A stored UTC timestamp as the user's own day and month, such as 3 Nov.
-- `long_day` (def, line 1090). 2026-11-02 as 2 Nov 2026. Anything else is shown as it is.
-- `OutputPiece` (class, line 1102). One output taken from a reply, checked on its own.
-- `OutputPiece.name` (def, line 1113)
-- `ImportCheck` (class, line 1118)
-- `mask_known_values` (def, line 1139). Replace real values the registry knows with their placeholders, so the stored output never holds them.
-- `placeholder_text` (def, line 1167). Stored output text as it may leave the app as placeholder text (a change request, the raw copy target, the
-- `_keep_plain` (def, line 1176)
-- `keep_flags` (def, line 1185). (first names, last names) that reach Claude as written for this client, so a reply that holds them is not masked
-- `split_markers` (def, line 1196). The text before the first [OUTPUT: name] line, and [(name as written, section text)] for each marker.
-- `strip_header_lines` (def, line 1204). Remove valid [CLIENT: .. | TX: ..] headers from an output's text and trim blank lines around what is left.
-- `strip_header_lines.drop` (def, line 1207)
-- `check_import` (def, line 1220). Check a reply before it is saved. A reply with [OUTPUT: name] lines is split into one piece per marker. One
-- `check_import.piece` (def, line 1265)
-- `rehydrated_segments` (def, line 1293). Pieces of rehydrated text; unknown placeholders are marked so the page can highlight them.
-- `save_import` (def, line 1306). Save a checked reply. Every output in it becomes a new version in one transaction, or none does.
-- `edit_output` (def, line 1330). Save a hand edit of an output as a new version. The text is placeholder text, and known real values typed into
-- `HideResult` (class, line 1354)
-- `claude_has_seen` (def, line 1360). The call was copied for Claude, or an output exists, so Claude has the text as it was.
-- `delete_transcript` (def, line 1365). Delete one call with its outputs and the messages copied for it. Names hidden for this call only go too, unless
-- `_put_back` (def, line 1388). The text with every code that resolves to this entry replaced by its real words. Codes of other entries, and
-- `_put_back.swap` (def, line 1393)
-- `delete_hidden_name` (def, line 1405). Delete a hidden name and put its real words back where its codes stand. Every saved call of the client gets its
-- `hide_in_transcript` (def, line 1438). Hide a word in a saved call. The value joins the client's registry, every whole-word place in the transcript
-- `view_output` (def, line 1484)
-- `_bare` (def, line 1494). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
-- `_word_marks` (def, line 1499). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
-- `_word_marks.piece` (def, line 1505)
-- `diff_rows` (def, line 1526). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
-- `diff_lines` (def, line 1557). [(kind, line)] with kind in same / add / del, for the version comparison.
-- `transcript_name` (def, line 1569). How a call is named on screen: its title, else its date such as 3 Nov 2026.
-- `registry_rows` (def, line 1574). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
-- `save_entity_forms` (def, line 1593). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
-- `directions_for_display` (def, line 1608). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
-- `directions_for_display.swap` (def, line 1613)
-- `hidden_name_code` (def, line 1626). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
-- `find_entity` (def, line 1632)
-- `export_markdown` (def, line 1641). The client's history with real values restored. Handed to the browser as a download, never stored.
-- `valid_ids` (def, line 1663)
+- `clean_text` (def, line 28). The pasted text as the scrubber should read it. Invisible format characters (zero-width spaces, a byte
+- `local_time` (def, line 37). A stored UTC timestamp as the user's own date and time. Unreadable values are shown as they are.
+- `local_day` (def, line 45)
+- `_same_call_text` (def, line 49). Scrubbed text with the spacing that does not change the call removed, to spot a repeated paste.
+- `project_instructions` (def, line 87). The standing text for the claude.ai Project instructions box. It names the save_output tool only when the
+- `ReviewIncomplete` (class, line 95). Some flagged words have no decision yet.
+- `DirectionsFlagged` (class, line 99). The directions hold capitalized words that might be names. `words` are the ones not yet confirmed.
+- `DirectionsFlagged.__init__` (def, line 102)
+- `ImportProblem` (class, line 108). The pasted reply cannot be imported as it is. The message says what to do.
+- `Settings` (class, line 118)
+- `ClientOptions` (class, line 128). What is scrubbed for one client. first_names: 'inherit' uses the global setting.
+- `load_client_options` (def, line 135)
+- `save_client_options` (def, line 144)
+- `client_settings` (def, line 156). The global settings with this client's own scrub options applied on top.
+- `lone_name_is_first` (def, line 163). For a code with no part whose full form is one word: is that word a first name? The word is a surname when a
+- `name_hidden` (def, line 172). (first names hidden, last names hidden) for this client. With names switched off, neither is.
+- `person_pieces` (def, line 178). The pieces of one name code, as [(text, code or None)], or None when the code has no known value. A piece with a
+- `hide_known_now` (def, line 207). Saved call text with every real value the client's hidden names know now replaced by its code. A name hidden
+- `restore_switched_off` (def, line 220). Scrubbed call text as it should leave for Claude under this client's scrubbing options. A code of a kind switched
+- `restore_switched_off.swap` (def, line 231)
+- `load_settings` (def, line 246)
+- `save_settings` (def, line 255)
+- `apply_settings` (def, line 265)
+- `scrub_config` (def, line 270)
+- `segments` (def, line 276). [(text, type or None)] for the original text, given (start, end, type) spans.
+- `real_segments` (def, line 289). [(text, type or None)] for the Transcript tab: each placeholder shows its real value. A value keeps its tag while
+- `tag_segments` (def, line 317). [(text, type or None)] for scrubbed text: each placeholder becomes a tagged piece.
+- `client_full_name` (def, line 328). The real full name of the client as seen locally: the person whose first name matches.
+- `client_rows` (def, line 341)
+- `Person` (class, line 355)
+- `Detection` (class, line 364)
+- `KnownNames` (class, line 371). What every client's hidden names say about who is who, read once for a match.
+- `KnownNames.shared` (def, line 377)
+- `KnownNames.staff` (def, line 380). Office staff by a mark, or stored for more than one client, which only office staff are.
+- `known_names` (def, line 385)
+- `office_speaker` (def, line 400). The entity that answers the calls, from the speaker lines of one call, or None when that cannot be told.
+- `office_speaker.is_client` (def, line 412)
+- `detect_client` (def, line 424). Look at a pasted transcript before any client is chosen. Scrubs against an empty registry, so nothing is
+- `detect_client.rank` (def, line 458)
+- `_client_matches` (def, line 468). Existing clients that one of these non-office people belongs to. A full-name hit is strong, unless that name
+- `FlagGroup` (class, line 497)
+- `Intake` (class, line 504)
+- `_groups` (def, line 516)
+- `is_ask` (def, line 529). The word is a name hidden for this transcript only, and also written there as plain text, so each place in the
+- `ask_list` (def, line 535). The places that need a choice, for the page: [{word, code, places: [{start, end, before, after}]}].
+- `open_groups` (def, line 542). The flag groups still waiting: a word ticked as written is settled, but a place that needs a choice is not
+- `Plan` (class, line 550). What the reviewer decided, as the scrubber needs it.
+- `place_ok` (def, line 558). A per-place span still points at the word it was chosen for. Offsets refer to the cleaned text the review page
+- `plan_decisions` (def, line 565). decisions: dicts with text, decision ('scrub' or 'keep'), spans, and each=True when the choice is for those
+- `run_intake` (def, line 584). Scrub the pasted transcript against a copy of the client's registry. Saves nothing. decisions: the reviewer's
+- `clean_title` (def, line 607). The call title as it is stored: the text as typed, with invisible characters and extra spaces removed. A title
+- `local_names` (def, line 616). Entities hidden in one transcript only: chosen place by place at review (the transcript's text holds their
+- `_plain_word` (def, line 625). The word is written in the transcript as plain text, whole word and same case, outside any code.
+- `local_scope` (def, line 631). (auto, ask) for text typed about one transcript. auto: names hidden in this transcript only whose word no longer
+- `clean_places` (def, line 641). Choices for the places that need one, as sent by the page: [{start, word, choice}] with choice hide or send.
+- `scrub_typed` (def, line 651). Scrub text typed for Claude about one transcript. scope: (auto, ask) from local_scope. kept: a function telling
+- `stored_scope` (def, line 672). (auto, ask) and the Keep test for text typed about a saved transcript. Nothing for another client's or no call.
+- `hide_word_ok` (def, line 680). A word to hide in a message being sent, tidied, or ImportProblem.
+- `_review_scope` (def, line 692)
+- `_kept_in_review` (def, line 696)
+- `review_directions_groups` (def, line 701). The flag groups in directions typed on the review page, for the review as it stands now: the choices made so
+- `review_directions_flags` (def, line 713)
+- `_scrub_review_directions` (def, line 719). Directions typed on the review page, scrubbed like a change request against the registry this review holds
+- `save_transcript` (def, line 745). Re-scrub with the reviewer's decisions and store the scrubbed result. decisions: dicts with
+- `save_transcript.scrubbed_directions` (def, line 770)
+- `set_title` (def, line 815). Change the call title of a saved call. Returns the stored title, which is empty when it was cleared.
+- `chosen_outputs` (def, line 826). The known output slugs among the ticked values, in the app's order. Refuses none and refuses unknown ones.
+- `planned_outputs` (def, line 836). The known output slugs ticked on the review page, in the app's order. None ticked is allowed there.
+- `preticked_outputs` (def, line 844). What the checklist starts with: this call's last copy, else what was ticked when it was saved, else the last
+- `prepare_directions` (def, line 855). The optional directions typed beside Copy for Claude, scrubbed like a change request. Returns the scrubbed
+- `hide_for_request` (def, line 873). Hide a flagged word in text being sent. By default it is hidden for this transcript only: a transcript-only
+- `copy_for_claude` (def, line 912). The text the user pastes into claude.ai. Records the copy and the ticked outputs. Refuses until the review is
+- `Outgoing` (class, line 956)
+- `prepare_message` (def, line 964)
+- `commit_message` (def, line 991)
+- `last_change_output` (def, line 998). The output the most recent change request for this call was about, if any.
+- `change_intro` (def, line 1008). The opening of a change request: only which output it is about.
+- `StaleVersion` (class, line 1013). The page was built before another version of this output was saved.
+- `prepare_change_request` (def, line 1017). The text to copy when the user asks Claude to change one output. The typed request is scrubbed with the
+- `short_day` (def, line 1060). A stored UTC timestamp as the user's own day and month, such as 3 Nov.
+- `long_day` (def, line 1072). 2026-11-02 as 2 Nov 2026. Anything else is shown as it is.
+- `OutputPiece` (class, line 1084). One output taken from a reply, checked on its own.
+- `OutputPiece.name` (def, line 1096)
+- `ImportCheck` (class, line 1101)
+- `mask_known_values` (def, line 1124). Replace real values the registry knows with their placeholders, so the stored output never holds them.
+- `placeholder_text` (def, line 1152). Stored output text as it may leave the app as placeholder text (a change request, the raw copy target, the
+- `_keep_plain` (def, line 1161)
+- `keep_flags` (def, line 1170). (first names, last names) that reach Claude as written for this client, so a reply that holds them is not masked
+- `split_markers` (def, line 1181). The text before the first [OUTPUT: name] line, and [(name as written, section text)] for each marker.
+- `strip_header_lines` (def, line 1189). Remove valid [CLIENT: .. | TX: ..] headers from an output's text and trim blank lines around what is left.
+- `strip_header_lines.drop` (def, line 1192)
+- `form_body` (def, line 1205). Read a form reply: (the answers it sent as marker text, {number: answer}). A reply that cannot be saved adds the
+- `check_import` (def, line 1229). Check a reply before it is saved. A reply with [OUTPUT: name] lines is split into one piece per marker. One
+- `check_import.piece` (def, line 1274)
+- `rehydrated_segments` (def, line 1305). Pieces of rehydrated text; unknown placeholders are marked so the page can highlight them.
+- `save_import` (def, line 1318). Save a checked reply. Every output in it becomes a new version in one transaction, or none does.
+- `edit_output` (def, line 1350). Save a hand edit of an output as a new version. The text is placeholder text, and known real values typed into
+- `edit_answers` (def, line 1379). Save a hand edit of one or more answers of a form as a new version. `changes` is {question number: text}. Every
+- `HideResult` (class, line 1417)
+- `claude_has_seen` (def, line 1423). The call was copied for Claude, or an output exists, so Claude has the text as it was.
+- `delete_transcript` (def, line 1428). Delete one call with its outputs and the messages copied for it. Names hidden for this call only go too, unless
+- `_put_back` (def, line 1451). The text with every code that resolves to this entry replaced by its real words. Codes of other entries, and
+- `_put_back.swap` (def, line 1456)
+- `delete_hidden_name` (def, line 1468). Delete a hidden name and put its real words back where its codes stand. Every saved call of the client gets its
+- `hide_in_transcript` (def, line 1501). Hide a word in a saved call. The value joins the client's registry, every whole-word place in the transcript
+- `view_output` (def, line 1547)
+- `view_form` (def, line 1554). A form version for the page: (rehydrate result, [row]) where each row is one question with its answer as real
+- `forms_listing` (def, line 1574). All the answers of a form as one text for Copy all: the question number and question, then the answer.
+- `form_diff` (def, line 1579). The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
+- `_bare` (def, line 1591). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
+- `_word_marks` (def, line 1596). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
+- `_word_marks.piece` (def, line 1602)
+- `diff_rows` (def, line 1623). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
+- `diff_lines` (def, line 1654). [(kind, line)] with kind in same / add / del, for the version comparison.
+- `transcript_name` (def, line 1666). How a call is named on screen: its title, else its date such as 3 Nov 2026.
+- `registry_rows` (def, line 1671). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
+- `save_entity_forms` (def, line 1690). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
+- `directions_for_display` (def, line 1705). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
+- `directions_for_display.swap` (def, line 1710)
+- `hidden_name_code` (def, line 1723). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
+- `find_entity` (def, line 1729)
+- `export_markdown` (def, line 1738). The client's history with real values restored. Handed to the browser as a download, never stored.
+- `valid_ids` (def, line 1760)
 
 ## mcp_server/server.py  (4)
 
-- `save_output` (def, line 38). Returns (message, is_error). The message never contains stored or submitted content.
-- `handle` (def, line 73). One JSON-RPC message in, one reply out (None for notifications).
-- `handle.ok` (def, line 78)
-- `serve` (def, line 96)
+- `save_output` (def, line 40). Returns (message, is_error). The message never contains stored or submitted content.
+- `handle` (def, line 75). One JSON-RPC message in, one reply out (None for notifications).
+- `handle.ok` (def, line 80)
+- `serve` (def, line 98)
 
 ## run.py  (18)
 
@@ -534,22 +549,23 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `build` (def, line 184)
 - `main` (def, line 210)
 
-## scripts/seed_test_cases.py  (12)
+## scripts/seed_test_cases.py  (13)
 
-- `people` (def, line 28). A registry with the client, an office person, an email and an address. Returns it and the placeholders.
-- `transcript` (def, line 39)
-- `note` (def, line 47)
-- `overview` (def, line 52)
-- `form` (def, line 57)
-- `long_overview` (def, line 62)
-- `lots_of_calls` (def, line 72). 40 calls over about four months, with titles and a mix of output states, newest first.
-- `nine_versions` (def, line 88)
-- `hidename_transcript` (def, line 93)
-- `case_list` (def, line 98). Each case: first name, last name, calls newest first. A call is (days ago, topic, requested, outputs, status).
-- `seed` (def, line 156). Add the test clients that are missing. Returns (first names added, first names skipped).
-- `main` (def, line 188)
+- `people` (def, line 29). A registry with the client, an office person, an email and an address. Returns it and the placeholders.
+- `transcript` (def, line 40)
+- `note` (def, line 48)
+- `overview` (def, line 53)
+- `form` (def, line 58)
+- `probate` (def, line 63)
+- `long_overview` (def, line 69)
+- `lots_of_calls` (def, line 79). 40 calls over about four months, with titles and a mix of output states, newest first.
+- `nine_versions` (def, line 95)
+- `hidename_transcript` (def, line 100)
+- `case_list` (def, line 105). Each case: first name, last name, calls newest first. A call is (days ago, topic, requested, outputs, status).
+- `seed` (def, line 164). Add the test clients that are missing. Returns (first names added, first names skipped).
+- `main` (def, line 196)
 
-## app/web/static/app.js  (35)
+## app/web/static/app.js  (47)
 
 - `rememberScroll` (function, line 9)
 - `restoreScroll` (function, line 12)
@@ -559,30 +575,42 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `copy` (function, line 49)
 - `copyLater` (function, line 57)
 - `hasTyped` (function, line 65)
-- `post` (function, line 71)
-- `nextTheme` (function, line 80)
-- `changeButton` (function, line 166)
-- `flagBox` (function, line 167)
-- `typedField` (function, line 168)
-- `openFlags` (function, line 169)
-- `refreshButton` (function, line 174)
-- `confirmedWords` (function, line 189)
-- `placeKey` (function, line 193)
-- `placesPayload` (function, line 194)
-- `mirrorPlaces` (function, line 205)
-- `clientOnly` (function, line 215)
-- `renderFlags` (function, line 219)
-- `boxNote` (function, line 303)
-- `previewReply` (function, line 311)
-- `preview` (function, line 322)
-- `hideWord` (function, line 340)
-- `keepTyped` (function, line 374)
-- `syncCopy` (function, line 410)
-- `wordAt` (function, line 508)
-- `snapWords` (function, line 514)
-- `selectedHideText` (function, line 530)
-- `guessType` (function, line 544)
-- `hidePop` (function, line 551)
-- `showPop` (function, line 552)
-- `offerHide` (function, line 580)
-- `gate` (function, line 616)
+- `typedKey` (function, line 77)
+- `forgetTyped` (function, line 80)
+- `post` (function, line 85)
+- `nextTheme` (function, line 94)
+- `changeButton` (function, line 183)
+- `flagBox` (function, line 184)
+- `typedField` (function, line 185)
+- `openFlags` (function, line 186)
+- `refreshButton` (function, line 191)
+- `confirmedWords` (function, line 206)
+- `placeKey` (function, line 210)
+- `placesPayload` (function, line 211)
+- `mirrorPlaces` (function, line 222)
+- `clientOnly` (function, line 232)
+- `renderFlags` (function, line 236)
+- `boxNote` (function, line 320)
+- `previewReply` (function, line 328)
+- `preview` (function, line 339)
+- `hideWord` (function, line 357)
+- `keepTyped` (function, line 391)
+- `syncCopy` (function, line 427)
+- `wordAt` (function, line 555)
+- `snapWords` (function, line 561)
+- `selectedHideText` (function, line 577)
+- `guessType` (function, line 591)
+- `hidePop` (function, line 598)
+- `showPop` (function, line 599)
+- `offerHide` (function, line 627)
+- `gate` (function, line 663)
+- `copiedKey` (function, line 793)
+- `copiedList` (function, line 794)
+- `paintCopied` (function, line 797)
+- `markCopied` (function, line 804)
+- `answerRows` (function, line 814)
+- `paintNext` (function, line 817)
+- `copyNext` (function, line 823)
+- `openAnswer` (function, line 841)
+- `closeAnswer` (function, line 847)
+- `saveAnswer` (function, line 854)

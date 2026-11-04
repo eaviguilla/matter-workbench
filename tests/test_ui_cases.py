@@ -9,12 +9,12 @@ import pytest
 
 from app.scrub.ner import NerModel
 from app.web import create_app
-from app.outputs import DEFAULT_INSTRUCTIONS, NAMES, SLUGS
+from app.outputs import NAMES, SLUGS, TEXT_SLUGS
 from app.store import Store
 from tests.fake_ner import FakeBackend
 from tests.webhelp import Session, fixture_text, make_app, review_form, saved_tx
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -61,11 +61,11 @@ def test_the_change_request_text_comes_in_the_planned_order(env):
     r = unflagged(web, tx, "Make it shorter.", version=2)
     assert r.status_code == 200
     text = r.json()["text"]
-    marks = ["Revise only the output", f"[OUTPUT: {NOTE}]", DEFAULT_INSTRUCTIONS[NOTE], f"[CLIENT: {cid} | TX: {tx}]",
+    marks = [f"Change request for Clio Note (output ID {NOTE}).", f"[CLIENT: {cid} | TX: {tx}]",
              "Change requested:\nMake it shorter.", "Note two for [PERSON_1].", "Transcript:\n"]
     spots = [text.index(m) for m in marks]
     assert spots == sorted(spots) and len(set(spots)) == len(spots)
-    assert "save_output" not in text and "Reply with the revised text under a line that reads exactly [OUTPUT:" in text   # connector off
+    assert "save_output" not in text and "[OUTPUT:" not in text and "Revise only" not in text
     assert NAMES[NOTE] in text and "Note one for" not in text
     with store_of(web) as s:
         assert text.endswith(s.get_transcript(tx)["scrubbed_text"])
@@ -153,9 +153,9 @@ def test_the_board_always_has_three_columns_in_fixed_order(env):
     for page in pages:
         assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE, CAL, FORM]
     states = re.findall(r'<section class="col" id="out-[a-z-]+">', pages[0])
-    assert len(states) == 3 and "Waiting for Claude" not in pages[0] and pages[0].count("Not requested") == 3
-    assert pages[1].count("Not requested") == 1 and "Waiting for Claude" not in pages[1]
-    assert pages[4].count("Waiting for Claude") == 1 and pages[4].count("Not requested") == 2
+    assert len(states) == 3 and "Waiting for Claude" not in pages[0] and pages[0].count("Not requested") == 5
+    assert pages[1].count("Not requested") == 3 and "Waiting for Claude" not in pages[1]
+    assert pages[4].count("Waiting for Claude") == 1 and pages[4].count("Not requested") == 4
     assert "Waiting for Claude" in column(pages[4], FORM)
 
 
@@ -194,7 +194,7 @@ def test_a_reply_pasted_on_the_call_page_is_saved_to_this_call(env):
     page = web.get(f"/transcripts/{tx}").text
     form = re.search(r'<form method="post" action="/clients/[^"]+/import"[^>]*>(.*?)</form>', page, re.S).group(1)
     assert f'name="tx_id" value="{tx}"' in form and 'name="kind" value="output"' in form and 'name="text"' in form
-    assert page.count('name="output"') == 3                   # only the checkboxes of Request more outputs
+    assert page.count('name="output"') == 5                   # only the checkboxes of Request more outputs
     plain = "A reply with no header and no markers."
     chk = web.post(f"/clients/{cid}/import", {"text": plain, "kind": "output", "tx_id": tx, "output": FORM})
     assert "Will save 1 output" in chk.text and re.search(r"Belongs to Untitled, \d+ \w{3} \d{4}\.", chk.text) and tx not in re.search(r"Belongs to[^<]*", chk.text).group()
@@ -256,10 +256,10 @@ def test_the_seed_script_is_safe_to_run_twice_and_leaves_other_clients_alone(tmp
         assert len(rows) == 15 and "Real" in rows and rows["Testi"]["archived"] and not rows["Testa"]["archived"]
         testa = rows["Testa"]["id"]
         tx = s.list_transcripts(testa)[0]
-        assert [len(s.list_outputs(tx["id"], slug)) for slug in SLUGS] == [3, 2, 1]
+        assert [len(s.list_outputs(tx["id"], slug)) for slug in TEXT_SLUGS] == [3, 2, 1]
         assert [o["source"] for o in s.list_outputs(tx["id"], NOTE)] == ["import", "mcp", "edit"]
         assert len(s.list_transcripts(rows["Testg"]["id"])) == 6 and s.list_transcripts(rows["Testj"]["id"]) == []
-        assert s.get_transcript(tx["id"])["requested_outputs"] == list(SLUGS)
+        assert s.get_transcript(tx["id"])["requested_outputs"] == list(TEXT_SLUGS)
         reg = s.load_registry(testa)
         assert "Testa Allthree" in [e.forms.get(None) for e in reg.entities]
         assert "Testa Allthree" not in tx["scrubbed_text"] and "[PERSON_1]" in tx["scrubbed_text"]

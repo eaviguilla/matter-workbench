@@ -64,8 +64,12 @@
   // Text typed on the client page (a change request or a pasted reply) is never thrown away by a reload.
   function hasTyped() {
     // Text that came with the page (directions saved with the call) is not unsent text until it is changed.
-    return Array.prototype.some.call(document.querySelectorAll("textarea[data-keep]"), function (t) {
+    var typed = Array.prototype.some.call(document.querySelectorAll("textarea[data-keep]"), function (t) {
       return t.value.trim() !== "" && t.value !== t.defaultValue;
+    });
+    // An answer being edited counts only when it differs from the text it started with.
+    return typed || Array.prototype.some.call(document.querySelectorAll("textarea[data-answer-text]"), function (t) {
+      return !t.closest(".aedit").hidden && t.value !== t.dataset.start;
     });
   }
   // Typed boxes (the pasted reply, directions) are kept in this tab as they are typed, so a reload or a click on a link
@@ -154,12 +158,15 @@
     } else if (b.dataset.copyText) {
       if (Number(b.dataset.unknown || 0) > 0 && !window.confirm("This output has unknown placeholders. Copy anyway?")) { return; }
       var src = document.querySelector(b.dataset.copyText);
-      copy(src.textContent).then(function () { say(b, "Copied."); }).catch(function () { say(b, "Could not copy."); });
+      copy(src.textContent).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
+    } else if (b.dataset.nextCopy) {
+      copyNext(b);
+    } else if (b.dataset.answerSave) {
+      saveAnswer(b.closest(".arow"));
+    } else if (b.dataset.answerCancel) {
+      closeAnswer(b.closest(".arow"), true);
     } else if (b.dataset.hideWord) {
       hideWord(b);
-    } else if (b.dataset.resetStarter) {
-      var ta = document.querySelector(b.dataset.resetStarter);
-      if (ta) { ta.value = ta.dataset.starter || ""; ta.focus(); }
     } else if (b.dataset.all) {
       document.querySelectorAll('[data-flag] > .choice input[type=radio][value="' + b.dataset.all + '"]').forEach(function (r) { r.checked = true; });
       document.querySelectorAll("[data-places]").forEach(function (p) { p.hidden = true; });
@@ -535,7 +542,7 @@
     }
     var params = new URLSearchParams();
     new FormData(sel.form).forEach(function (v, k) { if (v !== "") { params.append(k, v); } });
-    var col = sel.closest("section.col");
+    var col = sel.closest("section.col, .fpanel");
     window.location.href = sel.form.getAttribute("action") + "?" + params.toString() + (col ? "#" + col.id : "");
   });
 
@@ -781,6 +788,94 @@
       copyLater(reply).then(function () { say(b, "Copied."); }).catch(function () { say(b, "Not copied."); });
     });
   }
+  // Intake forms: one copy box per answer. The answers copied so far are marked, kept in this tab only (question
+  // numbers, never the text), and forgotten when a new version of the form is saved because the key holds the version.
+  function copiedKey(list) { return "mwb-copied:" + list.dataset.tx + ":" + list.dataset.slug + ":v" + list.dataset.version; }
+  function copiedList(list) {
+    try { return JSON.parse(window.sessionStorage.getItem(copiedKey(list)) || "[]"); } catch (e) { return []; }
+  }
+  function paintCopied(list) {
+    var done = copiedList(list);
+    Array.prototype.forEach.call(list.querySelectorAll(".arow"), function (row) {
+      row.classList.toggle("copied", done.indexOf(Number(row.dataset.n)) >= 0);
+    });
+    paintNext(list.closest(".fpanel"));
+  }
+  function markCopied(b) {
+    var row = b.closest(".arow"), list = row.closest("[data-answers]"), done = copiedList(list), n = Number(row.dataset.n);
+    if (done.indexOf(n) < 0) { done.push(n); }
+    try { window.sessionStorage.setItem(copiedKey(list), JSON.stringify(done)); } catch (e) { /* marks are only a help */ }
+    paintCopied(list);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-answers]"), paintCopied);
+
+  // Copy next answer: one button on a form. Each click copies the next answer not copied yet, marks it, and says how many
+  // are left. When all are copied the next click starts over. It only uses the clipboard and the answers on the page.
+  function answerRows(panel) {
+    return Array.prototype.filter.call(panel.querySelectorAll(".arow"), function (r) { return r.querySelector("pre.answer"); });
+  }
+  function paintNext(panel) {
+    var b = panel.querySelector("[data-next-copy]");
+    if (!b) { return; }
+    var left = answerRows(panel).filter(function (r) { return !r.classList.contains("copied"); }).length;
+    b.textContent = left ? "Copy next answer (" + left + " left)" : "All copied. Start over";
+  }
+  function copyNext(b) {
+    var panel = b.closest(".fpanel"), list = panel.querySelector("[data-answers]"), rows = answerRows(panel);
+    var row = rows.find(function (r) { return !r.classList.contains("copied"); });
+    if (!row) {                                               // everything is copied, so start over
+      try { window.sessionStorage.removeItem(copiedKey(list)); } catch (e) { /* nothing to forget */ }
+      paintCopied(list); say(b, "");
+      return;
+    }
+    var btn = row.querySelector("[data-copied-key]");
+    if (btn && Number(btn.dataset.unknown || 0) > 0 && !window.confirm("This answer has unknown placeholders. Copy anyway?")) { return; }
+    copy(row.querySelector("pre.answer").textContent).then(function () {
+      if (btn) { markCopied(btn); }
+      say(b, "Copied answer " + row.dataset.n + ".");
+    }).catch(function () { say(b, "Could not copy."); });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-next-copy]"), function (b) { b.hidden = false; });
+
+  // Editing one answer in place. Without a script the Edit link opens the edit page at that question.
+  function openAnswer(row) {
+    row.querySelector(".abox > .answer, .abox > .empty") && (row.querySelector(".abox > .answer, .abox > .empty").hidden = true);
+    var ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea");
+    ed.hidden = false; ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+  function closeAnswer(row, discard) {
+    var ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea"), msg = ed.querySelector("[data-answer-msg]");
+    if (discard) { ta.value = ta.dataset.start; }
+    ed.hidden = true; msg.hidden = true;
+    var shown = row.querySelector(".abox > .answer, .abox > .empty");
+    if (shown) { shown.hidden = false; }
+  }
+  function saveAnswer(row) {
+    var list = row.closest("[data-answers]"), ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea");
+    var msg = ed.querySelector("[data-answer-msg]");
+    if (ta.value === ta.dataset.start) { closeAnswer(row, true); return; }
+    post(list.dataset.answersUrl, { n: Number(row.dataset.n), text: ta.value, version: Number(list.dataset.version) }).then(function (r) {
+      return r.json().then(function (j) {
+        if (r.ok) { ta.dataset.start = ta.value; window.location.assign(window.location.pathname + window.location.search); return; }
+        msg.textContent = j.error || "Not saved."; msg.hidden = false;
+        if (j.stale) { var note = list.closest(".fpanel").querySelector("[data-answer-stale]"); if (note) { note.hidden = false; } }
+      });
+    }).catch(function () { msg.textContent = "Not saved."; msg.hidden = false; });
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest("a[data-answer-edit]");
+    if (!a || !a.closest("[data-answers]")) { return; }
+    e.preventDefault();
+    openAnswer(a.closest(".arow"));
+  });
+  document.addEventListener("keydown", function (e) {
+    var ta = e.target.closest && e.target.closest("textarea[data-answer-text]");
+    if (!ta) { return; }
+    var row = ta.closest(".arow");
+    if (e.key === "Escape") { e.preventDefault(); closeAnswer(row, true); }
+    else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveAnswer(row); }
+  });
   // Pick up outputs saved by the optional connector while this page is open.
   var poll = document.querySelector("[data-poll]");
   if (poll) {

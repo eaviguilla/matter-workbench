@@ -11,7 +11,9 @@ from datetime import date, datetime
 
 from .store import Store
 from .ids import CLIENT_ID_RE, HEADER_RE, TX_ID_RE, find_header, header_line
-from .outputs import DEFAULT_INSTRUCTIONS, MARKER_RE, MAX_INSTRUCTION, NAMES as OUTPUT_NAMES, OUTPUTS, SHORT_NAMES, SLUGS as OUTPUT_SLUGS
+from . import forms
+from .outputs import (FORM_OUTPUTS, FORM_SLUGS, MARKER_RE, is_form, NAMES as OUTPUT_NAMES, OUTPUTS, SHORT_NAMES, SLUGS as OUTPUT_SLUGS,
+                      TEXT_OUTPUTS, TEXT_SLUGS)
 from .rehydrate import PLACEHOLDER_RE, rehydrate
 from .scrub.ner import NerModel
 from .scrub.parse import ParseIssue, TranscriptFormatError, parse_lenient
@@ -55,14 +57,6 @@ SUMMARY_PROMPT = ("Please write a running summary of everything we have covered 
                   "paste this summary at the start of a new chat.")
 
 
-COPY_INTRO_START = ("Keep every placeholder, such as [PERSON_1] or [EMAIL_1], exactly as written, and never guess the real "
-                    "value. Use the call transcript after the header line to write the outputs below, one per output.")
-COPY_TOOL = ("If you have the save_output tool, call it once for each output with the client ID, the transcript ID, "
-             "the output ID and the full text. If you do not have it, reply")
-COPY_REPLY = ("with each output under a line that reads exactly like [OUTPUT: {example}], using the output ID from the "
-              "list, with nothing else on that line.")
-
-
 PROJECT_INSTRUCTIONS = """You help a law office with client intake. Every message starts with a header line, [CLIENT: <client ID> | TX: <transcript ID>].
 
 Personal data has been replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [EMAIL_1] and [ADDRESS_1].
@@ -70,34 +64,32 @@ Personal data has been replaced with placeholders such as [PERSON_1], [PERSON_1.
 Rules
 - Copy placeholders exactly as written. Never change their case or format, never invent new ones, and never guess the real values.
 - The same placeholder always means the same person or thing across this chat.
-- Do only the outputs listed in the message, using the instructions given with each. Do not write the others.
+- Do only the outputs the message asks for. Do not write the others.
 - Start every output with the header line of the transcript it is based on.
 {saving}
+- The two intake forms ({forms}) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
+
 Changes
-- A message that says "Revise only the output named below", or starts with [CORRECTION], revises one output for the transcript named in its header. Return the full revised output, not only the changes, and save it the same way as above.
+- A message that starts with "Change request" revises one output for the transcript named in its header. Return the full revised output, not only the changes, and save it the same way as above.
 
 Summaries
 - If asked for a running summary of the chat, keep every placeholder exactly as written."""
 
+_IDS = ", ".join(slug for slug, _ in TEXT_OUTPUTS[:-1]) + " or " + TEXT_OUTPUTS[-1][0]
 PROJECT_SAVE_TOOL = ("- Saving. When you have the save_output tool, call it once for each output with the client ID, the transcript ID, "
-                     "the output ID (clio-note, jordan-calendar-overview or clio-form-note) and the full text. If you cannot call it, "
+                     f"the output ID ({_IDS}, {', '.join(slug for slug, _ in FORM_OUTPUTS)}) and the full text. If you cannot call it, "
                      "reply with each output under a line that reads exactly like [OUTPUT: clio-note], with nothing else on that line.")
 PROJECT_SAVE_REPLY = ("- Saving. Reply with each output under a line that reads exactly like [OUTPUT: clio-note], using the output ID "
-                      "(clio-note, jordan-calendar-overview or clio-form-note), with nothing else on that line. The person saves your "
+                      f"({_IDS}, {', '.join(slug for slug, _ in FORM_OUTPUTS)}), with nothing else on that line. The person saves your "
                       "reply into the app.")
 
 
 def project_instructions(connector_on: bool) -> str:
     """The standing text for the claude.ai Project instructions box. It names the save_output tool only when the
-    connector is switched on, like Copy for Claude does. The wording for each output comes with every copy."""
-    return PROJECT_INSTRUCTIONS.format(saving=PROJECT_SAVE_TOOL if connector_on else PROJECT_SAVE_REPLY)
-
-
-def copy_intro(example: str, connector_on: bool) -> str:
-    """The opening of Copy for Claude. The save_output tool is mentioned only when the connector is switched on in
-    Settings, because Claude cannot use a tool the user has not connected."""
-    reply = COPY_REPLY.format(example=example)
-    return f"{COPY_INTRO_START} " + (f"{COPY_TOOL} {reply}" if connector_on else f"Reply {reply}")
+    connector is switched on. It holds the format the app needs to read a reply. How each output is written is set
+    in the Project itself, never here."""
+    return PROJECT_INSTRUCTIONS.format(saving=PROJECT_SAVE_TOOL if connector_on else PROJECT_SAVE_REPLY,
+                                       forms=" and ".join(f"{slug}, {name}" for slug, name in FORM_OUTPUTS))
 
 
 class ReviewIncomplete(Exception):
@@ -831,25 +823,6 @@ def set_title(store: Store, client_id: str, tx_id: str, title: str) -> str:
     return text
 
 
-def output_instruction(store: Store, slug: str) -> str:
-    """What Claude is told to produce for this output: the text saved in Settings, or the starter text."""
-    return (store.get_setting(f"instructions.{slug}") or "").strip() or DEFAULT_INSTRUCTIONS[slug]
-
-
-def save_output_instructions(store: Store, texts: dict) -> None:
-    """texts: slug -> instruction. An empty text goes back to the starter text. Instructions are sent to Claude as
-    written, so they are for staff and the task, never for client names."""
-    clean = {}
-    for slug in OUTPUT_SLUGS:
-        text = clean_text(str(texts.get(slug, ""))).strip()
-        if len(text) > MAX_INSTRUCTION:
-            raise ValueError(f"The instructions for {OUTPUT_NAMES[slug]} are over {MAX_INSTRUCTION} characters.")
-        clean[slug] = text
-    with store.transaction():
-        for slug, text in clean.items():
-            store.set_setting(f"instructions.{slug}", text)
-
-
 def chosen_outputs(values) -> list[str]:
     """The known output slugs among the ticked values, in the app's order. Refuses none and refuses unknown ones."""
     values = [str(v) for v in values or []]
@@ -876,7 +849,7 @@ def preticked_outputs(store: Store, requested, planned=()) -> list[str]:
     if planned:
         return list(planned)
     last = (store.get_setting("last_outputs") or "").split(",")
-    return [slug for slug in OUTPUT_SLUGS if slug in last]
+    return [slug for slug in TEXT_SLUGS if slug in last]       # a form is only ticked when this call asked for it
 
 
 def prepare_directions(store: Store, client_id: str, directions: str, ner: NerModel,
@@ -940,15 +913,14 @@ def copy_for_claude(store: Store, client_id: str, tx_id: str, outputs, direction
                     settings: Settings | None = None, confirm=(), places=()) -> str:
     """The text the user pastes into claude.ai. Records the copy and the ticked outputs. Refuses until the review is
     done, and when no output is ticked. Directions are scrubbed like a change request. Flagged words in them stop the
-    copy (DirectionsFlagged) until each is in `confirm`. Order: intro, ticked outputs, directions, header line,
-    transcript."""
+    copy (DirectionsFlagged) until each is in `confirm`. Order: the ticked outputs, directions, header line, transcript.
+    No rules for writing the outputs are sent: those are in the person's Claude Project."""
     tx = store.get_transcript(tx_id)
     if tx is None or tx["client_id"] != client_id:
         raise ImportProblem("Unknown transcript for this client.")
     if tx["status"] == "draft":
         raise ReviewIncomplete("The review is not finished.")
     slugs = chosen_outputs(outputs)
-    blocks = [f"{n}. {slug} ({OUTPUT_NAMES[slug]})\n{output_instruction(store, slug)}" for n, slug in enumerate(slugs, 1)]
     scrubbed, registry = "", None
     if directions.strip():
         if ner is None or settings is None:
@@ -957,7 +929,7 @@ def copy_for_claude(store: Store, client_id: str, tx_id: str, outputs, direction
         wait = open_groups(groups, confirm)
         if wait:
             raise DirectionsFlagged([g.text for g in wait], groups)
-    text = (f"{copy_intro(slugs[0], load_settings(store).mcp_enabled)}\n\nOutputs to write:\n\n" + "\n\n".join(blocks) + "\n\n"
+    text = (f"Outputs to write: " + ", ".join(f"{OUTPUT_NAMES[slug]} ({slug})" for slug in slugs) + ".\n\n"
             + (f"Specific directions:\n{scrubbed}\n\n" if scrubbed else "")
             + f"{header_line(client_id, tx_id)}\n")
     current, caught = hide_known_now(store, client_id, tx_id, tx["scrubbed_text"])
@@ -1033,18 +1005,9 @@ def last_change_output(store: Store, client_id: str, tx_id: str) -> str | None:
 
 # ---- asking Claude to change one output -----------------------------------------------------
 
-CHANGE_START = ("Revise only the output named below, {name} (output ID {slug}). Keep every placeholder, such as "
-                "[PERSON_1] or [EMAIL_1], exactly as written, and never guess the real value. Return the full revised "
-                "text, not only the changes.")
-CHANGE_TOOL = ("If you have the save_output tool, call it with the client ID, the transcript ID, the output ID {slug} "
-               "and the full revised text. If you do not have it, reply")
-CHANGE_REPLY = "with the revised text under a line that reads exactly [OUTPUT: {slug}], with nothing else on that line."
-
-
-def change_intro(name: str, slug: str, connector_on: bool) -> str:
-    """The opening of a change request. The save_output tool is mentioned only when the connector is on."""
-    start, reply = CHANGE_START.format(name=name, slug=slug), CHANGE_REPLY.format(slug=slug)
-    return f"{start} " + (f"{CHANGE_TOOL.format(slug=slug)} {reply}" if connector_on else f"Reply {reply}")
+def change_intro(name: str, slug: str) -> str:
+    """The opening of a change request: only which output it is about."""
+    return f"Change request for {name} (output ID {slug})."
 
 
 class StaleVersion(ImportProblem):
@@ -1055,7 +1018,7 @@ def prepare_change_request(store: Store, client_id: str, tx_id: str, slug: str, 
                            settings: Settings, latest=None, places=()) -> Outgoing:
     """The text to copy when the user asks Claude to change one output. The typed request is scrubbed with the
     client's registry like any outgoing message, so a known real value never reaches the clipboard. The parts, in
-    order: what to do, the output's standing instructions, the header line, the scrubbed request, the chosen version
+    order: which output it is, the header line, the scrubbed request, the chosen version
     with placeholders, and the scrubbed transcript. latest: the newest version number the page knew when it was built.
     If the output has a newer one now, the request is refused (StaleVersion), so the text never names a version the
     person is not looking at. Nothing is stored here."""
@@ -1086,8 +1049,7 @@ def prepare_change_request(store: Store, client_id: str, tx_id: str, slug: str, 
     scope, kept = stored_scope(store, registry, client_id, tx_id)
     res = scrub_typed(request, registry, settings, ner, scope, kept, places)
     text = "\n\n".join([
-        change_intro(OUTPUT_NAMES[slug], slug, load_settings(store).mcp_enabled),
-        output_instruction(store, slug),
+        change_intro(OUTPUT_NAMES[slug], slug),
         header_line(client_id, tx_id),
         f"Change requested:\n{res.text}",
         f"Current text of {OUTPUT_NAMES[slug]}, version {chosen['version']}, with placeholders:\n{placeholder_text(store, client_id, chosen['content'], registry)}",
@@ -1128,6 +1090,7 @@ class OutputPiece:
     unused: list = field(default_factory=list)
     possible_real: list = field(default_factory=list)
     segments: list = field(default_factory=list)
+    answers: dict = field(default_factory=dict)          # a form: question number -> answer, only the ones the reply sent
 
     @property
     def name(self) -> str:
@@ -1151,6 +1114,8 @@ class ImportCheck:
     pieces: list = field(default_factory=list)          # OutputPiece, one per output in the reply
     bad_markers: list = field(default_factory=list)     # [OUTPUT: ...] lines whose name is not a known output
     empty_markers: list = field(default_factory=list)   # known outputs that have a marker and no text
+    bad_answers: list = field(default_factory=list)     # a form reply that cannot be saved, with the reason in words
+    form_notes: list = field(default_factory=list)      # what a form reply will do: how many answers, which are kept as they were
     loose_text: bool = False     # text before the first marker, which is not saved
     needs_output: bool = False   # no markers and no output chosen
     replaced: list = field(default_factory=list)        # (real text, code, times): shown on the check page only, never stored
@@ -1237,6 +1202,30 @@ def strip_header_lines(text: str) -> str:
     return re.sub(r"(?:\n[ \t]*)+\Z", "", out)
 
 
+def form_body(check, slug: str, body: str) -> tuple[str, dict]:
+    """Read a form reply: (the answers it sent as marker text, {number: answer}). A reply that cannot be saved adds the
+    reason to check.bad_answers. What a good reply will do goes to check.form_notes. Nothing is stored here."""
+    name = OUTPUT_NAMES[slug]
+    got = forms.parse(slug, body)
+    if not got.found:
+        check.bad_answers.append(f"{name}: Claude did not answer question by question. Ask it to resend with one "
+                                 "[ANSWER: number] line above each answer.")
+        return body, {}
+    if got.dupes:
+        check.bad_answers.append(f"{name}: question {forms.numbers(sorted(set(got.dupes)))} is answered twice. Nothing is saved until each question is answered once.")
+    if got.unknown:
+        check.bad_answers.append(f"{name} has no question {forms.numbers(sorted(set(got.unknown)))}. It has questions 1 to {forms.count(slug)}.")
+    sent = "\n\n".join(f"[ANSWER: {n}]\n{got.answers[n]}" for n in sorted(got.answers))
+    kept = [n for n in range(1, forms.count(slug) + 1) if n not in got.answers]
+    note = f"{name}: {len(got.answers)} of {forms.count(slug)} answers in this reply."
+    if kept and got.answers:
+        note += f" No answer for {forms.numbers(kept)}. Those keep what they had, or stay empty on a first version."
+    check.form_notes.append(note)
+    if got.loose and HEADER_RE.sub("", got.loose).strip():
+        check.loose_text = True
+    return sent, dict(got.answers)
+
+
 def check_import(store: Store, client_id: str, text: str, tx_id: str | None, keep_first_names: bool,
                  output: str | None = None, markers: bool = True) -> ImportCheck:
     """Check a reply before it is saved. A reply with [OUTPUT: name] lines is split into one piece per marker. One
@@ -1284,9 +1273,12 @@ def check_import(store: Store, client_id: str, text: str, tx_id: str | None, kee
 
     def piece(slug: str, body: str) -> OutputPiece:
         body = strip_header_lines(body)
+        answers = {}
+        if slug in FORM_SLUGS:
+            body, answers = form_body(check, slug, body)
         res = rehydrate(body, registry, client["first_name"], keep_first_names, keep_last_names)
         return OutputPiece(slug, body, res.text, res.unknown, res.unused, res.possible_real,
-                           rehydrated_segments(res.text, res.unknown))
+                           rehydrated_segments(res.text, res.unknown), answers)
 
     loose, sections = split_markers(content) if markers else (content, [])
     if sections:
@@ -1340,10 +1332,18 @@ def save_import(store: Store, client_id: str, check: ImportCheck, kind: str = "o
         raise ImportProblem("These output names are not known: " + ", ".join(check.bad_markers) + ". Nothing was saved.")
     if check.empty_markers:
         raise ImportProblem("These outputs have no text: " + ", ".join(check.empty_markers) + ". Nothing was saved.")
+    if check.bad_answers:
+        raise ImportProblem(" ".join(check.bad_answers) + " Nothing was saved.")
     if not check.pieces:
         raise ImportProblem("Choose which output this reply is.")
     with store.transaction():
-        saved = [f"{p.slug} v{store.add_output(client_id, check.tx_id, p.slug, p.content, source)}" for p in check.pieces]
+        saved = []
+        for p in check.pieces:
+            content = p.content
+            if p.slug in FORM_SLUGS:          # the answers sent are laid over the latest version, the rest keep what they had
+                versions = store.list_outputs(check.tx_id, p.slug)
+                content = forms.merge(p.slug, versions[-1]["content"] if versions else "", p.answers)
+            saved.append(f"{p.slug} v{store.add_output(client_id, check.tx_id, p.slug, content, source)}")
     return ", ".join(saved)
 
 
@@ -1353,6 +1353,12 @@ def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, 
     row = store.get_transcript(tx_id)
     if row is None or row["client_id"] != client_id or slug not in OUTPUT_NAMES:
         raise ImportProblem("Unknown output for this transcript.")
+    if slug in FORM_SLUGS:            # a form is saved answer by answer, an empty answer clears it
+        got = forms.parse(slug, clean_text(text))
+        if got.dupes or got.unknown:
+            raise ImportProblem("The form has a repeated or unknown question number.")
+        return edit_answers(store, client_id, tx_id, slug, {n: got.answers.get(n, "") for n in range(1, forms.count(slug) + 1)},
+                            keep_first_names)
     text = strip_header_lines(clean_text(text).strip("\n"))
     if not text.strip():
         raise ImportProblem("The output is empty.")
@@ -1365,6 +1371,43 @@ def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, 
         if versions and versions[-1]["content"] == content:
             raise ImportProblem("Nothing changed, so no new version was saved.")
         return store.add_output(client_id, tx_id, slug, content, "edit"), masked
+
+
+MAX_ANSWER = 20_000
+
+
+def edit_answers(store: Store, client_id: str, tx_id: str, slug: str, changes: dict, keep_first_names: bool,
+                 base: int | None = None) -> tuple[int, int]:
+    """Save a hand edit of one or more answers of a form as a new version. `changes` is {question number: text}. Every
+    other answer is copied from the latest version exactly as stored, so an answer nobody touched is never rewritten.
+    Known real values typed into an answer are replaced by their codes like in an import. base: the version the page
+    was showing. If a newer one exists the edit is refused (StaleVersion). Returns (version, values replaced)."""
+    row = store.get_transcript(tx_id)
+    if row is None or row["client_id"] != client_id or slug not in FORM_SLUGS:
+        raise ImportProblem("Unknown form for this transcript.")
+    registry = store.load_registry(client_id)
+    keep_plain = _keep_plain(store.get_client(client_id), *keep_flags(store, client_id, keep_first_names))
+    clean, masked_total = {}, 0
+    for n, text in changes.items():
+        if not isinstance(n, int) or not 1 <= n <= forms.count(slug):
+            raise ImportProblem("That question is not on this form.")
+        text = clean_text(str(text)).strip("\n").strip()
+        if len(text.encode("utf-8")) > MAX_ANSWER:
+            raise ImportProblem("An answer can be up to 20 KB.")
+        if forms.ANSWER_RE.search(text) or MARKER_RE.search(text):
+            raise ImportProblem("An answer cannot hold a line such as [ANSWER: 3] or [OUTPUT: name].")
+        clean[n], masked = mask_known_values(strip_header_lines(text), registry, keep_plain)
+        masked_total += masked
+    with store.transaction():
+        versions = store.list_outputs(tx_id, slug)
+        if base is not None and (not versions or versions[-1]["version"] != base):
+            raise StaleVersion("A newer version of this form was saved after this page opened, so nothing was saved. "
+                               "Reload to see it.")
+        old = versions[-1]["content"] if versions else ""
+        new = forms.merge(slug, old, clean)
+        if versions and old == new:
+            raise ImportProblem("Nothing changed, so no new version was saved.")
+        return store.add_output(client_id, tx_id, slug, new, "edit"), masked_total
 
 
 MAX_HIDE = 200
@@ -1506,6 +1549,40 @@ def view_output(store: Store, client_id: str, content: str):
     registry = store.load_registry(client_id)
     res = rehydrate(content, registry, client["first_name"], *keep_flags(store, client_id))
     return res, rehydrated_segments(res.text, res.unknown)
+
+
+def view_form(store: Store, client_id: str, slug: str, content: str):
+    """A form version for the page: (rehydrate result, [row]) where each row is one question with its answer as real
+    text (`text`), as placeholder text (`raw`), the pieces to print (`segs`) and its state: answered, not_discussed or
+    empty. The placeholders are put back once for the whole version, then split at the markers."""
+    client = store.get_client(client_id)
+    registry = store.load_registry(client_id)
+    res = rehydrate(content, registry, client["first_name"], *keep_flags(store, client_id))
+    # The placeholder text is masked again, so a name hidden after this version was saved never leaves as raw text.
+    shown = forms.parse(slug, res.text).answers
+    raw = forms.parse(slug, placeholder_text(store, client_id, content, registry)).answers
+    rows = []
+    for n, question in enumerate(forms.QUESTIONS[slug], 1):
+        text = shown.get(n, "")
+        state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
+        rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
+                         segs=rehydrated_segments(text, res.unknown) if text else [],
+                         unknown=sum(1 for u in set(res.unknown) if u in text)))
+    return res, rows
+
+
+def forms_listing(rows: list, key: str) -> str:
+    """All the answers of a form as one text for Copy all: the question number and question, then the answer."""
+    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key])
+
+
+def form_diff(slug: str, old_text: str, new_text: str) -> tuple[list, int]:
+    """The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
+    many questions did not change. The changed words in each answer are marked like in a text output."""
+    a, b = forms.parse(slug, old_text).answers, forms.parse(slug, new_text).answers
+    changed = [(n, q, diff_rows(a.get(n, ""), b.get(n, ""))) for n, q in enumerate(forms.QUESTIONS[slug], 1)
+               if a.get(n, "") != b.get(n, "")]
+    return changed, forms.count(slug) - len(changed)
 
 
 _TOKEN_RE = re.compile(r"\s+|[^\s]+")

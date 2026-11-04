@@ -8,14 +8,14 @@ import re
 import pytest
 
 from app import workflow as wf
-from app.outputs import SLUGS
+from app.outputs import SLUGS, TEXT_SLUGS
 from app.scrub.parse import parse_lenient
 from app.scrub.pipeline import ScrubConfig, scrub_message
 from app.scrub.registry import Registry
 from app.store import Store
 from tests.webhelp import Session, make_app, review_form, saved_tx
 
-NOTE, CAL, FORM = SLUGS
+NOTE, CAL, FORM = TEXT_SLUGS
 CALL = ("• Ana Ruiz 0:01\nHello there.\n• Bo Lund 0:06\n"
         + " ".join(f"Then May {n} came." for n in range(1, 7)) + "\n")
 ROOT = __import__("pathlib").Path(__file__).resolve().parent.parent

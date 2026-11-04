@@ -10,7 +10,8 @@ from pathlib import Path
 
 from .scrub.registry import Registry, has_token
 
-from .outputs import SLUGS
+from . import forms
+from .outputs import FORM_SLUGS, SLUGS
 from .paths import AUDIT_NAME, CLIENT_FILE, CLIENTS_DIR, SETTINGS_NAME, TRANSCRIPT_FILE, TRANSCRIPTS_DIR, prepare_data_dir
 
 CLIENT_FIELDS = (("schema", int), ("id", str), ("first_name", str), ("created_at", str), ("transcripts", dict),
@@ -18,7 +19,7 @@ CLIENT_FIELDS = (("schema", int), ("id", str), ("first_name", str), ("created_at
 TRANSCRIPT_FIELDS = (("call_date", str), ("status", str), ("created_at", str), ("seq", int), ("flags", list))
 OUTPUT_FIELDS = (("output", str), ("transcript_id", str), ("versions", list))
 VERSION_FIELDS = (("version", int), ("at", str), ("source", str), ("text", str))
-SOURCES = ("import", "mcp", "edit", "hide")
+SOURCES = ("import", "mcp", "edit", "hide", "unhide")
 
 
 def _load(path: Path, problems: list, root: Path):
@@ -115,6 +116,10 @@ def check(folder: Path) -> list[str]:
                             problems.append(f"{out_rel}: version entry {i} is out of order")
                         if "source" in v and v["source"] not in SOURCES:
                             problems.append(f"{out_rel}: version entry {i} has an unknown source")
+                        if path.stem in FORM_SLUGS and isinstance(v.get("text"), str):
+                            got = forms.parse(path.stem, v["text"])
+                            if got.unknown or got.dupes or not got.found:
+                                problems.append(f"{out_rel}: version entry {i} has an unknown, repeated or missing answer marker")
                     else:
                         problems.append(f"{out_rel}: version entry {i} is not an object")
     audit = folder / AUDIT_NAME

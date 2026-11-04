@@ -27,7 +27,9 @@ TOOL = {
             "transcript_id": {"type": "string", "description": "The transcript ID from the header line."},
             "output": {"type": "string", "enum": list(SLUGS),
                        "description": "Which output this is: " + "; ".join(f"{slug} is {name}" for slug, name in NAMES.items()) + "."},
-            "content": {"type": "string", "description": "The full output, placeholders unchanged."},
+            "content": {"type": "string", "description": "The full output, placeholders unchanged. For the two intake forms, "
+                           "write each answer under a line that reads exactly [ANSWER: <question number>]. Questions left out keep "
+                           "their earlier answer."},
         },
         "required": ["client_id", "transcript_id", "output", "content"],
         "additionalProperties": False,
