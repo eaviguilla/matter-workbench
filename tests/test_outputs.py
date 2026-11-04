@@ -167,7 +167,7 @@ def test_the_copied_text_names_the_ticked_outputs_then_the_header_then_the_trans
         assert s.list_messages(cid)[0]["scrubbed_text"] == text
     both = copy(web, tx, [FORM, NOTE, FORM_SLUGS[0]]).json()["text"]
     head = both.split("[CLIENT:")[0]
-    assert head == f"Outputs to write: Clio Note ({NOTE}), Clio form note ({FORM}), Probate intake form ({FORM_SLUGS[0]}).\n\n"
+    assert head == f"Outputs to write: Clio Note ({NOTE}), Clio form note ({FORM}), Probate Intake Form ({FORM_SLUGS[0]}).\n\n"
     assert "Lopez" not in both
     doc = json.loads((tmp / "data" / "clients" / cid / "client.json").read_text(encoding="utf-8"))
     assert doc["transcripts"][tx]["requested_outputs"] == [NOTE, FORM, FORM_SLUGS[0]]

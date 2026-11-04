@@ -34,7 +34,11 @@
   <ol class="answers" data-answers data-tx="{{ sel.id }}" data-slug="{{ b.slug }}" data-version="{{ b.current.version }}" data-latest="{{ b.latest }}" data-answers-url="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/answers">
     {% for r in b.rows %}
     <li class="arow state-{{ r.state }}" id="q-{{ b.slug }}-{{ r.n }}" data-n="{{ r.n }}">
-      <p class="aq"><span class="qn">{{ r.n }}.</span> {{ r.question }}</p>
+      <div class="aqwrap">
+        <p class="aq"><span class="qn">{{ r.n }}.</span> {{ r.question }}</p>
+        {% if r.hint %}<p class="ahint muted">{{ r.hint }}</p>{% endif %}
+        {% if r.over %}<p class="warn ahint" role="alert">{{ r.over }} character{{ 's' if r.over != 1 }} over what the Clio box takes. Shorten it.</p>{% endif %}
+      </div>
       <div class="abox">
         {% if r.state == 'empty' %}
         <p class="empty"><span>No answer yet.</span></p>

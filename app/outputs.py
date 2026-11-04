@@ -15,8 +15,8 @@ TEXT_OUTPUTS = (
     ("clio-form-note", "Clio form note"),
 )
 FORM_OUTPUTS = (
-    ("probate-intake-form", "Probate intake form"),
-    ("estate-plan-intake-form", "Estate plan intake form"),
+    ("probate-intake-form", "Probate Intake Form"),
+    ("estate-plan-intake-form", "Estate Plan - General Intake form"),
 )
 OUTPUTS = TEXT_OUTPUTS + FORM_OUTPUTS
 TEXT_SLUGS = tuple(slug for slug, _ in TEXT_OUTPUTS)

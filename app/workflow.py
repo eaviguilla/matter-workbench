@@ -65,6 +65,7 @@ Rules
 - Copy placeholders exactly as written. Never change their case or format, never invent new ones, and never guess the real values.
 - The same placeholder always means the same person or thing across this chat.
 - Do only the outputs the message asks for. Do not write the others.
+- Use only what the transcript says. Never invent, assume or fill in a fact, name, date, amount or answer that was not said. If it was not said, leave it out, or write Not discussed in a form answer.
 - Start every output with the header line of the transcript it is based on.
 {saving}
 - The two intake forms ({forms}) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
@@ -1566,6 +1567,7 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
         text = shown.get(n, "")
         state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
         rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
+                         hint=forms.hint(slug, n), over=forms.over(slug, n, text),
                          segs=rehydrated_segments(text, res.unknown) if text else [],
                          unknown=sum(1 for u in set(res.unknown) if u in text)))
     return res, rows

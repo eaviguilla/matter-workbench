@@ -61,9 +61,9 @@ def form(p: dict, n: int = 1) -> str:
 
 
 def probate(p: dict, n: int = 1) -> str:
-    return forms.render(FORM_SLUGS[0], {1: p["first"], 2: "No, there was no estate planning.", 3: "California",
-                                        4: "Orange", 5: "In March", 6: f"A house and a bank account. Revision {n}.",
-                                        10: "Not discussed"})
+    return forms.render(FORM_SLUGS[0], {1: p["first"], 2: "None.", 3: "California", 4: "Orange", 5: "03/14/2026",
+                                        6: f"A house and a bank account. Revision {n}.", 7: "Yes",
+                                        8: "12 Example Street, Santa Ana", 9: "Not discussed", 13: "Not discussed"})
 
 
 def long_overview(p: dict) -> str:

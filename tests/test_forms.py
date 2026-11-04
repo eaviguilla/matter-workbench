@@ -26,13 +26,61 @@ def versions(web, tx, slug):
 # ---- the parser ---------------------------------------------------------------------------------------
 
 def test_the_forms_have_the_question_counts_asked_for():
-    assert forms.count(PRO) == 12 and forms.count(EST) == 15
+    assert forms.count(PRO) == 16 and forms.count(EST) == 19
+
+
+def test_the_estate_plan_form_follows_the_clio_page():
+    """Clio shows a follow-up only after a Yes or No, and a checkbox question takes any of three options. Each
+    follow-up is its own entry that names the earlier answer that opens it."""
+    q = forms.DETAILS[EST]
+    assert [x.text for x in q] == list(forms.QUESTIONS[EST]) and len(q) == forms.count(EST)
+    for n, x in enumerate(q, 1):
+        assert x.kind in ("text", "yesno", "checkbox")
+        if x.when:
+            parent, answer = x.when
+            assert parent < n and q[parent - 1].kind == "yesno" and answer in ("Yes", "No")
+        if x.kind == "text":
+            assert x.limit == 255                      # every text box on the page takes 255 characters
+        else:
+            assert x.limit is None
+    assert {n: x.when for n, x in enumerate(q, 1) if x.when} == {
+        2: (1, "Yes"), 3: (1, "No"), 9: (8, "Yes"), 10: (8, "Yes"), 14: (13, "Yes"), 16: (15, "No"), 19: (18, "Yes")}
+    assert q[11].kind == "checkbox" and len(q[11].options) == 3 and q[11].options[2] == "None!"
+    assert q[13].clio == q[18].clio == "Please explain." and q[13].text != q[18].text    # same title on Clio, told apart here
+
+
+def test_the_probate_form_follows_the_clio_page():
+    q = forms.DETAILS[PRO]
+    assert [x.text for x in q] == list(forms.QUESTIONS[PRO]) and len(q) == forms.count(PRO)
+    assert [x.kind for x in q] == ["text", "checkbox", "text", "text", "date", "textarea", "yesno", "text", "text",
+                                   "checkbox", "yesno", "text", "yesno", "text", "text", "textarea"]
+    for n, x in enumerate(q, 1):
+        if x.when:
+            parent, answer = x.when
+            assert parent < n and q[parent - 1].kind == "yesno" and answer in ("Yes", "No")
+        assert (x.limit == 255) == (x.kind == "text")          # the long text areas have no practical limit
+    assert {n: x.when for n, x in enumerate(q, 1) if x.when} == {8: (7, "Yes"), 9: (7, "Yes"), 12: (11, "Yes"), 14: (13, "Yes")}
+    assert q[1].options[-1] == "Not sure." and len(q[1].options) == 4
+    assert q[9].options == ("Spouse", "Children", "Parent", "Sibling")
+    assert q[10].clio.endswith("loved one’s belongings or affairs?") and q[11].clio == "Please explain."
+
+
+def test_hints_say_when_a_question_is_asked_and_what_it_takes():
+    assert forms.hint(EST, 1) == "Yes or No."
+    assert forms.hint(EST, 2) == "Only if answer 1 is Yes. 255 characters at most."
+    assert forms.hint(EST, 12).startswith("Any of: Yes! A full estate plan") and forms.hint(EST, 12).endswith("None!")
+    assert forms.hint(PRO, 3) == "255 characters at most."
+    assert forms.hint(PRO, 5) == "A date as MM/DD/YYYY." and forms.hint(PRO, 6) == ""
+    assert forms.hint(PRO, 8) == "Only if answer 7 is Yes. 255 characters at most."
+    assert forms.hint(PRO, 10) == "Any of: Spouse | Children | Parent | Sibling"
+    assert forms.over(EST, 2, "x" * 255) == 0 and forms.over(EST, 2, "x" * 260) == 5
+    assert forms.over(EST, 1, "x" * 999) == 0 and forms.over(PRO, 16, "x" * 9999) == 0 and forms.over(PRO, 1, "x" * 300) == 45
 
 
 def test_answers_are_read_under_their_markers_and_a_missing_one_is_listed():
     p = forms.parse(PRO, "Intro that is dropped.\n[ANSWER: 1]\nAna Ruiz\n[ANSWER: 3]\nCalifornia\n[ANSWER: 4]\n")
     assert p.answers == {1: "Ana Ruiz", 3: "California"} and p.blanks == [4] and p.loose == "Intro that is dropped."
-    assert forms.missing(PRO, p.answers) == [2, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    assert forms.missing(PRO, p.answers) == [2] + list(range(4, 17))
 
 
 def test_a_bold_marker_an_inline_answer_and_a_reordered_reply_are_read():
@@ -44,10 +92,10 @@ def test_a_bold_marker_an_inline_answer_and_a_reordered_reply_are_read():
 
 def test_render_is_canonical_and_merge_keeps_what_a_reply_skips():
     old = forms.render(PRO, {1: "Ana", 2: "Yes"})
-    assert old.count("[ANSWER:") == 12 and old.startswith("[ANSWER: 1]\nAna\n\n[ANSWER: 2]\nYes")
+    assert old.count("[ANSWER:") == 16 and old.startswith("[ANSWER: 1]\nAna\n\n[ANSWER: 2]\nYes")
     new = forms.merge(PRO, old, {2: "Not discussed", 3: "Texas"})
     got = forms.parse(PRO, new).answers
-    assert got == {1: "Ana", 2: "Not discussed", 3: "Texas"} and forms.parse(PRO, new).blanks == [n for n in range(4, 13)]
+    assert got == {1: "Ana", 2: "Not discussed", 3: "Texas"} and forms.parse(PRO, new).blanks == [n for n in range(4, 17)]
 
 
 def test_answer_markers_are_not_placeholders():
@@ -61,16 +109,16 @@ def test_a_reply_saves_a_form_version_with_every_marker_and_a_later_reply_patche
     web, cid, tx, tmp = env
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nA first answer\n[ANSWER: 3]\nCalifornia"))
     v1 = versions(web, tx, PRO)
-    assert len(v1) == 1 and v1[0].count("[ANSWER:") == 12
+    assert len(v1) == 1 and v1[0].count("[ANSWER:") == 16
     chk, _ = do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 3]\nNot discussed\n[ANSWER: 4]\nOrange"))
-    assert "2 of 12" in chk.text
+    assert "2 of 16" in chk.text
     v2 = versions(web, tx, PRO)[1]
     assert forms.parse(PRO, v2).answers == {1: "A first answer", 3: "Not discussed", 4: "Orange"}
 
 
 def test_a_duplicate_unknown_or_marker_free_reply_blocks_the_whole_save(env):
     web, cid, tx, tmp = env
-    for body in ("[ANSWER: 1]\nA\n[ANSWER: 1]\nB", "[ANSWER: 1]\nA\n[ANSWER: 13]\nB", "Only prose here."):
+    for body in ("[ANSWER: 1]\nA\n[ANSWER: 1]\nB", "[ANSWER: 1]\nA\n[ANSWER: 17]\nB", "Only prose here."):
         chk = web.post(f"/clients/{cid}/import", {"text": reply(cid, tx, PRO, body)})
         assert 'class="error"' in chk.text and re.search(r"<button type=\"submit\" disabled", chk.text)
         saved = web.post(f"/clients/{cid}/import/save", {"content": textarea(chk.text), "kind": "output", "output": PRO},
@@ -100,11 +148,25 @@ def test_the_forms_show_under_the_board_with_one_copy_box_per_answer(env):
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     assert len(re.findall(r'<section class="col" id="out-', page)) == 3
     assert page.index('class="board"') < page.index("Intake forms") < page.index(f'id="out-{PRO}"')
-    assert "2 of 12 answered" in page and "Jump to:" in page
+    assert "2 of 16 answered" in page and "Jump to:" in page
     assert page.count('class="answer"') == 2 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
     assert "Copy all" in page and "Ask Claude to change this form" in page
     assert "Waiting for Claude" in page.split(f'id="out-{EST}"')[1] or "Not requested" in page.split(f'id="out-{EST}"')[1]
     assert f"/transcripts/{tx}/outputs/{PRO}/edit" in page and "<script>" not in page.replace("<script src", "")
+
+
+def test_the_estate_plan_form_shows_hints_and_warns_about_an_answer_over_the_clio_limit(env):
+    web, cid, tx, tmp = env
+    copy(web, tx, [NOTE, EST])
+    long = "x" * 260
+    do_import(web, cid, reply(cid, tx, EST, f"[ANSWER: 1]\nYes\n[ANSWER: 2]\n{long}\n[ANSWER: 12]\nNone!"))
+    page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
+    panel = page.split(f'id="out-{EST}"')[1]
+    assert "3 of 19 answered" in panel
+    assert "Only if answer 1 is Yes. 255 characters at most." in panel and "Only if answer 8 is Yes." in panel
+    assert panel.count("5 characters over what the Clio box takes") == 1
+    edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
+    assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 19 and "Only if answer 15 is No." in edit
 
 
 def test_forms_are_never_ticked_unless_the_call_asked_for_them(env):
@@ -147,7 +209,7 @@ def test_a_stale_answer_edit_is_refused_and_nothing_is_saved(env):
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nBea"))
     r = web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"n": 1, "text": "Cy", "version": 1})
     assert r.status_code == 409 and r.json()["stale"] is True and len(versions(web, tx, PRO)) == 2
-    for bad in ({"n": 13, "text": "x", "version": 2}, {"n": 1, "text": "[ANSWER: 3]\nx", "version": 2}, {"n": "1", "text": "x", "version": 2}):
+    for bad in ({"n": 17, "text": "x", "version": 2}, {"n": 1, "text": "[ANSWER: 3]\nx", "version": 2}, {"n": "1", "text": "x", "version": 2}):
         assert web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", bad).status_code == 400
     assert web.post_json(f"/transcripts/{tx}/outputs/{NOTE}/answers", {"n": 1, "text": "x", "version": 1}).status_code == 400
     assert len(versions(web, tx, PRO)) == 2
@@ -157,11 +219,11 @@ def test_the_no_script_edit_page_has_one_box_per_question_and_clearing_a_box_cle
     web, cid, tx, tmp = env
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna\n[ANSWER: 2]\nYes"))
     page = web.get(f"/transcripts/{tx}/outputs/{PRO}/edit").text
-    assert len(re.findall(r'<textarea id="edit-answer-\d+"', page)) == 12
-    data = {f"answer_{n}": "" for n in range(1, 13)} | {"answer_1": "Ana", "answer_5": "May 5"}
+    assert len(re.findall(r'<textarea id="edit-answer-\d+"', page)) == 16
+    data = {f"answer_{n}": "" for n in range(1, 17)} | {"answer_1": "Ana", "answer_5": "05/05/2026"}
     r = web.post(f"/transcripts/{tx}/outputs/{PRO}/edit?v=1", data, follow_redirects=False)
     assert r.status_code == 303
-    assert forms.parse(PRO, versions(web, tx, PRO)[1]).answers == {1: "Ana", 5: "May 5"}
+    assert forms.parse(PRO, versions(web, tx, PRO)[1]).answers == {1: "Ana", 5: "05/05/2026"}
     again = web.post(f"/transcripts/{tx}/outputs/{PRO}/edit?v=2", data)
     assert "Nothing changed" in again.text
 
@@ -173,9 +235,9 @@ def test_scrub_this_keeps_the_markers_and_compare_lists_changed_questions(env):
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nMaria Santos\n[ANSWER: 8]\nHer sister Lupita lives nearby"))
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 8]\nHer sister Lupita and brother live nearby"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs&{PRO}=2&cmp-{PRO}=prev").text
-    assert "1 question changed, 11 unchanged" in page
+    assert "1 question changed, 15 unchanged" in page
     for v in versions(web, tx, PRO):
-        assert forms.parse(PRO, v).unknown == [] and v.count("[ANSWER:") == 12
+        assert forms.parse(PRO, v).unknown == [] and v.count("[ANSWER:") == 16
 
 
 # ---- the data check ---------------------------------------------------------------------------------
@@ -221,14 +283,14 @@ def test_scrub_this_and_unscrub_add_form_versions_that_keep_all_markers(env):
     with store_of(web) as s:
         got = s.list_outputs(tx2, PRO)
         assert [o["source"] for o in got] == ["import", "hide"]
-        assert "Quimby" not in got[-1]["content"] and got[-1]["content"].count("[ANSWER:") == 12
+        assert "Quimby" not in got[-1]["content"] and got[-1]["content"].count("[ANSWER:") == 16
         assert forms.parse(PRO, got[-1]["content"]).unknown == []
         reg = s.load_registry(cid)
         n = next(e.n for e in reg.entities if e.type == "PERSON" and e.forms.get(None) == "Hartley Quimby")
         wf.delete_hidden_name(s, cid, "PERSON", n)
     with store_of(web) as s:
         got = s.list_outputs(tx2, PRO)
-        assert got[-1]["source"] == "unhide" and "Hartley Quimby" in got[-1]["content"] and got[-1]["content"].count("[ANSWER:") == 12
+        assert got[-1]["source"] == "unhide" and "Hartley Quimby" in got[-1]["content"] and got[-1]["content"].count("[ANSWER:") == 16
 
 
 def test_an_older_form_version_has_no_inline_edit_and_the_select_keeps_its_place(env):

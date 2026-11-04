@@ -910,7 +910,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         if not wf.is_form(slug):
             return []
         shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
-        return [(n, q, typed[n] if typed is not None else shown.get(n, ""))
+        return [(n, q, typed[n] if typed is not None else shown.get(n, ""), wf.forms.hint(slug, n))
                 for n, q in enumerate(wf.forms.QUESTIONS[slug], 1)]
 
     @router.get("/transcripts/{tx_id}/outputs/{slug}/edit", response_class=HTMLResponse)

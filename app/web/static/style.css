@@ -407,6 +407,8 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .answers { list-style: none; margin: 8px 0 0; padding: 0; }
 .arow { display: grid; grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr) 10.5rem; gap: 6px 16px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
 .arow .aq { margin: 0; font-size: 14px; line-height: 1.45; }
+.aqwrap { min-width: 0; }
+.ahint { margin: 2px 0 0; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
 .qn { font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
 .abox { min-width: 0; }
 .abox pre.answer { margin: 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); white-space: pre-wrap; word-break: break-word; font: 13px/1.55 var(--mono); max-height: 14rem; overflow: auto; }
@@ -419,7 +421,7 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .qedit textarea { width: 100%; box-sizing: border-box; }
 @media (max-width: 960px) {
   .arow { grid-template-columns: minmax(0, 1fr) auto; }
-  .arow .aq { grid-column: 1 / -1; }
+  .arow .aqwrap { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) {
   .fpanel { padding: 12px; }
