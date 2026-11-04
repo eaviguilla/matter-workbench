@@ -24,33 +24,67 @@ py -3 -m venv .venv
 .venv\Scripts\pip install -e ".[dev,ner]"
 ```
 
-## Packaging for another computer
+## Installing on another computer
 
-`scripts/package.py` builds one zip for macOS and Windows. It is made from an allow list of files (the app, the
-connector, the name model, `run.py`, a sample call) and holds no client records, transcripts, keys or settings.
-The build stops if it finds a client file, key, `.env` or Word file among the files it would pack.
+Step by step guides for the person doing the install are `INSTALL-GIT.md` (from GitHub) and `INSTALL-ZIP.md` (from the
+zip, shipped inside it as `START-HERE.md`).
 
-macOS or Linux:
+There are two ways to install on a fresh machine. Both end with one command, and both install the name model.
+Install Python 3.13 first (python.org). On Windows the installer provides the `py` launcher. Use a short folder
+that is not synced, such as `~/matter-workbench` on a Mac or `C:\MatterWorkbench` on Windows.
+
+Route 1, git. Needs git, or use Download ZIP on GitHub.
+
+```bash
+git clone https://github.com/eaviguilla/matter-workbench.git ~/matter-workbench
+cd ~/matter-workbench && python3 run.py
+```
+
+```powershell
+git clone https://github.com/eaviguilla/matter-workbench.git C:\MatterWorkbench
+cd C:\MatterWorkbench; py run.py
+```
+
+The model is not in git. `run.py` downloads it once (about 570 MB) from the GitHub release named on the first line
+of `models/MODEL-SHA256.txt`, checks every file against the SHA-256 in that list, and only then puts the file in
+`models/gliner_pii`. A download that stops continues on the next run. If the machine is offline, the app still
+starts and the banner says scrubbing is blocked until `run.py` is run again while online. To update, run `git pull`
+and then `run.py`.
+
+Route 2, the zip. On the machine that has the model, build the zip.
 
 ```bash
 .venv/bin/python scripts/package.py
 ```
 
-Windows PowerShell:
-
 ```powershell
 .venv\Scripts\python scripts\package.py
 ```
 
-The zip lands in `dist/` (about 500 MB). Send it to the other computer, unzip it, and run `python3 run.py` on macOS
-or `py run.py` on Windows. The first run builds a private `.venv`, installs the libraries from the internet, checks
-the model against `CHECKSUMS.txt`, starts the app and opens the browser. Later runs see the install is done and
-only start the app, in under a second. `run.py --reinstall` rebuilds the environment. The zip includes
-`START-HERE.md`, which tells the person receiving it what to install first, and `NOTICE.txt` with the model license.
+It lands in `dist/` (about 580 MB) and holds the app, the connector, `run.py`, a sample call, the model, and
+`models/MODEL-SHA256.txt`, `START-HERE.md` (a copy of `INSTALL-ZIP.md`) and `NOTICE.txt`. The build stops if the model files do not match the
+list, or if it finds a client file, key, `.env` or Word file. `--no-model` builds a small zip, and `run.py` then
+downloads the model on the first run. Send the zip, unzip it into a new folder, and run `python3 run.py` or `py run.py`
+there. The model is already in the zip, so nothing is downloaded for it. The libraries still come from the internet
+on the first run. To update, unzip the new zip into a new folder, run it, and delete the old folder.
+
+What `run.py` does on every start, in order. If something already answers on the port, it opens the page and stops,
+and touches nothing. Otherwise it checks the private environment in `.venv`. If the environment works and matches
+`pyproject.toml`, it installs nothing and deletes nothing. An environment that works but has no note of how it was
+built is kept and only noted. A change to the requirements installs into the existing environment, and only
+a broken environment, or one built for another kind of computer, is built again. Then it checks the model. If the
+model files are the ones it checked before (same size and time), it reads and downloads nothing. A version bump,
+new code or a moved folder never reinstalls. `--reinstall` rebuilds the environment, and `--install-only`
+installs both and stops.
+
+To release a new model, export it, write the list with `.venv/bin/python scripts/package.py --manifest model-v2`,
+create a GitHub release with that tag and upload the four files in `models/gliner_pii`, and only then push the list.
+Machines that pull the list before the upload would get a 404. Never delete an older release, because older copies
+still use it.
 
 ## Turn the model on
 
-Scrubbing is blocked until the model is installed. The app still starts, and Settings shows the model status. The model is GLiNER `urchade/gliner_multi_pii-v1` (Apache 2.0). The export script checks the license first and refuses anything that is not Apache 2.0 or MIT. Export is a one-time step that needs the heavy `export` extra (torch). It writes about 570 MB to `models/gliner_pii`.
+Scrubbing is blocked until the model is installed. `run.py` installs it for you, from the package or by download, so you only need these steps to build or change the model on your own machine. The app still starts without it, and Settings shows the model status. The model is GLiNER `urchade/gliner_multi_pii-v1` (Apache 2.0). The export script checks the license first and refuses anything that is not Apache 2.0 or MIT. Export is a one-time step that needs the heavy `export` extra (torch). It writes about 570 MB to `models/gliner_pii`.
 
 macOS or Linux:
 

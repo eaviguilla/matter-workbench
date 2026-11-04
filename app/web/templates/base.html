@@ -24,7 +24,7 @@
 <div class="banner" role="alert">A saved file could not be read for {{ damaged_clients|join(", ") }}. Other clients are not affected. Run <code>python -m app.check</code> for a report that is safe to share.</div>
 {% endif %}
 {% if not model_ok %}
-<div class="banner warn" role="alert">The name model is not installed, so scrubbing is blocked. <a href="/settings">Open Settings</a></div>
+<div class="banner warn" role="alert">The name model is not installed, so scrubbing is blocked. Close this app, then run <code>run.py</code> again while online. It downloads the model once. <a href="/settings">Open Settings</a></div>
 {% endif %}
 <div class="shell">
   <nav class="clients" aria-label="Clients">

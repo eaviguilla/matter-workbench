@@ -1,7 +1,8 @@
 .venv/
 __pycache__/
 .pytest_cache/
-models/
+models/*
+!models/MODEL-SHA256.txt
 *.db
 *.db-wal
 *.db-shm

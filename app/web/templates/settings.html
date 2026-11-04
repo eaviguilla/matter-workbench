@@ -7,7 +7,7 @@
 <section>
   <h2>Name finder</h2>
   <p>Status: <strong>{{ 'installed' if ner.available else 'not installed' }}</strong>{% if ner.available %}, {{ 'loaded in memory' if ner.loaded else 'not loaded (loads on first use)' }}{% endif %}.</p>
-  {% if not ner.available %}<p class="warn">Scrubbing is blocked until the name finder is installed in <code>{{ model_dir }}</code>. See the README, section "Turn the model on".</p>{% endif %}
+  {% if not ner.available %}<p class="warn">Scrubbing is blocked until the name model is installed in <code>{{ model_dir }}</code>. Close this app and run <code>run.py</code> again while online. It downloads and checks the model once. If that does not work, see the README, section "Turn the model on".</p>{% endif %}
   <form method="post" action="/settings" class="stack narrow" data-save-form>
     {{ m.csrf_field(csrf) }}
     <input type="hidden" name="section" value="model">

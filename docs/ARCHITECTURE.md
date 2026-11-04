@@ -26,7 +26,7 @@ cd matter-workbench
 .venv\Scripts\python -m app
 .venv\Scripts\python -m pytest -q
 ```
-`python3 run.py` (macOS) or `py run.py` (Windows) is the entry point for end users. It builds `.venv` on first run, installs the libraries, checks the model against `CHECKSUMS.txt`, starts the app and opens the browser. `python -m app --demo` loads synthetic data (not available from the zip). There is no `--no-browser` flag.
+`python3 run.py` (macOS) or `py run.py` (Windows) is the entry point for end users. It checks what is installed first and changes only what is missing. It builds `.venv` on first run and installs the libraries, installs the model (from the zip, or by download from the GitHub release named in `models/MODEL-SHA256.txt` with each file checked against its SHA-256), starts the app and opens the browser. A running copy is left alone, a version bump never reinstalls, and only a changed requirement upgrades in place. See CLAUDE.md, Packaging, for the exact order. `python -m app --demo` loads synthetic data (not available from the zip). Flags are `--reinstall`, `--install-only` and `--no-browser`.
 
 Data folder: `~/Library/Application Support/MatterWorkbench.noindex` on macOS, `%LOCALAPPDATA%\MatterWorkbench` on Windows. `MATTER_WORKBENCH_HOME` overrides it. `app/paths.py` refuses a folder inside OneDrive, iCloud Drive, Dropbox, a macOS CloudStorage folder or a Git repository. To start from zero, stop the app, empty `clients/` and `audit.jsonl`, and keep `settings.json` (it holds the form secret).
 

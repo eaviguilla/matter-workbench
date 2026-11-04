@@ -1,0 +1,6 @@
+# SHA-256, size in bytes and name of each name model file. run.py checks and downloads by this.
+release model-v1
+05a1448f3897142af3f82456cfe65237364458a3c3798286045e0098a711a006  167  gliner_config.json
+559ae3e5c5303b008796a4543b315a66812c9458f4c8196bc91de291c2db716e  581345446  model_quantized.onnx
+c5b8041501fcdee792b9b112dd592861f04391a24633a73fd9f05aaaf6e8eff1  16034824  tokenizer.json
+c12b7b3bab6cd638f70b203daf1438bf7fedbeab4728a1e155728af9a5a55687  2928  tokenizer_config.json

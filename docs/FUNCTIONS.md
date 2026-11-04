@@ -1,6 +1,6 @@
 # Function list
 
-Total, 531 items.
+Total, 551 items.
 Every function, method and class in the app, the connector, the scripts and `run.py`, in file order. The text after each name is the first line of its docstring, or blank when it has none.
 
 ## app/__main__.py  (3)
@@ -505,26 +505,44 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `handle.ok` (def, line 80)
 - `serve` (def, line 98)
 
-## run.py  (18)
+## run.py  (36)
 
-- `Stop` (class, line 41). A problem the person can fix. The message says how.
-- `say` (def, line 45)
-- `venv_dir` (def, line 49)
-- `venv_python` (def, line 53)
-- `check_python` (def, line 58)
-- `state` (def, line 69). What the installed environment was built for. If any of it changes, the install is redone.
-- `read_stamp` (def, line 75)
-- `environment_works` (def, line 82)
-- `install_needed` (def, line 94). None when the environment is ready, else a short reason.
-- `sha256_of` (def, line 106)
-- `verify_files` (def, line 114). Check every file listed in CHECKSUMS.txt. Returns how many were checked. No list means no check.
-- `run_step` (def, line 134)
-- `install` (def, line 144)
-- `port_open` (def, line 171)
-- `open_when_ready` (def, line 177)
-- `launch` (def, line 187)
-- `parse` (def, line 210)
-- `main` (def, line 223)
+- `Stop` (class, line 54). A problem the person can fix. The message says how.
+- `say` (def, line 58)
+- `venv_dir` (def, line 62)
+- `venv_python` (def, line 66)
+- `check_python` (def, line 71)
+- `deps_digest` (def, line 84). A fingerprint of what the libraries depend on. A version bump or a new description does not change it,
+- `state` (def, line 98). What the installed environment was built for.
+- `read_stamp` (def, line 103)
+- `write_stamp` (def, line 110)
+- `environment_works` (def, line 114)
+- `plan` (def, line 125). What the environment needs, as (action, reason). The actions are
+- `pip_install` (def, line 149)
+- `run_step` (def, line 154)
+- `install` (def, line 169). Build the environment from nothing. This deletes an existing .venv.
+- `upgrade` (def, line 191). Install changed requirements into the existing environment. Nothing is deleted.
+- `ensure_environment` (def, line 201). Make the environment ready, doing only what is missing. Returns the action taken.
+- `sha256_of` (def, line 221)
+- `read_manifest` (def, line 229). (release tag, {file name: (sha256, size)}), or None when the project has no model list.
+- `file_marks` (def, line 252)
+- `model_verified` (def, line 256). True when the files are the ones checked before, judged by size and time alone. No hashing.
+- `pip_cacert` (def, line 266). Python from python.org on macOS often lacks certificates until a post-install step is run. pip carries
+- `make_opener` (def, line 281). opener(url, start) returns an open response. It starts at byte start when start is not 0.
+- `make_opener.fetch` (def, line 285)
+- `make_opener.opener` (def, line 292)
+- `Progress` (class, line 305). One line that updates twice a second on a terminal, or a new line every 10 percent otherwise.
+- `Progress.__init__` (def, line 308)
+- `Progress.add` (def, line 315)
+- `Progress.finish` (def, line 330)
+- `download_file` (def, line 336). Fetch one file into part, continuing a partial file when the server allows it. Checks size and hash.
+- `move_into_place` (def, line 381)
+- `ensure_model` (def, line 392). Make sure the name model is installed and correct. Quiet and fast when it already is. A problem is
+- `port_open` (def, line 446)
+- `open_when_ready` (def, line 452)
+- `launch` (def, line 462)
+- `parse` (def, line 487)
+- `main` (def, line 500)
 
 ## scripts/check_onnx_parity.py  (1)
 
@@ -539,15 +557,17 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `quantize_embeddings` (def, line 16). int8 for the embedding table only. The table is two thirds of the weights. Quantizing the
 - `main` (def, line 24)
 
-## scripts/package.py  (7)
+## scripts/package.py  (9)
 
-- `is_skipped` (def, line 132)
-- `is_forbidden` (def, line 138)
-- `collect` (def, line 143). (source file, path inside the zip, relative to the top folder).
-- `sha256_of` (def, line 171)
-- `version_of` (def, line 179)
-- `build` (def, line 184)
-- `main` (def, line 210)
+- `is_skipped` (def, line 52)
+- `is_forbidden` (def, line 58)
+- `collect` (def, line 63). (source file, path inside the zip, relative to the top folder).
+- `sha256_of` (def, line 98)
+- `write_manifest` (def, line 106). Write models/MODEL-SHA256.txt from the model files on this computer.
+- `manifest_problems` (def, line 123). Differences between the manifest and the model files. Empty when they match.
+- `version_of` (def, line 141)
+- `build` (def, line 146)
+- `main` (def, line 170)
 
 ## scripts/seed_test_cases.py  (13)
 
