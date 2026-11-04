@@ -159,8 +159,6 @@
       if (Number(b.dataset.unknown || 0) > 0 && !window.confirm("This output has unknown placeholders. Copy anyway?")) { return; }
       var src = document.querySelector(b.dataset.copyText);
       copy(src.textContent).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
-    } else if (b.dataset.nextCopy) {
-      copyNext(b);
     } else if (b.dataset.answerSave) {
       saveAnswer(b.closest(".arow"));
     } else if (b.dataset.answerCancel) {
@@ -799,7 +797,6 @@
     Array.prototype.forEach.call(list.querySelectorAll(".arow"), function (row) {
       row.classList.toggle("copied", done.indexOf(Number(row.dataset.n)) >= 0);
     });
-    paintNext(list.closest(".fpanel"));
   }
   function markCopied(b) {
     var row = b.closest(".arow"), list = row.closest("[data-answers]"), done = copiedList(list), n = Number(row.dataset.n);
@@ -808,34 +805,6 @@
     paintCopied(list);
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-answers]"), paintCopied);
-
-  // Copy next answer: one button on a form. Each click copies the next answer not copied yet, marks it, and says how many
-  // are left. When all are copied the next click starts over. It only uses the clipboard and the answers on the page.
-  function answerRows(panel) {
-    return Array.prototype.filter.call(panel.querySelectorAll(".arow"), function (r) { return r.querySelector("pre.answer"); });
-  }
-  function paintNext(panel) {
-    var b = panel.querySelector("[data-next-copy]");
-    if (!b) { return; }
-    var left = answerRows(panel).filter(function (r) { return !r.classList.contains("copied"); }).length;
-    b.textContent = left ? "Copy next answer (" + left + " left)" : "All copied. Start over";
-  }
-  function copyNext(b) {
-    var panel = b.closest(".fpanel"), list = panel.querySelector("[data-answers]"), rows = answerRows(panel);
-    var row = rows.find(function (r) { return !r.classList.contains("copied"); });
-    if (!row) {                                               // everything is copied, so start over
-      try { window.sessionStorage.removeItem(copiedKey(list)); } catch (e) { /* nothing to forget */ }
-      paintCopied(list); say(b, "");
-      return;
-    }
-    var btn = row.querySelector("[data-copied-key]");
-    if (btn && Number(btn.dataset.unknown || 0) > 0 && !window.confirm("This answer has unknown placeholders. Copy anyway?")) { return; }
-    copy(row.querySelector("pre.answer").textContent).then(function () {
-      if (btn) { markCopied(btn); }
-      say(b, "Copied answer " + row.dataset.n + ".");
-    }).catch(function () { say(b, "Could not copy."); });
-  }
-  Array.prototype.forEach.call(document.querySelectorAll("[data-next-copy]"), function (b) { b.hidden = false; });
 
   // Editing one answer in place. Without a script the Edit link opens the edit page at that question.
   function openAnswer(row) {

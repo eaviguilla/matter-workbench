@@ -25,7 +25,6 @@
   <div class="actions copyrow fpall">
     <button type="button" data-copy-text="#all-{{ b.slug }}" data-unknown="{{ res.unknown|length }}" title="Copies every answer with real names" aria-label="Copy all answers of {{ b.name }}">Copy all</button>
     <button type="button" class="textbtn" data-copy-text="#allraw-{{ b.slug }}">Copy with hidden names</button>
-    {% if b.answered %}<button type="button" class="secondary" data-next-copy="1" aria-label="Copy the next answer of {{ b.name }}" hidden>Copy next answer</button>{% endif %}
     <a class="textbtn" href="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/edit?v={{ b.current.version }}" aria-label="Edit all answers of {{ b.name }}, version {{ b.current.version }}">Edit all</a>
     {% if not b.is_latest %}<span class="oldnote">Older version. The latest is v{{ b.latest }}.</span>{% endif %}
     <span class="status-msg" data-status></span>

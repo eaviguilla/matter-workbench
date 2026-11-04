@@ -247,18 +247,3 @@ def test_the_save_and_cancel_buttons_carry_a_value_the_script_can_test(env):
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     assert 'data-answer-save="1"' in page and 'data-answer-cancel="1"' in page
     assert "data-answer-save>" not in page and "data-answer-cancel>" not in page
-
-
-# ---- copy next answer --------------------------------------------------------------------------------
-
-def test_each_form_with_answers_has_one_copy_next_button_with_a_value_and_no_helper_panel(env):
-    web, cid, tx, tmp = env
-    assert "data-next-copy" not in web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
-    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna\n[ANSWER: 4]\nOrange"))
-    page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
-    panel = page.split(f'id="out-{PRO}"')[1].split(f'id="out-{EST}"')[0]
-    assert panel.count('data-next-copy="1"') == 1                  # a bare attribute is empty, so falsy in the script
-    assert "data-helper" not in page and 'class="helper"' not in page
-    assert "data-next-copy" not in page.split(f'id="out-{EST}"')[1]
-    js = web.get("/static/app.js").text
-    assert "copyNext" in js and "dataset.nextCopy" in js and "helperCopy" not in js
