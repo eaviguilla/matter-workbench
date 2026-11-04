@@ -97,9 +97,31 @@ GENERAL_FORM = (
 )
 GENERAL = tuple(q.text for q in GENERAL_FORM)
 
-QUESTIONS = {"probate-intake-form": PROBATE, "estate-plan-intake-form": ESTATE_PLAN, "general-intake-form": GENERAL}
+DELIVERY = ("Mail", "Drop Off", "Email", "Not available")
+TRUST_ADMIN_FORM = (
+    Question("What was the name of your loved one?", limit=CLIO_TEXT),
+    Question("Do you have a copy of the estate plan you can email, mail, or drop off to us (trust, will, etc.)?",
+             "radio", options=DELIVERY),
+    Question("When will it be available? (estate plan)", when=(2, "Not available"), clio="When will it be available?",
+             limit=CLIO_TEXT),
+    Question("Do you have a copy of the death certificate you can email, mail, or drop off to us (trust, will, etc.)?",
+             "radio", options=DELIVERY),
+    Question("When will it be available? (death certificate)", when=(4, "Not available"),
+             clio="When will it be available?", limit=CLIO_TEXT),
+    Question("Are there any disagreements or unresolved matters among family members regarding your loved one's "
+             "belongings or affairs?", "yesno",
+             clio="Are there any disagreements or unresolved matters among family members regarding your loved one’s "
+                  "belongings or affairs?"),
+    Question("Please explain. (disagreements)", when=(6, "Yes"), clio="Please explain.", limit=CLIO_TEXT),
+    Question("How did you hear about us?", limit=CLIO_TEXT),
+    Question("Is there anything else you would like us to know?", "textarea"),
+)
+TRUST_ADMIN = tuple(q.text for q in TRUST_ADMIN_FORM)
+
+QUESTIONS = {"probate-intake-form": PROBATE, "estate-plan-intake-form": ESTATE_PLAN, "general-intake-form": GENERAL,
+             "trust-admin-intake-form": TRUST_ADMIN}
 DETAILS = {"probate-intake-form": PROBATE_FORM, "estate-plan-intake-form": ESTATE_PLAN_FORM,
-           "general-intake-form": GENERAL_FORM}
+           "general-intake-form": GENERAL_FORM, "trust-admin-intake-form": TRUST_ADMIN_FORM}
 
 ANSWER_RE = re.compile(r"^[ \t]*[*#>]*[ \t]*\[ANSWER:[ \t]*(?P<n>\d{1,3})[ \t]*\][ \t]*\**[ \t]*(?P<rest>.*)$", re.M | re.I)
 NOT_DISCUSSED = "not discussed"

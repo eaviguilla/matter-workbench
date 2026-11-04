@@ -10,7 +10,7 @@ from app.outputs import FORM_SLUGS, TEXT_SLUGS
 from mcp_server.server import save_output
 from tests.test_outputs import copy, do_import, env, store_of, textarea  # noqa: F401  (env is a fixture)
 
-PRO, EST, GEN = FORM_SLUGS
+PRO, EST, GEN, TRU = FORM_SLUGS
 NOTE = TEXT_SLUGS[0]
 
 
@@ -27,6 +27,7 @@ def versions(web, tx, slug):
 
 def test_the_forms_have_the_question_counts_asked_for():
     assert forms.count(PRO) == 16 and forms.count(EST) == 19 and forms.count(GEN) == 5
+    assert forms.count(TRU) == 9
 
 
 def test_the_estate_plan_form_follows_the_clio_page():
@@ -38,7 +39,7 @@ def test_the_estate_plan_form_follows_the_clio_page():
         assert x.kind in ("text", "yesno", "checkbox")
         if x.when:
             parent, answer = x.when
-            assert parent < n and q[parent - 1].kind == "yesno" and answer in ("Yes", "No")
+            assert parent < n and (q[parent - 1].kind == "yesno" and answer in ("Yes", "No") or answer in q[parent - 1].options)
         if x.kind == "text":
             assert x.limit == 255                      # every text box on the page takes 255 characters
         else:
@@ -57,7 +58,7 @@ def test_the_probate_form_follows_the_clio_page():
     for n, x in enumerate(q, 1):
         if x.when:
             parent, answer = x.when
-            assert parent < n and q[parent - 1].kind == "yesno" and answer in ("Yes", "No")
+            assert parent < n and (q[parent - 1].kind == "yesno" and answer in ("Yes", "No") or answer in q[parent - 1].options)
         assert (x.limit == 255) == (x.kind == "text")          # the long text areas have no practical limit
     assert {n: x.when for n, x in enumerate(q, 1) if x.when} == {8: (7, "Yes"), 9: (7, "Yes"), 12: (11, "Yes"), 14: (13, "Yes")}
     assert q[1].options[-1] == "Not sure." and len(q[1].options) == 4
@@ -76,6 +77,27 @@ def test_the_general_intake_form_follows_the_clio_page():
     assert q[4].text.startswith("Next Steps: The lead attorney, Jordan, will review")
     from app.outputs import NAMES
     assert NAMES[GEN] == "General Intake Form" and wf.is_form(GEN)
+
+
+def test_the_trust_admin_form_follows_the_clio_page():
+    """A follow-up can be opened by a radio option as well as by a Yes or No."""
+    q = forms.DETAILS[TRU]
+    assert [x.text for x in q] == list(forms.QUESTIONS[TRU]) and len(q) == forms.count(TRU)
+    assert [x.kind for x in q] == ["text", "radio", "text", "radio", "text", "yesno", "text", "text", "textarea"]
+    for n, x in enumerate(q, 1):
+        if x.when:
+            parent, answer = x.when
+            assert parent < n and (q[parent - 1].kind == "yesno" and answer in ("Yes", "No") or answer in q[parent - 1].options)
+        assert (x.limit == 255) == (x.kind == "text")
+    assert {n: x.when for n, x in enumerate(q, 1) if x.when} == {3: (2, "Not available"), 5: (4, "Not available"), 7: (6, "Yes")}
+    assert q[1].options == q[3].options == ("Mail", "Drop Off", "Email", "Not available")
+    assert q[1].text.endswith("(trust, will, etc.)?") and q[3].text.endswith("(trust, will, etc.)?")   # as Clio has it
+    assert q[2].clio == q[4].clio == "When will it be available?" and q[2].text != q[4].text
+    assert q[5].clio.endswith("loved one’s belongings or affairs?") and q[6].clio == "Please explain."
+    from app.outputs import NAMES, SHORT_NAMES
+    assert NAMES[TRU] == "Trust Admin Intake Form" and SHORT_NAMES[TRU] == "Trust admin" and wf.is_form(TRU)
+    assert forms.hint(TRU, 3) == "Only if answer 2 is Not available. 255 characters at most."
+    assert forms.hint(TRU, 2) == "One of: Mail | Drop Off | Email | Not available"
 
 
 def test_hints_say_when_a_question_is_asked_and_what_it_takes():
@@ -185,6 +207,19 @@ def test_the_estate_plan_form_shows_hints_and_warns_about_an_answer_over_the_cli
     assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 19 and "Only if answer 15 is No." in edit
 
 
+def test_the_trust_admin_form_saves_and_shows_a_follow_up_opened_by_a_radio_option(env):
+    web, cid, tx, tmp = env
+    copy(web, tx, [NOTE, TRU])
+    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 1]\nAna Ruiz\n[ANSWER: 2]\nNot available\n[ANSWER: 3]\nNext month\n"
+                                            "[ANSWER: 4]\nEmail\n[ANSWER: 5]\nNot discussed"))
+    assert forms.parse(TRU, versions(web, tx, TRU)[-1]).answers == {1: "Ana Ruiz", 2: "Not available", 3: "Next month", 4: "Email", 5: "Not discussed"}
+    panel = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{TRU}"')[1]
+    assert "5 of 9 answered" in panel and panel.count("Only if answer 2 is Not available. 255 characters at most.") == 1
+    assert "One of: Mail | Drop Off | Email | Not available" in panel
+    edit = web.get(f"/transcripts/{tx}/outputs/{TRU}/edit").text
+    assert len(re.findall(r'<textarea id="edit-answer-\d+"', edit)) == 9 and "Only if answer 4 is Not available." in edit
+
+
 def test_forms_are_never_ticked_unless_the_call_asked_for_them(env):
     web, cid, tx, tmp = env
     with store_of(web) as s:
@@ -194,7 +229,7 @@ def test_forms_are_never_ticked_unless_the_call_asked_for_them(env):
     copy(web, tx, [NOTE, PRO])
     page = web.get(f"/clients/{cid}?tx={tx}").text
     fields = page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields)[3:] == [(PRO, " checked"), (EST, ""), (GEN, "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields)[3:] == [(PRO, " checked"), (EST, ""), (GEN, ""), (TRU, "")]
 
 
 def test_the_total_version_count_includes_the_forms(env):

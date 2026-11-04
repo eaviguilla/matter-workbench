@@ -132,7 +132,7 @@ def test_the_view_opens_on_the_transcript_until_something_is_asked_or_received(e
     assert 'class="board"' in busy and 'id="scrubbed-view"' not in busy and "Request more outputs" in busy
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[2]}&view=transcript").text
     asked = web.get(f"/clients/{cid}?tx={txs[1]}&view=outputs").text
-    assert asked.count("Not requested") == 6 and 'class="board"' in asked
+    assert asked.count("Not requested") == 7 and 'class="board"' in asked
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[1]}&view=sideways").text      # unknown means the default
     web.post_json(f"/transcripts/{txs[1]}/copy", {"outputs": [NOTE]})
     assert 'class="board"' in web.get(f"/clients/{cid}?tx={txs[1]}").text and "Waiting for Claude" in web.get(f"/clients/{cid}?tx={txs[1]}").text
@@ -155,7 +155,7 @@ def test_the_transcript_view_holds_the_text_the_checklist_directions_and_copy_bu
     order = ["Transcript", 'id="scrubbed-view"', "Ask Claude for", "Specific directions for Claude", "Copy for Claude", "Scrub this"]
     spots = [page.index(m) for m in order]
     assert spots == sorted(spots)
-    assert page.count('name="output"') == 6 and "<details class=\"request\"" not in page
+    assert page.count('name="output"') == 7 and "<details class=\"request\"" not in page
     assert 'data-after-copy="' in page and 'class="legend"' in page
 
 

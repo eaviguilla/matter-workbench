@@ -1,6 +1,6 @@
 # Trust Admin Intake Form, plan
 
-Status: planned, not built. Written 2026-11-04 so the work can be picked up on another machine. Nothing in `app/` knows about this form yet.
+Status: built 2026-11-05 with the defaults below (the exact name, Not available only for "I do not have it", Clio's wording kept). Written 2026-11-04 as a plan so the work could be picked up on another machine.
 
 ## Goal
 

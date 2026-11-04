@@ -61,7 +61,7 @@ def add_client(web, first, people, office=()):
 
 def test_the_review_page_saves_the_checklist_and_scrubbed_directions_and_the_client_page_shows_them(web):
     r = paste(web, fixture_text(1))
-    assert r.text.count('name="output"') == 6 and 'name="directions"' in r.text and "Specific directions for Claude" in r.text
+    assert r.text.count('name="output"') == len(SLUGS) and 'name="directions"' in r.text and "Specific directions for Claude" in r.text
     assert r.text.index("Specific directions for Claude") < r.text.index("data-gate-save")      # above Save
     cid, tx = save_call(web, fixture_text(1), outputs=[NOTE, FORM], directions="Mention Maria Lopez by role only.")
     with store_of(web) as s:
@@ -73,7 +73,7 @@ def test_the_review_page_saves_the_checklist_and_scrubbed_directions_and_the_cli
     page = web.get(f"/clients/{cid}?saved={tx}").text
     assert 'id="scrubbed-view"' in page and 'class="board"' not in page                         # opens on the Transcript view
     box = page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], ""), (FORM_SLUGS[3], "")]
     assert "Mention Maria Lopez by role only.</textarea>" in page         # real names in the box, because a copy scrubs them
     assert "Copy for Claude" in page and re.search(r'data-copy-url="[^"]*">Copy for Claude', page)   # enabled, not locked
     assert page.count("Transcript saved") == 1 and '<section class="saved"' not in page
@@ -83,7 +83,7 @@ def test_a_brand_new_clients_review_starts_from_the_last_choice_made_anywhere(we
     save_call(web, fixture_text(1), outputs=[CAL, FORM])
     r = paste(web, fixture_text(3))
     box = r.text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, ""), (CAL, " checked"), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', box) == [(NOTE, ""), (CAL, " checked"), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], ""), (FORM_SLUGS[3], "")]
 
 
 def test_flagged_words_in_review_directions_stop_the_save_until_confirmed(web):
