@@ -28,7 +28,8 @@ August September October November December Insurance Mutual Company Corporation 
 Medicare Medicaid Social Security Department Bureau Court Police Sheriff County State Federal Life Auto
 Health Home Homeowners Allstate Progressive MetLife Geico Farmers Walgreens Walmart Target Amazon
 God Lord Mr Mrs Ms Miss Mister Missus Mx Dr Judge Christmas Thanksgiving Easter Sunday Canadian American Mexican Catholic Methodist
-""".split()}
+I I'm I’m I'll I’ll I've I’ve I'd I’d
+""".split()}   # the last line: the pronoun is always capitalized, so "Marcus I'm" or "the youngest, I'm" is not a name
 
 
 @dataclass(frozen=True)

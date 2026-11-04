@@ -109,6 +109,21 @@ def test_surname_learned_after_a_bare_first_name():
     assert "[PERSON_2] [PERSON_2.last] signed" in res.text
 
 
+def test_the_pronoun_after_a_known_first_name_is_not_learned_as_a_surname():
+    r = Registry()
+    res = scrub_transcript(tx(("Nadia Kowalczyk", "My brother Marcus is older. Should I tell Marcus I'm talking to a lawyer? I will.")), r)
+    assert "Marcus" not in res.text
+    assert "Should I tell [PERSON_2] I'm talking to a lawyer? I will." in res.text
+    assert all(f.surface not in ("I", "I'm") for f in r.iter_forms())
+
+
+def test_a_pronoun_contraction_after_a_relation_word_is_not_a_name():
+    r = Registry()
+    res = scrub_transcript(tx(("Nadia Kowalczyk", "Me, I am the youngest, I'm fifty-two. I’ll call. I've waited. I'd like that.")), r)
+    assert "I'm fifty-two. I’ll call. I've waited. I'd like that." in res.text
+    assert all(f.surface not in ("I", "I'm", "I’ll", "I've", "I'd") for f in r.iter_forms())
+
+
 def test_review_flags_unknown_capitalized_words_only():
     r = Registry()
     res = scrub_transcript(tx(("Sam Whitaker", "We met Kevin yesterday. Then we left on Tuesday.")), r)
