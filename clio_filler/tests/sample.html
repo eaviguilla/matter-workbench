@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stand-in Clio form</title>
+<style>
+  body { font: 15px/1.45 system-ui, sans-serif; margin: 0; background: #f4f5f7; color: #1c2430; }
+  .bar { background: #1c2430; color: #fff; padding: 12px 20px; }
+  .bar a { color: #9fd0ff; margin-right: 12px; }
+  .bar button { margin-left: 12px; }
+  .note { padding: 10px 20px; background: #fff7d6; border-bottom: 1px solid #e6d98f; }
+  main { max-width: 760px; margin: 20px auto; padding: 0 20px 80px; }
+  .field { background: #fff; border: 1px solid #d7dbe2; border-radius: 6px; padding: 12px 14px; margin: 10px 0; }
+  .field label, .field legend, .q-title { display: block; font-weight: 600; margin-bottom: 6px; }
+  .field input[type=text], .field input[type=date], .field textarea { width: 100%; box-sizing: border-box; padding: 7px; font: inherit; }
+  .field textarea { min-height: 70px; }
+  .field input[type=radio] + label, .field input[type=checkbox] + label { display: inline; font-weight: 400; margin-right: 14px; }
+  .ctl button { margin-right: 6px; padding: 6px 12px; }
+  .ctl [aria-checked=true] { background: #1c2430; color: #fff; }
+  #pop { list-style: none; margin: 6px 0 0; padding: 0; border: 1px solid #aab; background: #fff; }
+  #pop li { padding: 6px 10px; cursor: pointer; } #pop li:hover { background: #eef3fb; }
+  #sub { padding: 10px 22px; font-size: 16px; margin-top: 12px; }
+  #count { margin-left: 12px; font-weight: 600; } [hidden] { display: none !important; }
+</style></head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="note">This is a stand-in for the Clio form, built from the app's form list. The extension should fill it. It should never press Submit, so the counter next to the button must stay at 0.</div>
+<main id="stage"></main>
+<script src="../forms-data.js"></script>
+<script src="mockclio.js"></script>
+<script src="sample.js"></script>
+</body>
+</html>

@@ -19,7 +19,8 @@ def tree(tmp_path: Path, extra: dict | None = None) -> Path:
              "app/__pycache__/a.pyc": "c", "models/gliner_pii/gliner_config.json": "{}",
              "models/gliner_pii/model_quantized.onnx": "m", "models/gliner_pii/tokenizer.json": "{}",
              "models/gliner_pii/tokenizer_config.json": "{}", "samples/other_real_call.txt": "private",
-             "INSTALL-ZIP.md": "the guide"}
+             "INSTALL-ZIP.md": "the guide", "clio_filler/manifest.json": "{}",
+             "clio_filler/fill.js": "f", "clio_filler/README.md": "how", "clio_filler/tests/harness.js": "t"}
     files.update(extra or {})
     for rel, body in files.items():
         p = root / rel
@@ -40,6 +41,8 @@ def test_the_zip_holds_only_what_the_app_needs(tmp_path):
     assert {"run.py", "pyproject.toml", "START-HERE.md", "NOTICE.txt", "models/MODEL-SHA256.txt", "app/__init__.py",
             "app/web/static/style.css", "mcp_server/__init__.py", "models/gliner_pii/model_quantized.onnx",
             "samples/sample_call.txt"} <= got
+    assert {"clio_filler/manifest.json", "clio_filler/fill.js", "clio_filler/README.md"} <= got      # the Chrome extension folder
+    assert "clio_filler/tests/harness.js" not in got
     assert "CHECKSUMS.txt" not in got
     assert "INSTALL-ZIP.md" not in got and "INSTALL-GIT.md" not in got      # shipped once, as START-HERE.md
     with zipfile.ZipFile(z) as zf:

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Matter Workbench Clio filler</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<main>
+  <h1>Fill the Clio form</h1>
+  <p id="message" class="message" role="status">Reading the clipboard.</p>
+  <dl id="summary" class="summary" hidden>
+    <div><dt>Form</dt><dd id="s-form"></dd></div>
+    <div><dt>Client</dt><dd id="s-client"></dd></div>
+    <div><dt>Call</dt><dd id="s-call"></dd></div>
+    <div><dt>Answers</dt><dd id="s-answers"></dd></div>
+    <div><dt>Copied</dt><dd id="s-age"></dd></div>
+  </dl>
+  <p id="warning" class="warning" role="alert" hidden></p>
+  <div class="actions">
+    <button id="fill" type="button" disabled>Fill this page</button>
+    <button id="reread" type="button" class="plain">Read clipboard again</button>
+  </div>
+  <p class="note">Open the blank form in Clio first. This only types into the fields. You review the page and press Submit yourself.</p>
+  <ul id="results" class="results" hidden></ul>
+  <details class="help">
+    <summary>A field was not found</summary>
+    <p>Copy the form's layout, with nothing typed in, and send it to whoever maintains Matter Workbench. It holds the page's labels and structure, no answers.</p>
+    <button id="structure" type="button" class="plain">Copy page layout</button>
+    <p id="structure-status" class="note" role="status"></p>
+  </details>
+</main>
+<script src="forms-data.js"></script>
+<script src="parse.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

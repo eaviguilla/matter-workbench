@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Matter Workbench Clio filler",
+  "version": "1.0.0",
+  "description": "Fills an open Clio intake form from the answers copied with Copy for Clio in Matter Workbench. It never submits.",
+  "action": { "default_popup": "popup.html", "default_title": "Fill the Clio form" },
+  "permissions": ["activeTab", "scripting", "clipboardRead", "clipboardWrite"]
+}

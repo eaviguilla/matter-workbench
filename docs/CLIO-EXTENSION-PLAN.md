@@ -1,6 +1,6 @@
 # Clio form filler, plan
 
-Status: approved as the next step. Waiting on the saved Clio form pages before any code is written. The owner asked for a plan approval before work that touches more than three files, so confirm the phase 1 start with them.
+Status: built on 2026-11-05 in `clio_filler/`. The saved Clio form pages never arrived, so the extension finds fields by their title text and between-title controls instead of by recorded markup, and is tested only against two stand-in pages built from `forms.schema`. The first run on a fake matter in the real Clio is the open check. The popup has a Copy page layout button for that run, which copies the form's structure (no typed values, scripts or styles) to the clipboard when pressed. This reads the page on a click, which decision 2 below did not plan for, and it sends nothing.
 
 ## Goal
 
@@ -29,7 +29,7 @@ A follow-up that Clio shows only after an earlier answer is absent from the Clio
 
 ## Phases
 
-1. Copy for Clio button. A new button on each form panel copies plain text that the extension can parse. First line `Matter Workbench answers for Clio, format 1`. Then the form slug, the client display name, the call date, the version, and the copied time. Then one block per answered question, `--- 3. <question text>` followed by the answer. Last line `--- End of answers`. Empty and "Not discussed" answers are left out. Copy all stays as it is.
+1. Copy for Clio button. A new button on each form panel copies plain text that the extension can parse. First line `Matter Workbench answers for Clio, format 1`. Then the form slug, the client display name, the call date, the version, and the copied time. Then one block per answered question, `--- 3. <question text>` followed by the answer. Last line `--- End of answers`. Empty and "Not discussed" answers are left out. The old Copy all button was renamed Copy for Clio and now copies this text. Copy with hidden names keeps the plain listing.
 2. Extension core. Files under a new top-level `clio_filler/`. A parser for the copied text, a locator that finds a field by label or by the field name from the saved HTML, and a setter that sets the value and fires the input and change events so Clio's page notices. Setters for text boxes, text areas, native dropdowns, radios, checkboxes and dates, plus whatever the screenshots show for custom dropdowns. A popup that reads the clipboard, shows the client name, the form name and how old the copy is, warns if it is over 30 minutes old, and fills after one confirm click. A status line per question, filled, skipped because already filled, or not found.
 3. Mapping. A file per form slug, keyed by question number, with the field locators taken from the saved HTML. "Yes, two" style answers fill the choice and flag the rest. Live trial by the owner on a test matter, fixing what Clio does differently from the saved HTML.
 4. Packaging and docs. Add `clio_filler` to the package script and update the zip contents test. A short README inside `clio_filler/` and install steps for macOS and Windows. Chrome steps are the same on both. Open `chrome://extensions`, switch on Developer mode, click Load unpacked, choose the `clio_filler` folder. Add the bookmarklet build only if Developer mode turns out to be blocked.

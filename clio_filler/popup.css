@@ -1,0 +1,30 @@
+:root { --bg: #fff; --text: #111; --muted: #5f5f5c; --line: #e2e2de; --soft: #f4f4f1; --ok: #1f6b45; --warn: #92400e; --bad: #a3231f; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg: #161617; --text: #f1f1ef; --muted: #a3a3a0; --line: #2d2d2f; --soft: #232325; --ok: #6cc596; --warn: #f0a15f; --bad: #f08a80; } }
+* { box-sizing: border-box; }
+body { margin: 0; width: 380px; background: var(--bg); color: var(--text); font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { padding: 14px 16px 16px; }
+h1 { margin: 0 0 8px; font-size: 16px; font-weight: 650; }
+.message { margin: 0 0 10px; }
+.summary { margin: 0 0 10px; border: 1px solid var(--line); border-radius: 6px; }
+.summary div { display: flex; gap: 10px; padding: 5px 10px; border-top: 1px solid var(--line); }
+.summary div:first-child { border-top: 0; }
+.summary dt { width: 64px; color: var(--muted); flex: none; }
+.summary dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.warning { margin: 0 0 10px; padding: 6px 10px; border: 1px solid var(--warn); border-radius: 6px; color: var(--warn); }
+.actions { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; }
+button { font: inherit; height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--text); background: var(--text); color: var(--bg); cursor: pointer; }
+button[disabled] { opacity: .4; cursor: default; }
+button.plain { background: none; color: var(--text); border-color: var(--line); }
+.note { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.results { list-style: none; margin: 0 0 10px; padding: 0; max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.results li { display: flex; gap: 8px; padding: 5px 10px; border-top: 1px solid var(--line); }
+.results li:first-child { border-top: 0; }
+.results .n { color: var(--muted); width: 22px; flex: none; text-align: right; }
+.results .q { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.results .s { flex: none; font-weight: 600; }
+.results .filled { color: var(--ok); }
+.results .already, .results .missing { color: var(--muted); }
+.results .flag { color: var(--bad); }
+.results .why { color: var(--muted); font-size: 12px; padding: 0 10px 5px 40px; border: 0; }
+.help { margin-top: 6px; color: var(--muted); }
+.help summary { cursor: pointer; }

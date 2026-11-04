@@ -1,6 +1,6 @@
 # Function list
 
-Total, 573 items.
+Total, 576 items.
 Every function, method and class in the app, the connector, the scripts and `run.py`, in file order. The text after each name is the first line of its docstring, or blank when it has none.
 
 ## app/__main__.py  (3)
@@ -341,37 +341,37 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `create_app.intake_save` (def, line 672)
 - `create_app.output_blocks` (def, line 706). One block for each of the 7 outputs, in the app's order (the 3 text outputs make the board, the 4 forms sit
 - `create_app.output_blocks.href` (def, line 720)
-- `create_app.transcript_page` (def, line 778). The call page moved into the client page. Old links land on the right call, with every version and compare
-- `create_app.latest_version` (def, line 789). Only a number, so the page can notice a version saved by the connector. It counts the versions of all
-- `create_app.copy_choice` (def, line 797). The ticked output slugs, the optional directions and the confirmed flagged words, from JSON
-- `create_app.copy_transcript` (def, line 814)
-- `create_app.request_change` (def, line 833). Copy text that asks Claude to change one output. The typed request is scrubbed first. Words the scrubber
-- `create_app.json_object` (def, line 863)
-- `create_app.scrub_preview` (def, line 873). The capitalized words still flagged in text typed for Claude (a change request or directions), checked the
-- `create_app.hide_word` (def, line 887). Hide one flagged word in the text being sent. By default it is hidden for this transcript only: later text
-- `create_app.editable` (def, line 902). The transcript and the version shown in the editor. 404 unless the output has a version to start from.
-- `create_app.form_fields` (def, line 910). The edit page's boxes for a form: [(number, question, text, hint, yesno)], the text with hidden names as stored.
-- `create_app.form_fields.yes_no` (def, line 916)
-- `create_app.output_edit_page` (def, line 926)
-- `create_app.output_edit_save` (def, line 936)
-- `create_app.save_answer` (def, line 956). Save the edited answers of a form as one new version (JSON: changes {number: text}, version, or the older
-- `create_app.hide_text` (def, line 987). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
-- `create_app.set_call_title` (def, line 1007). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
-- `create_app.outgoing_page` (def, line 1029)
-- `create_app.message_input` (def, line 1033). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
-- `create_app.outgoing_preview` (def, line 1048)
-- `create_app.outgoing_hide_word` (def, line 1063). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
-- `create_app.outgoing_copy` (def, line 1078)
-- `create_app.import_page` (def, line 1097). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
-- `create_app.import_check` (def, line 1108)
-- `create_app.import_save` (def, line 1126)
-- `create_app.registry_page` (def, line 1144)
-- `create_app.registry_edit` (def, line 1151)
-- `create_app.wants_json` (def, line 1193)
-- `create_app.settings_view` (def, line 1196)
-- `create_app.settings_done` (def, line 1204). Saved in place when the page asked for JSON, else back to the page with the result shown.
-- `create_app.settings_page` (def, line 1214)
-- `create_app.settings_save` (def, line 1219). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
+- `create_app.transcript_page` (def, line 780). The call page moved into the client page. Old links land on the right call, with every version and compare
+- `create_app.latest_version` (def, line 791). Only a number, so the page can notice a version saved by the connector. It counts the versions of all
+- `create_app.copy_choice` (def, line 799). The ticked output slugs, the optional directions and the confirmed flagged words, from JSON
+- `create_app.copy_transcript` (def, line 816)
+- `create_app.request_change` (def, line 835). Copy text that asks Claude to change one output. The typed request is scrubbed first. Words the scrubber
+- `create_app.json_object` (def, line 865)
+- `create_app.scrub_preview` (def, line 875). The capitalized words still flagged in text typed for Claude (a change request or directions), checked the
+- `create_app.hide_word` (def, line 889). Hide one flagged word in the text being sent. By default it is hidden for this transcript only: later text
+- `create_app.editable` (def, line 904). The transcript and the version shown in the editor. 404 unless the output has a version to start from.
+- `create_app.form_fields` (def, line 912). The edit page's boxes for a form: [(number, question, text, hint, yesno)], the text with hidden names as stored.
+- `create_app.form_fields.yes_no` (def, line 918)
+- `create_app.output_edit_page` (def, line 928)
+- `create_app.output_edit_save` (def, line 938)
+- `create_app.save_answer` (def, line 958). Save the edited answers of a form as one new version (JSON: changes {number: text}, version, or the older
+- `create_app.hide_text` (def, line 990). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
+- `create_app.set_call_title` (def, line 1010). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
+- `create_app.outgoing_page` (def, line 1032)
+- `create_app.message_input` (def, line 1036). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
+- `create_app.outgoing_preview` (def, line 1051)
+- `create_app.outgoing_hide_word` (def, line 1066). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
+- `create_app.outgoing_copy` (def, line 1081)
+- `create_app.import_page` (def, line 1100). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
+- `create_app.import_check` (def, line 1111)
+- `create_app.import_save` (def, line 1129)
+- `create_app.registry_page` (def, line 1147)
+- `create_app.registry_edit` (def, line 1154)
+- `create_app.wants_json` (def, line 1196)
+- `create_app.settings_view` (def, line 1199)
+- `create_app.settings_done` (def, line 1207). Saved in place when the page asked for JSON, else back to the page with the result shown.
+- `create_app.settings_page` (def, line 1217)
+- `create_app.settings_save` (def, line 1222). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
 
 ## app/web/security.py  (7)
 
@@ -383,7 +383,7 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `Csrf.valid` (def, line 50)
 - `csrf_guard` (def, line 54). Dependency on every router: a state-changing request must carry the token for its session.
 
-## app/workflow.py  (127)
+## app/workflow.py  (128)
 
 - `clean_text` (def, line 28). The pasted text as the scrubber should read it. Invisible format characters (zero-width spaces, a byte
 - `local_time` (def, line 37). A stored UTC timestamp as the user's own date and time. Unreadable values are shown as they are.
@@ -494,24 +494,25 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `view_output` (def, line 1559)
 - `view_form` (def, line 1566). A form version for the page: (rehydrate result, [row]) where each row is one question with its answer as real
 - `forms_listing` (def, line 1598). All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
-- `form_items` (def, line 1604). The entries of a form panel in order. Consecutive entries that Clio would not show and that hold no answer are
-- `form_items.close` (def, line 1610)
-- `form_counts` (def, line 1631). The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
-- `form_diff` (def, line 1640). The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
-- `_bare` (def, line 1653). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
-- `_word_marks` (def, line 1658). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
-- `_word_marks.piece` (def, line 1664)
-- `diff_rows` (def, line 1685). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
-- `diff_lines` (def, line 1716). [(kind, line)] with kind in same / add / del, for the version comparison.
-- `transcript_name` (def, line 1728). How a call is named on screen: its title, else its date such as 3 Nov 2026.
-- `registry_rows` (def, line 1733). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
-- `save_entity_forms` (def, line 1752). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
-- `directions_for_display` (def, line 1767). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
-- `directions_for_display.swap` (def, line 1772)
-- `hidden_name_code` (def, line 1785). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
-- `find_entity` (def, line 1791)
-- `export_markdown` (def, line 1800). The client's history with real values restored. Handed to the browser as a download, never stored.
-- `valid_ids` (def, line 1822)
+- `clio_text` (def, line 1608). The text of Copy for Clio, which the Chrome extension in clio_filler reads: a header (format, form, client, call,
+- `form_items` (def, line 1621). The entries of a form panel in order. Consecutive entries that Clio would not show and that hold no answer are
+- `form_items.close` (def, line 1627)
+- `form_counts` (def, line 1648). The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
+- `form_diff` (def, line 1657). The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
+- `_bare` (def, line 1670). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
+- `_word_marks` (def, line 1675). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
+- `_word_marks.piece` (def, line 1681)
+- `diff_rows` (def, line 1702). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
+- `diff_lines` (def, line 1733). [(kind, line)] with kind in same / add / del, for the version comparison.
+- `transcript_name` (def, line 1745). How a call is named on screen: its title, else its date such as 3 Nov 2026.
+- `registry_rows` (def, line 1750). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
+- `save_entity_forms` (def, line 1769). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
+- `directions_for_display` (def, line 1784). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
+- `directions_for_display.swap` (def, line 1789)
+- `hidden_name_code` (def, line 1802). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
+- `find_entity` (def, line 1808)
+- `export_markdown` (def, line 1817). The client's history with real values restored. Handed to the browser as a download, never stored.
+- `valid_ids` (def, line 1839)
 
 ## mcp_server/server.py  (4)
 
@@ -562,6 +563,11 @@ Every function, method and class in the app, the connector, the scripts and `run
 ## scripts/check_onnx_parity.py  (1)
 
 - `main` (def, line 20)
+
+## scripts/build_clio_forms.py  (2)
+
+- `render` (def, line 20)
+- `main` (def, line 30)
 
 ## scripts/eval_scrub.py  (1)
 

@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TOP = "matter-workbench"
 
 # Directories packed whole (minus caches), and single files packed as they are.
-DIRS = ["app", "mcp_server"]
+DIRS = ["app", "mcp_server", "clio_filler"]
 FILES = ["run.py", "pyproject.toml", "README.md", "samples/sample_call.txt"]
 MODEL_DIR = "models/gliner_pii"
 MODEL_FILES = ["gliner_config.json", "model_quantized.onnx", "tokenizer.json", "tokenizer_config.json"]
