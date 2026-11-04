@@ -242,6 +242,8 @@ details.transcript[open] > summary, .more > details[open] > summary, details.req
 .more details.inner[open] > summary { margin-bottom: 8px; }
 @media (min-width: 1200px) {
   .board { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(6, auto); gap: 0 14px; }
+  .board[data-cols="1"] { grid-template-columns: minmax(0, 1fr); }
+  .board[data-cols="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .col { display: grid; grid-row: span 6; grid-template-rows: subgrid; }
   /* Short enough at 1440x900 that the change box below it shows on the first screen; long text scrolls inside. */
   .textbox { height: clamp(9rem, calc(100vh - 40rem), 18rem); max-height: none; }
@@ -395,6 +397,7 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .forms > h2 { margin: 0 0 10px; }
 .jump { margin: 0 0 10px; font-size: 13px; }
 .jump a + a { margin-left: 2px; }
+.picktag { font-size: 12px; }
 .pickgroup { margin: 8px 0 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .fpanel { margin: 0 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); min-width: 0; }
 .fpanel > * { min-width: 0; }
@@ -416,6 +419,10 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .abox textarea { width: 100%; box-sizing: border-box; font: 13px/1.55 var(--mono); }
 .aact { flex-wrap: nowrap; white-space: nowrap; align-items: center; margin: 0; }
 .arow.state-not_discussed pre.answer { color: var(--muted); }
+.arow.kept .aq { color: var(--muted); }
+.foldgroup { border-top: 1px solid var(--line); padding: 8px 0; }
+.foldgroup > details > summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.foldgroup .answers.inner { margin-top: 6px; }
 .arow.copied .aq::after { content: " Copied"; font-size: 11px; font-weight: 560; color: var(--muted); margin-left: 6px; }
 .qedit { margin: 0 0 12px; }
 .qedit textarea { width: 100%; box-sizing: border-box; }

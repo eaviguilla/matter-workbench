@@ -166,6 +166,78 @@ def over(slug: str, n: int, text: str) -> int:
     return max(0, len(text) - limit) if limit else 0
 
 
+def settled(text: str) -> bool:
+    """True when an answer says something a follow-up can depend on: it is not empty and not Not discussed."""
+    return bool(text.strip()) and text.strip(" .").lower() != NOT_DISCUSSED
+
+
+def _norm(x: str) -> str:
+    return re.sub(r"\s+", " ", x).strip(" \t.!,;").casefold()
+
+
+def choice(slug: str, n: int, text: str):
+    """The options an answer names, as (options, exact), or None when it names none. Yes or No takes a leading Yes or
+    No word ("Yes, two homes" names Yes but is not exact). A pick-one question takes exactly one option, and a checkbox
+    question takes options separated by " | "."""
+    q = DETAILS[slug][n - 1]
+    options = ("Yes", "No") if q.kind == "yesno" else q.options
+    if not options or not settled(text):
+        return None
+    wanted = {_norm(o): o for o in options}
+    parts = [_norm(x) for x in text.split("|")] if q.kind == "checkbox" else [_norm(text)]
+    if parts and all(x in wanted for x in parts):
+        return tuple(wanted[x] for x in parts), True
+    if q.kind == "yesno":
+        first = re.match(r"[a-z]+", _norm(text))
+        if first and first[0] in wanted:
+            return (wanted[first[0]],), False
+    return None
+
+
+def choice_problem(slug: str, n: int, text: str) -> str:
+    """A short warning when a Yes or No, pick-one or checkbox answer is not what Clio can pick, else an empty text."""
+    q = DETAILS[slug][n - 1]
+    if q.kind not in ("yesno", "radio", "checkbox") or not settled(text):
+        return ""
+    got = choice(slug, n, text)
+    if got is None:
+        return "Not one of the options, so Clio cannot pick it."
+    return "" if got[1] else "Has extra words. Clio takes only Yes or No here."
+
+
+def visibility(slug: str, answers: dict) -> dict:
+    """For every entry, {number: (state, parent, reason)}. The state is always (no condition), open (the parent answer
+    opens it), closed (the parent answer is a different one, or the parent is itself closed) or unset (the parent has no
+    usable answer yet, so nothing can be said and the entry is never hidden)."""
+    out = {}
+    for n, q in enumerate(DETAILS[slug], 1):
+        if not q.when:
+            out[n] = ("always", None, "")
+            continue
+        parent, wanted = q.when
+        if out[parent][0] == "closed":
+            out[n] = ("closed", parent, f"answer {parent} is closed")
+            continue
+        text = answers.get(parent, "")
+        if not settled(text):
+            out[n] = ("unset", parent, f"answer {parent} is not settled")
+            continue
+        got = choice(slug, parent, text)
+        if got is None:
+            out[n] = ("unset", parent, f"answer {parent} is not one of the options")
+        elif wanted in got[0]:
+            out[n] = ("open", parent, "")
+        else:
+            out[n] = ("closed", parent, f"answer {parent} is {' | '.join(got[0])}")
+    return out
+
+
+def schema(slug: str) -> list:
+    """The form as plain data, for the Clio extension and for tests."""
+    return [dict(n=n, text=q.text, clio=q.clio or q.text, kind=q.kind, options=list(q.options),
+                 when=list(q.when) if q.when else None, limit=q.limit) for n, q in enumerate(DETAILS[slug], 1)]
+
+
 def parse(slug: str, text: str) -> Parsed:
     """Read the answers out of a reply or a stored version. A stray [OUTPUT: ...] line is ignored."""
     text = MARKER_RE.sub("", text)

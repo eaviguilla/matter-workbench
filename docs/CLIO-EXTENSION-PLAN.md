@@ -18,10 +18,14 @@ The paralegal clicks Copy for Clio on an intake form, opens the matching blank f
 
 ## What the owner provides
 
-1. The blank probate form HTML at `samples/clio-probate.html` and the blank estate plan form HTML at `samples/clio-estate-plan.html`. Each is the outerHTML of the element that holds all the questions, copied from a test matter with a fake client.
+1. The blank form HTML for all four forms, at `samples/clio-probate.html`, `samples/clio-estate-plan.html`, `samples/clio-general.html` and `samples/clio-trust-admin.html`. Each is the outerHTML of the element that holds all the questions, copied from a test matter with a fake client.
 2. A screenshot of each dropdown or date picker while open, only for fields that use one.
 
 Do not send client names, session tokens or URLs with IDs. The build step strips values, scripts and styles from the files before use.
+
+## Conditional entries
+
+A follow-up that Clio shows only after an earlier answer is absent from the Clio page until that answer is chosen. The app already decides this in `forms.visibility(slug, answers)`, which says open, closed, unset or always for each entry, and `forms.schema(slug)` returns every entry (number, text, Clio title, kind, options, condition, limit) as plain data. The extension build uses `schema` to make the mapping files, so a drift test can compare them. The Copy for Clio text carries only entries that are always shown or open and that hold a real answer (not Not discussed). The extension fills a parent entry, waits for the follow-up field to appear, fills it, and skips any field that is absent from the page, because Clio is the final judge.
 
 ## Phases
 

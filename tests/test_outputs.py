@@ -300,7 +300,8 @@ def test_requested_outputs_wait_for_claude_and_received_ones_open_on_the_latest_
     assert "Waiting for Claude" not in web.get(f"/transcripts/{tx}").text
     copy(web, tx, [NOTE, CAL, FORM])
     page = web.get(f"/transcripts/{tx}").text
-    assert page.count("Waiting for Claude") == 3 and all(f'id="out-{slug}"' in page for slug in SLUGS)
+    assert page.count("Waiting for Claude") == 3 and all(f'id="out-{slug}"' in page for slug in (NOTE, CAL, FORM))
+    assert not any(f'id="out-{slug}"' in page for slug in SLUGS if slug not in (NOTE, CAL, FORM)) and "Not requested" not in page
     with store_of(web) as s:
         s.add_output(cid, tx, CAL, "Old [PERSON_1].")
         s.add_output(cid, tx, CAL, "New [PERSON_2].", "mcp")

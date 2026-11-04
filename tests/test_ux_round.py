@@ -389,13 +389,19 @@ def test_waiting_text_points_at_the_box_above_and_names_the_connector_only_when_
     assert quiet.index('class="board"') < quiet.index('id="paste"')                   # nothing waiting, so it moves below
 
 
-def test_not_requested_columns_offer_ask_claude_for_this(seen):
+def test_an_output_that_was_not_requested_is_not_on_the_page_and_request_more_is_where_it_is_added(seen):
     web, cid, tx = seen
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
-    for slug in (CAL, FORM):
-        col = re.search(rf'<section class="col" id="out-{slug}">(.*?)</section>', page, re.S).group(1)
-        assert f'data-ask="{slug}"' in col and "Ask Claude for this" in col
-    assert 'data-ask' not in re.search(rf'<section class="col" id="out-{NOTE}">(.*?)</section>', page, re.S).group(1)
+    assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE]
+    for slug in (CAL, FORM, *FORM_SLUGS):
+        assert f'id="out-{slug}"' not in page
+    assert "Not requested" not in page and "Ask Claude for this" not in page and "data-ask=" not in page
+    jump = re.search(r'<nav class="jump muted" aria-label="On this page">(.*?)</nav>', page, re.S).group(1)
+    assert 'href="#request-more" data-ask-more="1">Request more outputs</a>' in jump
+    box = page.split('id="request-more"')[1]
+    assert box.count('name="output"') == len(SLUGS)                       # every output can still be asked for from here
+    assert re.search(rf'value="{NOTE}"[^>]*><span>Clio Note</span> <span class="muted picktag">on this page</span>', box)
+    assert re.search(rf'value="{CAL}"[^>]*><span>[^<]+</span></label>', box)             # not on the page, so no tag and no tick
     assert 'id="request-more"' in page and "<details class=\"request\"" not in page      # always open, below the outputs
     assert page.index('class="board"') < page.index('id="request-more"')
 

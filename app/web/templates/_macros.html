@@ -12,16 +12,16 @@
 <p class="legend" aria-label="Key to the underlines in the text"><span class="legend-title">Key</span> <span class="tag tag-person">Person</span> <span class="tag tag-email">Email</span> <span class="tag tag-address">Address</span></p>
 {%- endmacro %}
 
-{% macro pick_outputs(choices, ticked) -%}
+{% macro pick_outputs(choices, ticked, tags={}) -%}
 <fieldset class="pick">
   <legend>Ask Claude for</legend>
   <p class="pickgroup">Notes</p>
   {% for slug, name in choices if slug not in FORM_SLUGS %}
-  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span></label>
+  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span>{% if tags.get(slug) %} <span class="muted picktag">{{ tags[slug] }}</span>{% endif %}</label>
   {% endfor %}
   <p class="pickgroup">Intake forms</p>
   {% for slug, name in choices if slug in FORM_SLUGS %}
-  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span></label>
+  <label class="check"><input type="checkbox" name="output" value="{{ slug }}"{% if slug in ticked %} checked{% endif %}><span>{{ name }}</span>{% if tags.get(slug) %} <span class="muted picktag">{{ tags[slug] }}</span>{% endif %}</label>
   {% endfor %}
 </fieldset>
 {%- endmacro %}
@@ -32,9 +32,9 @@
 <p class="muted hint">Real names are hidden before anything is copied.</p>
 {%- endmacro %}
 
-{% macro copy_box(tx_id, choices, ticked, locked, idp, after, directions="", ok=[]) -%}
+{% macro copy_box(tx_id, choices, ticked, locked, idp, after, directions="", ok=[], tags={}) -%}
 <div data-copy-box data-confirmed='{{ ok|tojson }}' data-after-copy="{{ after }}" data-preview-url="/transcripts/{{ tx_id }}/scrub-preview" data-hide-url="/transcripts/{{ tx_id }}/hide-word" class="requestbar">
-  {{ pick_outputs(choices, ticked) }}
+  {{ pick_outputs(choices, ticked, tags) }}
   <div class="directions">
     <label for="{{ idp }}-directions">Specific directions for Claude <span class="muted">(optional)</span></label>
     <p class="lastsent muted" data-last-sent hidden>Last sent: <span data-last-text></span> <button type="button" class="textbtn" data-use-again>Use again</button></p>

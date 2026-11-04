@@ -433,18 +433,16 @@
     if (!box || e.target.type !== "checkbox") { return; }
     refreshButton(box);
   });
-  // Ask Claude for this: tick that output in the request controls, open them and put the cursor on Copy for Claude.
+  // Request more outputs (the Jump line): scroll to the request controls and put the cursor on the first output that is
+  // not ticked. What is already ticked there is what is still waiting for Claude, so it is left as it is.
   document.addEventListener("click", function (e) {
-    var a = e.target.closest("a[data-ask]");
+    var a = e.target.closest("a[data-ask-more]");
     if (!a) { return; }
     var det = document.querySelector("#request-more");
-    var tick = det && det.querySelector('input[name="output"][value="' + a.dataset.ask + '"]');
-    if (!tick) { return; }
+    var box = det && det.querySelector("[data-copy-box]");
+    if (!box) { return; }
     e.preventDefault();
-    // Arriving from one output's button asks for that output only, not for what was ticked before.
-    det.querySelectorAll('input[name="output"]').forEach(function (c) { c.checked = false; });
-    det.open = true; tick.checked = true;
-    var box = det.querySelector("[data-copy-box]");
+    var tick = box.querySelector('input[name="output"]:not(:checked)') || box.querySelector('input[name="output"]');
     // The directions sent last time are not sent again by accident: they move to a "Last sent" line with Use again,
     // and the box starts empty.
     var dirs = box.querySelector("[data-directions]"), last = box.querySelector("[data-last-sent]");
@@ -456,8 +454,7 @@
     }
     syncCopy(box);
     det.scrollIntoView({ block: "center" });
-    var go = box.querySelector("[data-copy-url]");
-    if (go && !go.disabled) { go.focus(); } else { tick.focus(); }
+    if (tick) { tick.focus(); }
   });
   document.addEventListener("click", function (e) {
     var u = e.target.closest("button[data-use-again]");

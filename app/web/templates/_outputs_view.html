@@ -15,9 +15,17 @@
 <p class="notice" role="status" data-new-version hidden>New version available. <a href="" data-leave-guard>Reload to see it</a>. The text you typed is kept until you do.</p>
 <p class="notice" role="status" data-stale-version hidden>A newer version of this output was saved after this page opened, so nothing was copied. <a href="">Reload to see it</a>. The change you typed in the box is kept and will be there after the reload.</p>
 {% if waiting_any %}{{ paste_block }}{% endif %}
-<p class="jump muted">Jump to: {% for b in blocks if b.is_form %}<a href="#out-{{ b.slug }}">{{ b.name }}</a>{{ ', ' if not loop.last }}{% endfor %}</p>
-<div class="board" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
-{% for b in blocks if not b.is_form %}
+{% set text_on = blocks|selectattr('on_page')|rejectattr('is_form')|list %}
+{% set forms_on = blocks|selectattr('on_page')|selectattr('is_form')|list %}
+<div class="outview" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
+{% if text_on or forms_on %}
+<nav class="jump muted" aria-label="On this page">Jump to: {% for b in forms_on %}<a href="#out-{{ b.slug }}">{{ b.name }}</a>, {% endfor %}<a href="#request-more" data-ask-more="1">Request more outputs</a></nav>
+{% else %}
+<p class="empty" role="status"><span><strong>Nothing asked for on this call yet.</strong> Tick outputs below and click Copy for Claude.</span></p>
+{% endif %}
+{% if text_on %}
+<div class="board" data-cols="{{ text_on|length }}">
+{% for b in text_on %}
 <section class="col" id="out-{{ b.slug }}">
   <h3 class="colname">{{ b.name }}</h3>
   {% if b.current %}
@@ -60,24 +68,24 @@
   <div class="vctl"></div>
   <div class="warnings"></div>
   <div class="textbox">
-    {% if b.waiting %}
     <p class="empty" role="status"><span><strong>Waiting for Claude.</strong> Paste Claude's reply in the box above.{% if mcp_on %} The connector can also save it. This page checks every few seconds.{% endif %}</span></p>
-    {% else %}
-    <p class="empty"><span><strong>Not requested.</strong></span></p>
-    {% endif %}
   </div>
-  <div class="actions">{% if not b.waiting %}<a class="button secondary" href="#request-more" data-ask="{{ b.slug }}">Ask Claude for this</a>{% endif %}</div>
+  <div class="actions"></div>
   <div class="change"></div>
   {% endif %}
 </section>
 {% endfor %}
 </div>
+{% endif %}
+{% if forms_on %}
 <section class="forms" id="intake-forms">
   <h2>Intake forms</h2>
-  {% for b in blocks if b.is_form %}{% include "_form_panel.html" %}{% endfor %}
+  {% for b in forms_on %}{% include "_form_panel.html" %}{% endfor %}
 </section>
+{% endif %}
 {% if not waiting_any %}{{ paste_block }}{% endif %}
 <section class="request" id="request-more">
   <h2>Request more outputs</h2>
-  {{ m.copy_box(sel.id, output_choices, ticked, sel.status == 'draft', 'more', href_after_copy, directions, directions_ok) }}
+  {{ m.copy_box(sel.id, output_choices, more_ticked, sel.status == 'draft', 'more', href_after_copy, directions, directions_ok, tags) }}
 </section>
+</div>

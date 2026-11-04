@@ -1,7 +1,7 @@
 <article class="fpanel" id="out-{{ b.slug }}">
   <header class="fphead">
     <h3 class="colname">{{ b.name }}</h3>
-    {% if b.current %}<p class="muted fpcount" data-answered="{{ b.answered }}">{{ b.answered }} of {{ b.total }} answered</p>{% endif %}
+    {% if b.current %}{% set c = b.counts %}<p class="muted fpcount" data-answered="{{ c.answered }}">{{ c.answered }} of {{ c.total }} answered{% if c.not_discussed %}, {{ c.not_discussed }} not discussed{% endif %}{% if c.folded %}, {{ c.folded }} follow-up{{ 's' if c.folded != 1 }} not shown in Clio{% endif %}{% if c.kept %}, {{ c.kept }} kept answer{{ 's' if c.kept != 1 }} Clio will not show{% endif %}</p>{% endif %}
   </header>
   {% if b.current %}
   {% set res = b.shown[0] %}
@@ -32,32 +32,18 @@
   <pre class="hidden-text" id="all-{{ b.slug }}">{{ b.all_text }}</pre>
   <pre class="hidden-text" id="allraw-{{ b.slug }}">{{ b.all_raw }}</pre>
   <ol class="answers" data-answers data-tx="{{ sel.id }}" data-slug="{{ b.slug }}" data-version="{{ b.current.version }}" data-latest="{{ b.latest }}" data-answers-url="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/answers">
-    {% for r in b.rows %}
-    <li class="arow state-{{ r.state }}" id="q-{{ b.slug }}-{{ r.n }}" data-n="{{ r.n }}">
-      <div class="aqwrap">
-        <p class="aq"><span class="qn">{{ r.n }}.</span> {{ r.question }}</p>
-        {% if r.hint %}<p class="ahint muted">{{ r.hint }}</p>{% endif %}
-        {% if r.over %}<p class="warn ahint" role="alert">{{ r.over }} character{{ 's' if r.over != 1 }} over what the Clio box takes. Shorten it.</p>{% endif %}
-      </div>
-      <div class="abox">
-        {% if r.state == 'empty' %}
-        <p class="empty"><span>No answer yet.</span></p>
-        {% else %}
-        <pre class="answer" id="ans-{{ b.slug }}-{{ r.n }}">{% for t, ty in r.segs %}{% if ty %}<mark class="tag tag-unknown">{{ t }}</mark>{% else %}{{ t }}{% endif %}{% endfor %}</pre>
-        {% endif %}
-        <div class="aedit" hidden>
-          <label class="sr" for="aedit-{{ b.slug }}-{{ r.n }}">Answer {{ r.n }}, hidden names as stored</label>
-          <textarea id="aedit-{{ b.slug }}-{{ r.n }}" rows="3" spellcheck="false" data-answer-text data-start="{{ r.raw }}">{{ r.raw }}</textarea>
-          <p class="status-msg" data-answer-msg role="status" hidden></p>
-          <div class="actions"><button type="button" data-answer-save="1">Save</button> <button type="button" class="textbtn" data-answer-cancel="1">Cancel</button> <span class="muted">Ctrl or Cmd + Enter saves, Esc cancels.</span></div>
-        </div>
-      </div>
-      <div class="aact actions">
-        {% if r.state != 'empty' %}<button type="button" data-copy-text="#ans-{{ b.slug }}-{{ r.n }}" data-unknown="{{ r.unknown }}" data-copied-key="{{ b.slug }}:{{ r.n }}" aria-label="Copy answer {{ r.n }}">Copy</button>{% endif %}
-        {% if b.is_latest %}<a class="textbtn" href="/transcripts/{{ sel.id }}/outputs/{{ b.slug }}/edit?v={{ b.current.version }}#q-{{ r.n }}" data-answer-edit aria-label="Edit answer {{ r.n }}">Edit</a>{% endif %}
-        <span class="status-msg" data-status></span>
-      </div>
-    </li>
+    {% for item in b.entries %}
+    {% if item.fold %}
+    <li class="foldgroup"><details><summary>{{ item.title }}</summary>
+      <ol class="answers inner">
+      {% for r in item.fold %}
+{% include "_form_row.html" %}
+      {% endfor %}
+      </ol></details></li>
+    {% else %}
+    {% set r = item.row %}
+{% include "_form_row.html" %}
+    {% endif %}
     {% endfor %}
   </ol>
   {% endif %}

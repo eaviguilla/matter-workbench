@@ -853,6 +853,12 @@ def preticked_outputs(store: Store, requested, planned=()) -> list[str]:
     return [slug for slug in TEXT_SLUGS if slug in last]       # a form is only ticked when this call asked for it
 
 
+def more_ticked(blocks: list) -> list[str]:
+    """What the Request more outputs list on the Outputs view starts with: only the outputs asked for and still waiting.
+    Outputs that already arrived are not ticked again, so asking for one more never makes Claude rewrite the others."""
+    return [b["slug"] for b in blocks if b["waiting"]]
+
+
 def prepare_directions(store: Store, client_id: str, directions: str, ner: NerModel,
                        settings: Settings, tx_id: str | None = None, places=()) -> tuple[str, list, Registry]:
     """The optional directions typed beside Copy for Claude, scrubbed like a change request. Returns the scrubbed
@@ -1562,28 +1568,74 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
     # The placeholder text is masked again, so a name hidden after this version was saved never leaves as raw text.
     shown = forms.parse(slug, res.text).answers
     raw = forms.parse(slug, placeholder_text(store, client_id, content, registry)).answers
+    seen = forms.visibility(slug, shown)
     rows = []
     for n, question in enumerate(forms.QUESTIONS[slug], 1):
         text = shown.get(n, "")
         state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
+        vis, parent, why = seen[n]
         rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
                          hint=forms.hint(slug, n), over=forms.over(slug, n, text),
+                         problem=forms.choice_problem(slug, n, text),
+                         vis=vis, parent=parent, why=why, wanted=forms.DETAILS[slug][n - 1].when[1] if vis != "always" else "",
+                         fold=vis == "closed" and state != "answered",      # nothing to lose, so it sits in a closed row
+                         kept=vis == "closed" and state == "answered",     # an answer Clio will not show, never hidden
                          segs=rehydrated_segments(text, res.unknown) if text else [],
                          unknown=sum(1 for u in set(res.unknown) if u in text)))
     return res, rows
 
 
 def forms_listing(rows: list, key: str) -> str:
-    """All the answers of a form as one text for Copy all: the question number and question, then the answer."""
-    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key])
+    """All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
+    that Clio would not show, because the answer that opens it is a different one, is left out. It stays in the stored
+    version."""
+    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key] and r["vis"] != "closed")
+
+
+def form_items(rows: list) -> list:
+    """The entries of a form panel in order. Consecutive entries that Clio would not show and that hold no answer are
+    one fold: {"fold": [rows], "title": text}, so they sit in a closed row under their parent. Every other entry is
+    {"row": row}. An answer is never folded."""
+    items, run = [], []
+
+    def close():
+        if run:
+            reasons = []
+            for r in run:
+                if r["why"] not in reasons:
+                    reasons.append(r["why"])
+            n = len(run)
+            items.append(dict(fold=list(run), title=f"{n} follow-up{'s' if n != 1 else ''} Clio does not show, because "
+                                                    + " and ".join(reasons)))
+            run.clear()
+
+    for r in rows:
+        if r["fold"]:
+            run.append(r)
+        else:
+            close()
+            items.append(dict(row=r))
+    close()
+    return items
+
+
+def form_counts(rows: list) -> dict:
+    """The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
+    closed) and `answered` the ones of those that have any text, Not discussed included. A closed entry with no text
+    is `folded`, a closed entry that holds an answer is `kept`."""
+    live = [r for r in rows if r["vis"] != "closed"]
+    return dict(total=len(live), answered=sum(r["state"] != "empty" for r in live),
+                not_discussed=sum(r["state"] == "not_discussed" for r in live),
+                folded=sum(r["fold"] for r in rows), kept=sum(r["kept"] for r in rows))
 
 
 def form_diff(slug: str, old_text: str, new_text: str) -> tuple[list, int]:
     """The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
     many questions did not change. The changed words in each answer are marked like in a text output."""
     a, b = forms.parse(slug, old_text).answers, forms.parse(slug, new_text).answers
-    changed = [(n, q, diff_rows(a.get(n, ""), b.get(n, ""))) for n, q in enumerate(forms.QUESTIONS[slug], 1)
-               if a.get(n, "") != b.get(n, "")]
+    closed = [n for n, v in forms.visibility(slug, b).items() if v[0] == "closed"]     # as the newer version stands
+    changed = [(n, q + (" (not shown in Clio)" if n in closed else ""), diff_rows(a.get(n, ""), b.get(n, "")))
+               for n, q in enumerate(forms.QUESTIONS[slug], 1) if a.get(n, "") != b.get(n, "")]
     return changed, forms.count(slug) - len(changed)
 
 

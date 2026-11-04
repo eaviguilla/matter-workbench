@@ -132,7 +132,7 @@ def test_the_view_opens_on_the_transcript_until_something_is_asked_or_received(e
     assert 'class="board"' in busy and 'id="scrubbed-view"' not in busy and "Request more outputs" in busy
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[2]}&view=transcript").text
     asked = web.get(f"/clients/{cid}?tx={txs[1]}&view=outputs").text
-    assert asked.count("Not requested") == 7 and 'class="board"' in asked
+    assert "Nothing asked for on this call yet." in asked and 'class="board"' not in asked and "Not requested" not in asked
     assert 'id="scrubbed-view"' in web.get(f"/clients/{cid}?tx={txs[1]}&view=sideways").text      # unknown means the default
     web.post_json(f"/transcripts/{txs[1]}/copy", {"outputs": [NOTE]})
     assert 'class="board"' in web.get(f"/clients/{cid}?tx={txs[1]}").text and "Waiting for Claude" in web.get(f"/clients/{cid}?tx={txs[1]}").text
@@ -211,7 +211,7 @@ def test_the_version_select_has_the_same_shape_at_any_count(env):
     page = web.get(f"/clients/{cid}").text
     shape = lambda col: re.sub(r"<option.*?</option>", "<o>", re.search(r'<form method="get".*?</form>', col, re.S).group(0), flags=re.S)
     assert shape(column(page, NOTE)).count("<select") == 2 and shape(column(page, CAL)).count("<select") == 2
-    assert "Note v1" not in page and column(page, FORM).count("<select") == 0       # an empty column has none
+    assert "Note v1" not in page and f'id="out-{FORM}"' not in page       # an output that was not asked for has no column
 
 
 def test_choosing_in_one_column_leaves_the_other_columns_alone(env):

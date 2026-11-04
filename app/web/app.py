@@ -221,14 +221,14 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                    if CLIENT_ID_RE.match(cid) else [], summary_prompt=wf.SUMMARY_PROMPT, just_saved=None,
                    options=wf.load_client_options(s, cid), type_labels=wf.TYPE_LABELS, all_types=wf.ALL_TYPES,
                    options_error=None, sel=None, view="transcript", selector=None, output_choices=wf.OUTPUTS,
-                   ticked=[], title_typed=None, seen=False, blocks=[], total_versions=0, segs=[],
+                   ticked=[], more_ticked=[], tags={}, title_typed=None, seen=False, blocks=[], total_versions=0, segs=[],
                    warning=None, hide_error=None, hide_typed=None, directions="", directions_ok=[], mcp_on=False, keep_params=[],
                    manage_open=False, summary_open=False, waiting_any=False)
         ctx.update(extra if "calls" in extra else client_context(request, s, cid, **extra))
         return workspace(request, s, cid, "client.html", **ctx)
 
     def call_rows(s: Store, cid: str, transcripts: list) -> list:
-        """Each call with the state of the 3 outputs in the fixed order: received (latest version), waiting or none,
+        """Each call with the state of the outputs in the fixed order: received (latest version), waiting or none,
         its title, and the one line the selector shows."""
         rows = []
         for t in transcripts:
@@ -297,6 +297,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                    directions=wf.directions_for_display(*display_args(s, cid, full)), directions_ok=full["directions_ok"], mcp_on=wf.load_settings(s).mcp_enabled,
                    keep_params=[(k, v) for k, v in request.query_params.items() if k in STATE_KEYS and KEEP_PARAM.match(v)],
                    waiting_any=any(b["waiting"] for b in blocks),
+                   more_ticked=wf.more_ticked(blocks), tags={b["slug"]: "waiting" if b["waiting"] else "on this page" for b in blocks if b["on_page"]},
                    href_outputs=client_url(cid, sel["id"], "outputs"), href_transcript=client_url(cid, sel["id"], "transcript"),
                    href_after_copy=client_url(cid, sel["id"], "outputs"))
         return ctx
@@ -703,9 +704,9 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     # ---- transcript view, copy, outputs -----------------------------------------------------
 
     def output_blocks(s: Store, tx: dict, params, cid: str) -> list:
-        """Always one block for each of the 5 outputs, in the app's order (the 3 text outputs make the board, the 2
-        forms sit under it as panels), so the page never changes shape. A block
-        is received (has a version), waiting (asked for at the last copy) or none. Each block opens on its latest
+        """One block for each of the 7 outputs, in the app's order (the 3 text outputs make the board, the 4 forms sit
+        under it as panels). The page shows only the blocks with `on_page`: a block that has a version or was asked for at
+        the last copy. A block is received (has a version), waiting (asked for, no version yet) or none. Each block opens on its latest
         version. ?<output>=N shows an older one and ?cmp-<output>=M (or "prev") compares it, per output, so choosing
         in one column leaves the others as they are."""
         state = {}
@@ -728,6 +729,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         for slug, name in wf.OUTPUTS:
             versions = s.list_outputs(tx["id"], slug)
             block = dict(slug=slug, name=name, is_form=wf.is_form(slug), rows=[], answered=0, versions=versions, waiting=not versions and slug in tx["requested_outputs"],
+                         on_page=bool(versions) or slug in tx["requested_outputs"],
                          current=None, raw="", shown=None, compare=None, diff=None, latest=None, plain_href=None,
                          version_options=[], compare_options=[], older_href=None, newer_href=None, back_href=None,
                          hidden=[], compare_value="", is_latest=True)
@@ -761,7 +763,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
                                                                        if k not in (slug, f"cmp-{slug}")])
                 if wf.is_form(slug):
                     rows = block["shown"][1]
-                    block.update(rows=rows, answered=sum(r["state"] != "empty" for r in rows), total=wf.forms.count(slug),
+                    block.update(rows=rows, counts=wf.form_counts(rows), entries=wf.form_items(rows),
                                  all_text=wf.forms_listing(rows, "text"), all_raw=wf.forms_listing(rows, "raw"))
                 if other and wf.is_form(slug):
                     block.update(compare=other, diff=wf.form_diff(
@@ -910,7 +912,10 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         if not wf.is_form(slug):
             return []
         shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
-        return [(n, q, typed[n] if typed is not None else shown.get(n, ""), wf.forms.hint(slug, n))
+        seen = wf.forms.visibility(slug, shown if typed is None else typed)
+        return [(n, q, typed[n] if typed is not None else shown.get(n, ""),
+                 " ".join(x for x in (wf.forms.hint(slug, n),
+                                      f"Clio does not show this box now, {seen[n][2]}." if seen[n][0] == "closed" else "") if x))
                 for n, q in enumerate(wf.forms.QUESTIONS[slug], 1)]
 
     @router.get("/transcripts/{tx_id}/outputs/{slug}/edit", response_class=HTMLResponse)

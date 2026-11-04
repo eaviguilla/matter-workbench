@@ -139,7 +139,14 @@ def test_an_empty_or_bad_request_is_refused_and_nothing_is_stored(env):
 
 # ---- the board ---------------------------------------------------------------------------------------
 
-def test_the_board_always_has_three_columns_in_fixed_order(env):
+def on_page(web, tx_id):
+    """The text outputs a call shows: those with a version or asked for at the last copy, in the app's order."""
+    with store_of(web) as s:
+        asked = s.get_transcript(tx_id)["requested_outputs"]
+        return [slug for slug in (NOTE, CAL, FORM) if s.list_outputs(tx_id, slug) or slug in asked]
+
+
+def test_the_board_shows_only_the_text_outputs_on_the_call_in_fixed_order(env):
     web, cid, tx, tmp = env
     # a call with nothing asked for, then one with only the last output, then every query the page accepts
     with store_of(web) as s:
@@ -150,13 +157,15 @@ def test_the_board_always_has_three_columns_in_fixed_order(env):
              web.get(f"/transcripts/{tx}?{CAL}=2&cmp-{CAL}=1&{NOTE}=1").text]
     web.post_json(f"/transcripts/{other}/copy", {"outputs": [FORM]})
     pages.append(web.get(f"/transcripts/{other}").text)
+    for page in pages[1:4]:
+        assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == on_page(web, tx)
+    assert re.findall(r'<section class="col" id="out-([a-z-]+)">', pages[4]) == [FORM]
     for page in pages:
-        assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE, CAL, FORM]
-    states = re.findall(r'<section class="col" id="out-[a-z-]+">', pages[0])
-    assert len(states) == 3 and "Waiting for Claude" not in pages[0] and pages[0].count("Not requested") == 7
-    assert pages[1].count("Not requested") == 5 and "Waiting for Claude" not in pages[1]
-    assert pages[4].count("Waiting for Claude") == 1 and pages[4].count("Not requested") == 6
-    assert "Waiting for Claude" in column(pages[4], FORM)
+        assert "Not requested" not in page and "Ask Claude for this" not in page
+    assert 'class="board"' not in pages[0] and "Nothing asked for on this call yet." in pages[0]      # nothing asked, no board
+    assert "Waiting for Claude" not in pages[0] and "Waiting for Claude" not in pages[1]
+    assert pages[4].count("Waiting for Claude") == 1 and "Waiting for Claude" in column(pages[4], FORM)
+    assert re.search(r'<div class="board" data-cols="1">', pages[4]) and 'data-poll="/transcripts/' in pages[0]
 
 
 def test_one_columns_version_choice_does_not_change_another(env):
@@ -274,5 +283,5 @@ def test_the_seed_script_is_safe_to_run_twice_and_leaves_other_clients_alone(tmp
     assert "Unknown hidden names: [PERSON_9]" in page and "real value" in page
     for call in calls:
         r = seeded.get(f"/transcripts/{call}?view=outputs")
-        assert r.status_code == 200 and len(re.findall(r'<section class="col"', r.text)) == 3
+        assert r.status_code == 200 and len(re.findall(r'<section class="col"', r.text)) == len(on_page(seeded, call))
         assert re.search(rf'<option value="{call}" data-id="{call}" selected>[^<]+, \d+ \w{{3}} \d{{4}}, ', r.text)
