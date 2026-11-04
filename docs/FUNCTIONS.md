@@ -1,6 +1,6 @@
 # Function list
 
-Total, 561 items.
+Total, 573 items.
 Every function, method and class in the app, the connector, the scripts and `run.py`, in file order. The text after each name is the first line of its docstring, or blank when it has none.
 
 ## app/__main__.py  (3)
@@ -24,7 +24,7 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `seed` (def, line 26)
 - `create_demo_app` (def, line 49)
 
-## app/forms.py  (17)
+## app/forms.py  (18)
 
 - `Question` (class, line 17). One entry of a form, as it is on the Clio page. A follow-up that Clio shows only after a Yes or No is its own
 - `Parsed` (class, line 131)
@@ -36,13 +36,14 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `choice` (def, line 178). The options an answer names, as (options, exact), or None when it names none. Yes or No takes a leading Yes or
 - `choice_problem` (def, line 197). A short warning when a Yes or No, pick-one or checkbox answer is not what Clio can pick, else an empty text.
 - `visibility` (def, line 208). For every entry, {number: (state, parent, reason)}. The state is always (no condition), open (the parent answer
-- `schema` (def, line 235). The form as plain data, for the Clio extension and for tests.
-- `parse` (def, line 241). Read the answers out of a reply or a stored version. A stray [OUTPUT: ...] line is ignored.
-- `render` (def, line 263). The canonical stored text: every marker in order, an empty answer where there is none.
-- `merge` (def, line 268). The new answers laid over the latest version. A question the reply did not answer keeps what it had, and an
-- `missing` (def, line 276). Question numbers with no answer.
-- `rows` (def, line 281). [(number, question, answer)] for display, from a stored version.
-- `numbers` (def, line 287). [2, 3, 4, 9] as "2 to 4 and 9" is not needed here, a plain list reads fine: "2, 3, 4 and 9".
+- `strict` (def, line 235). The answers as Clio can take them, and what was changed to get there, as [(number, kind, text)]. A Yes or No
+- `schema` (def, line 265). The form as plain data, for the Clio extension and for tests.
+- `parse` (def, line 271). Read the answers out of a reply or a stored version. A stray [OUTPUT: ...] line is ignored.
+- `render` (def, line 293). The canonical stored text: every marker in order, an empty answer where there is none.
+- `merge` (def, line 298). The new answers laid over the latest version, made strict (see strict). A question the reply did not answer keeps
+- `missing` (def, line 306). Question numbers with no answer.
+- `rows` (def, line 311). [(number, question, answer)] for display, from a stored version.
+- `numbers` (def, line 317). [2, 3, 4, 9] as "2 to 4 and 9" is not needed here, a plain list reads fine: "2, 3, 4 and 9".
 
 ## app/ids.py  (5)
 
@@ -287,7 +288,7 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `Store._append_audit` (def, line 749)
 - `Store.list_audit` (def, line 759)
 
-## app/web/app.py  (81)
+## app/web/app.py  (82)
 
 - `client_url` (def, line 44). The client page with a call selected. Only IDs, numbers and fixed words go in the address, never a value.
 - `create_app` (def, line 51)
@@ -349,27 +350,28 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `create_app.scrub_preview` (def, line 873). The capitalized words still flagged in text typed for Claude (a change request or directions), checked the
 - `create_app.hide_word` (def, line 887). Hide one flagged word in the text being sent. By default it is hidden for this transcript only: later text
 - `create_app.editable` (def, line 902). The transcript and the version shown in the editor. 404 unless the output has a version to start from.
-- `create_app.form_fields` (def, line 910). The edit page's boxes for a form: [(number, question, text)], the text with hidden names as stored.
-- `create_app.output_edit_page` (def, line 922)
-- `create_app.output_edit_save` (def, line 932)
-- `create_app.save_answer` (def, line 952). Save one edited answer of a form as a new version (JSON: number, text, version). version is the one the page
-- `create_app.hide_text` (def, line 973). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
-- `create_app.set_call_title` (def, line 993). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
-- `create_app.outgoing_page` (def, line 1015)
-- `create_app.message_input` (def, line 1019). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
-- `create_app.outgoing_preview` (def, line 1034)
-- `create_app.outgoing_hide_word` (def, line 1049). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
-- `create_app.outgoing_copy` (def, line 1064)
-- `create_app.import_page` (def, line 1083). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
-- `create_app.import_check` (def, line 1094)
-- `create_app.import_save` (def, line 1112)
-- `create_app.registry_page` (def, line 1130)
-- `create_app.registry_edit` (def, line 1137)
-- `create_app.wants_json` (def, line 1179)
-- `create_app.settings_view` (def, line 1182)
-- `create_app.settings_done` (def, line 1190). Saved in place when the page asked for JSON, else back to the page with the result shown.
-- `create_app.settings_page` (def, line 1200)
-- `create_app.settings_save` (def, line 1205). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
+- `create_app.form_fields` (def, line 910). The edit page's boxes for a form: [(number, question, text, hint, yesno)], the text with hidden names as stored.
+- `create_app.form_fields.yes_no` (def, line 916)
+- `create_app.output_edit_page` (def, line 926)
+- `create_app.output_edit_save` (def, line 936)
+- `create_app.save_answer` (def, line 956). Save the edited answers of a form as one new version (JSON: changes {number: text}, version, or the older
+- `create_app.hide_text` (def, line 987). Hide a word, email or address in a saved call: the value joins the client's hidden names, the transcript
+- `create_app.set_call_title` (def, line 1007). Set or clear the optional call title. It is stored as typed, shown on screen only and never sent to Claude.
+- `create_app.outgoing_page` (def, line 1029)
+- `create_app.message_input` (def, line 1033). text, kind, transcript ID and the raw fields of an outgoing message, from JSON or a form.
+- `create_app.outgoing_preview` (def, line 1048)
+- `create_app.outgoing_hide_word` (def, line 1063). Hide one flagged word in a message. With a transcript chosen it is hidden for that transcript only unless
+- `create_app.outgoing_copy` (def, line 1078)
+- `create_app.import_page` (def, line 1097). kind=summary opens the page with Running summary chosen. tx= picks the call the reply is for, and the
+- `create_app.import_check` (def, line 1108)
+- `create_app.import_save` (def, line 1126)
+- `create_app.registry_page` (def, line 1144)
+- `create_app.registry_edit` (def, line 1151)
+- `create_app.wants_json` (def, line 1193)
+- `create_app.settings_view` (def, line 1196)
+- `create_app.settings_done` (def, line 1204). Saved in place when the page asked for JSON, else back to the page with the result shown.
+- `create_app.settings_page` (def, line 1214)
+- `create_app.settings_save` (def, line 1219). One section at a time: section=model saves the name finder settings, section=connector the connector switch.
 
 ## app/web/security.py  (7)
 
@@ -476,40 +478,40 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `strip_header_lines` (def, line 1196). Remove valid [CLIENT: .. | TX: ..] headers from an output's text and trim blank lines around what is left.
 - `strip_header_lines.drop` (def, line 1199)
 - `form_body` (def, line 1212). Read a form reply: (the answers it sent as marker text, {number: answer}). A reply that cannot be saved adds the
-- `check_import` (def, line 1236). Check a reply before it is saved. A reply with [OUTPUT: name] lines is split into one piece per marker. One
-- `check_import.piece` (def, line 1281)
-- `rehydrated_segments` (def, line 1312). Pieces of rehydrated text; unknown placeholders are marked so the page can highlight them.
-- `save_import` (def, line 1325). Save a checked reply. Every output in it becomes a new version in one transaction, or none does.
-- `edit_output` (def, line 1357). Save a hand edit of an output as a new version. The text is placeholder text, and known real values typed into
-- `edit_answers` (def, line 1386). Save a hand edit of one or more answers of a form as a new version. `changes` is {question number: text}. Every
-- `HideResult` (class, line 1424)
-- `claude_has_seen` (def, line 1430). The call was copied for Claude, or an output exists, so Claude has the text as it was.
-- `delete_transcript` (def, line 1435). Delete one call with its outputs and the messages copied for it. Names hidden for this call only go too, unless
-- `_put_back` (def, line 1458). The text with every code that resolves to this entry replaced by its real words. Codes of other entries, and
-- `_put_back.swap` (def, line 1463)
-- `delete_hidden_name` (def, line 1475). Delete a hidden name and put its real words back where its codes stand. Every saved call of the client gets its
-- `hide_in_transcript` (def, line 1508). Hide a word in a saved call. The value joins the client's registry, every whole-word place in the transcript
-- `view_output` (def, line 1554)
-- `view_form` (def, line 1561). A form version for the page: (rehydrate result, [row]) where each row is one question with its answer as real
-- `forms_listing` (def, line 1588). All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
-- `form_items` (def, line 1595). The entries of a form panel in order. Consecutive entries that Clio would not show and that hold no answer are
-- `form_items.close` (def, line 1601)
-- `form_counts` (def, line 1622). The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
-- `form_diff` (def, line 1632). The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
-- `_bare` (def, line 1645). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
-- `_word_marks` (def, line 1650). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
-- `_word_marks.piece` (def, line 1656)
-- `diff_rows` (def, line 1677). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
-- `diff_lines` (def, line 1708). [(kind, line)] with kind in same / add / del, for the version comparison.
-- `transcript_name` (def, line 1720). How a call is named on screen: its title, else its date such as 3 Nov 2026.
-- `registry_rows` (def, line 1725). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
-- `save_entity_forms` (def, line 1744). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
-- `directions_for_display` (def, line 1759). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
-- `directions_for_display.swap` (def, line 1764)
-- `hidden_name_code` (def, line 1777). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
-- `find_entity` (def, line 1783)
-- `export_markdown` (def, line 1792). The client's history with real values restored. Handed to the browser as a download, never stored.
-- `valid_ids` (def, line 1814)
+- `check_import` (def, line 1240). Check a reply before it is saved. A reply with [OUTPUT: name] lines is split into one piece per marker. One
+- `check_import.piece` (def, line 1285)
+- `rehydrated_segments` (def, line 1317). Pieces of rehydrated text; unknown placeholders are marked so the page can highlight them.
+- `save_import` (def, line 1330). Save a checked reply. Every output in it becomes a new version in one transaction, or none does.
+- `edit_output` (def, line 1362). Save a hand edit of an output as a new version. The text is placeholder text, and known real values typed into
+- `edit_answers` (def, line 1391). Save a hand edit of one or more answers of a form as a new version. `changes` is {question number: text}. Every
+- `HideResult` (class, line 1429)
+- `claude_has_seen` (def, line 1435). The call was copied for Claude, or an output exists, so Claude has the text as it was.
+- `delete_transcript` (def, line 1440). Delete one call with its outputs and the messages copied for it. Names hidden for this call only go too, unless
+- `_put_back` (def, line 1463). The text with every code that resolves to this entry replaced by its real words. Codes of other entries, and
+- `_put_back.swap` (def, line 1468)
+- `delete_hidden_name` (def, line 1480). Delete a hidden name and put its real words back where its codes stand. Every saved call of the client gets its
+- `hide_in_transcript` (def, line 1513). Hide a word in a saved call. The value joins the client's registry, every whole-word place in the transcript
+- `view_output` (def, line 1559)
+- `view_form` (def, line 1566). A form version for the page: (rehydrate result, [row]) where each row is one question with its answer as real
+- `forms_listing` (def, line 1598). All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
+- `form_items` (def, line 1604). The entries of a form panel in order. Consecutive entries that Clio would not show and that hold no answer are
+- `form_items.close` (def, line 1610)
+- `form_counts` (def, line 1631). The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
+- `form_diff` (def, line 1640). The questions whose answer differs between two versions (as real text): [(number, question, diff rows)], and how
+- `_bare` (def, line 1653). A word without its punctuation, so "Friday," and "Friday" count as the same word when comparing.
+- `_word_marks` (def, line 1658). Two lines as [(text, changed)] pieces, with the words that differ marked, from difflib on words. A difference in
+- `_word_marks.piece` (def, line 1664)
+- `diff_rows` (def, line 1685). [(kind, [(text, changed)])] with kind in same / add / del. Lines that were changed rather than replaced are
+- `diff_lines` (def, line 1716). [(kind, line)] with kind in same / add / del, for the version comparison.
+- `transcript_name` (def, line 1728). How a call is named on screen: its title, else its date such as 3 Nov 2026.
+- `registry_rows` (def, line 1733). One row per hidden name. A name hidden in one transcript only says which one ("Only in <title or date>"), found
+- `save_entity_forms` (def, line 1752). Apply the edited forms of one hidden name together. values: part ('full', 'first', 'last', 'nick') -> text.
+- `directions_for_display` (def, line 1767). Saved directions (stored with codes) as they are shown in the box, with real names, because Copy for Claude
+- `directions_for_display.swap` (def, line 1772)
+- `hidden_name_code` (def, line 1785). The code a hidden person is written as in text for Claude, such as [PERSON_3]. Empty when not hidden.
+- `find_entity` (def, line 1791)
+- `export_markdown` (def, line 1800). The client's history with real values restored. Handed to the browser as a download, never stored.
+- `valid_ids` (def, line 1822)
 
 ## mcp_server/server.py  (4)
 
@@ -598,7 +600,7 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `seed` (def, line 164). Add the test clients that are missing. Returns (first names added, first names skipped).
 - `main` (def, line 196)
 
-## app/web/static/app.js  (44)
+## app/web/static/app.js  (54)
 
 - `rememberScroll` (function, line 9)
 - `restoreScroll` (function, line 12)
@@ -612,35 +614,45 @@ Every function, method and class in the app, the connector, the scripts and `run
 - `forgetTyped` (function, line 80)
 - `post` (function, line 85)
 - `nextTheme` (function, line 94)
-- `changeButton` (function, line 181)
-- `flagBox` (function, line 182)
-- `typedField` (function, line 183)
-- `openFlags` (function, line 184)
-- `refreshButton` (function, line 189)
-- `confirmedWords` (function, line 204)
-- `placeKey` (function, line 208)
-- `placesPayload` (function, line 209)
-- `mirrorPlaces` (function, line 220)
-- `clientOnly` (function, line 230)
-- `renderFlags` (function, line 234)
-- `boxNote` (function, line 318)
-- `previewReply` (function, line 326)
-- `preview` (function, line 337)
-- `hideWord` (function, line 355)
-- `keepTyped` (function, line 389)
-- `syncCopy` (function, line 425)
-- `wordAt` (function, line 550)
-- `snapWords` (function, line 556)
-- `selectedHideText` (function, line 572)
-- `guessType` (function, line 586)
-- `hidePop` (function, line 593)
-- `showPop` (function, line 594)
-- `offerHide` (function, line 622)
-- `gate` (function, line 658)
-- `copiedKey` (function, line 788)
-- `copiedList` (function, line 789)
-- `paintCopied` (function, line 792)
-- `markCopied` (function, line 798)
-- `openAnswer` (function, line 807)
-- `closeAnswer` (function, line 813)
-- `saveAnswer` (function, line 820)
+- `changeButton` (function, line 195)
+- `flagBox` (function, line 196)
+- `typedField` (function, line 197)
+- `openFlags` (function, line 198)
+- `refreshButton` (function, line 203)
+- `confirmedWords` (function, line 218)
+- `placeKey` (function, line 222)
+- `placesPayload` (function, line 223)
+- `mirrorPlaces` (function, line 234)
+- `clientOnly` (function, line 244)
+- `renderFlags` (function, line 248)
+- `boxNote` (function, line 332)
+- `previewReply` (function, line 340)
+- `preview` (function, line 351)
+- `hideWord` (function, line 369)
+- `keepTyped` (function, line 403)
+- `syncCopy` (function, line 439)
+- `wordAt` (function, line 564)
+- `snapWords` (function, line 570)
+- `selectedHideText` (function, line 586)
+- `guessType` (function, line 600)
+- `hidePop` (function, line 607)
+- `showPop` (function, line 608)
+- `offerHide` (function, line 636)
+- `gate` (function, line 672)
+- `copiedKey` (function, line 802)
+- `copiedList` (function, line 803)
+- `paintCopied` (function, line 806)
+- `markCopied` (function, line 812)
+- `answerBox` (function, line 821)
+- `picks` (function, line 822)
+- `answerValue` (function, line 827)
+- `answerStart` (function, line 828)
+- `refreshWhen` (function, line 831)
+- `dirtyRows` (function, line 840)
+- `fit` (function, line 843)
+- `overNote` (function, line 844)
+- `refreshSave` (function, line 851)
+- `saveRows` (function, line 860)
+- `markClean` (function, line 870)
+- `saveFailed` (function, line 878)
+- `discardRows` (function, line 884)

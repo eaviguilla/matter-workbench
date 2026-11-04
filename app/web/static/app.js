@@ -819,17 +819,23 @@
 
   // The answers of a form are always editable. One Save button sends every changed answer as one new version.
   function answerBox(row) { return row.querySelector("textarea[data-answer-text]"); }
-  function answerValue(row) {
-    var ta = answerBox(row);
-    if (ta) { return ta.value; }
-    var c = row.querySelector("input[type=radio]:checked");
-    return c ? c.value : "";
+  function picks(row, initial) {
+    return Array.prototype.filter.call(row.querySelectorAll("input[type=radio], input[type=checkbox]"), function (c) {
+      return initial ? c.defaultChecked : c.checked;
+    }).map(function (c) { return c.value; }).join(" | ");
   }
-  function answerStart(row) {
-    var ta = answerBox(row);
-    if (ta) { return ta.defaultValue; }
-    var c = row.querySelector("input[type=radio][checked]");
-    return c ? c.value : "";
+  function answerValue(row) { var ta = answerBox(row); return ta ? ta.value : picks(row, false); }
+  function answerStart(row) { var ta = answerBox(row); return ta ? ta.defaultValue : picks(row, true); }
+  // Clio shows a follow-up only when the answer above it is the named one. A box that is not open is shut: it is
+  // greyed, cannot be typed in, and is cleared when the form is saved. Picking the answer that opens it opens it here.
+  function refreshWhen(panel) {
+    Array.prototype.forEach.call(panel.querySelectorAll(".arow[data-parent]"), function (row) {
+      var parent = panel.querySelector('.arow[data-n="' + row.dataset.parent + '"]');
+      var open = !!parent && !parent.classList.contains("shut") && picks(parent, false).split(" | ").indexOf(row.dataset.wanted) >= 0;
+      row.classList.toggle("shut", !open);
+      Array.prototype.forEach.call(row.querySelectorAll("textarea, input, button[data-clear]"), function (c) { c.disabled = !open; });
+      if (open) { var d = row.closest("details"); if (d) { d.open = true; } }
+    });
   }
   function dirtyRows(panel) {
     return Array.prototype.filter.call(panel.querySelectorAll(".arow[data-live]"), function (row) { return answerValue(row) !== answerStart(row); });
@@ -865,7 +871,7 @@
     Array.prototype.forEach.call(panel.querySelectorAll(".arow[data-live]"), function (row) {
       var ta = answerBox(row);
       if (ta) { ta.defaultValue = ta.value; return; }
-      Array.prototype.forEach.call(row.querySelectorAll("input[type=radio]"), function (r) { if (r.checked) { r.setAttribute("checked", ""); } else { r.removeAttribute("checked"); } });
+      Array.prototype.forEach.call(row.querySelectorAll("input"), function (c) { c.defaultChecked = c.checked; });
     });
     refreshSave(panel);
   }
@@ -879,19 +885,29 @@
     dirtyRows(panel).forEach(function (row) {
       var ta = answerBox(row);
       if (ta) { ta.value = ta.defaultValue; fit(ta); overNote(row); return; }
-      Array.prototype.forEach.call(row.querySelectorAll("input[type=radio]"), function (r) { r.checked = r.hasAttribute("checked"); });
+      Array.prototype.forEach.call(row.querySelectorAll("input"), function (c) { c.checked = c.defaultChecked; });
     });
-    refreshSave(panel);
+    refreshWhen(panel); refreshSave(panel);
   }
   document.addEventListener("input", function (e) {
     var row = e.target.closest && e.target.closest(".arow[data-live]");
     if (!row) { return; }
     if (e.target.tagName === "TEXTAREA") { fit(e.target); overNote(row); }
-    refreshSave(row.closest(".fpanel"));
+    refreshWhen(row.closest(".fpanel")); refreshSave(row.closest(".fpanel"));
   });
   document.addEventListener("change", function (e) {
     var row = e.target.closest && e.target.closest(".arow[data-live]");
-    if (row) { refreshSave(row.closest(".fpanel")); }
+    if (!row) { return; }
+    var nd = row.querySelector(".nd"); if (nd) { nd.remove(); }
+    refreshWhen(row.closest(".fpanel")); refreshSave(row.closest(".fpanel"));
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("button[data-clear]");
+    if (!b) { return; }
+    var row = b.closest(".arow");
+    Array.prototype.forEach.call(row.querySelectorAll("input"), function (c) { c.checked = false; });
+    var nd = row.querySelector(".nd"); if (nd) { nd.remove(); }
+    refreshWhen(row.closest(".fpanel")); refreshSave(row.closest(".fpanel"));
   });
   document.addEventListener("submit", function (e) {
     var f = e.target.closest && e.target.closest("form[data-answerform]");
@@ -916,7 +932,7 @@
     }
   });
   Array.prototype.forEach.call(document.querySelectorAll(".arow[data-live] textarea[data-answer-text]"), fit);
-  Array.prototype.forEach.call(document.querySelectorAll(".fpanel"), refreshSave);
+  Array.prototype.forEach.call(document.querySelectorAll(".fpanel"), function (p) { refreshWhen(p); refreshSave(p); });
   // Pick up outputs saved by the optional connector while this page is open.
   var poll = document.querySelector("[data-poll]");
   if (poll) {

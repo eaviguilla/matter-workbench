@@ -1,29 +1,27 @@
-    <li class="arow state-{{ r.state }}{{ ' kept' if r.kept }}{{ ' unset' if r.vis == 'unset' }}" id="q-{{ b.slug }}-{{ r.n }}" data-n="{{ r.n }}"{{ ' data-live' if b.is_latest }}>
+    <li class="arow state-{{ r.state }}{{ ' shut' if r.shut }}" id="q-{{ b.slug }}-{{ r.n }}" data-n="{{ r.n }}"{% if r.vis != 'always' %} data-parent="{{ r.parent }}" data-wanted="{{ r.wanted }}"{% endif %}{{ ' data-live' if b.is_latest }}>
       <div class="aqwrap">
         <p class="aq"><span class="qn">{{ r.n }}.</span> {{ r.question }}</p>
         {% if r.hint %}<p class="ahint muted">{{ r.hint }}</p>{% endif %}
-        {% if r.kept %}<p class="warn ahint">Kept, but Clio shows this box only if answer {{ r.parent }} is {{ r.wanted }}, and {{ r.why }}. Copy all leaves it out.</p>{% endif %}
-        {% if r.vis == 'unset' %}<p class="ahint muted">{{ r.why|capitalize }}, so this box is kept in the list.</p>{% endif %}
+        {% if r.shut and r.text %}<p class="warn ahint">Clio does not show this box now, because {{ r.why }}. {{ r.text|truncate(60) }} is cleared on the next save.</p>{% endif %}
         {% if r.problem %}<p class="warn ahint">{{ r.problem }}</p>{% endif %}
         <p class="warn ahint" role="alert" data-over{{ ' hidden' if not r.over }}>{% if r.over %}{{ r.over }} character{{ 's' if r.over != 1 }} over what the Clio box takes. Shorten it.{% endif %}</p>
       </div>
       <div class="abox">
         {% if b.is_latest %}
         {% set ctl = 'ans-' ~ b.slug ~ '-' ~ r.n %}
-        {% if r.yesno %}
-        <div class="seg" role="radiogroup" aria-label="Answer {{ r.n }}" id="{{ ctl }}">
-          {% if r.text and r.text not in ('Yes', 'No', 'Not discussed') %}
-          <input type="radio" name="answer_{{ r.n }}" id="{{ ctl }}-w" value="{{ r.text }}" checked><label for="{{ ctl }}-w" class="asis" title="{{ r.text }}">As written: {{ r.text|truncate(40) }}</label>
-          {% endif %}
-          {% for o in ('Yes', 'No', 'Not discussed') %}
-          <input type="radio" name="answer_{{ r.n }}" id="{{ ctl }}-{{ loop.index }}" value="{{ o }}"{{ ' checked' if r.text == o }}><label for="{{ ctl }}-{{ loop.index }}">{{ o }}</label>
+        {% if r.kind in ('yesno', 'radio', 'checkbox') %}
+        {% set itype = 'checkbox' if r.kind == 'checkbox' else 'radio' %}
+        <div class="seg{{ ' stack' if r.kind != 'yesno' }}" role="{{ 'group' if r.kind == 'checkbox' else 'radiogroup' }}" aria-label="Answer {{ r.n }}" id="{{ ctl }}">
+          {% for o in r.options %}
+          <input type="{{ itype }}" name="answer_{{ r.n }}" id="{{ ctl }}-{{ loop.index }}" value="{{ o }}"{{ ' checked' if o in r.picks }}{{ ' disabled' if r.shut }}><label for="{{ ctl }}-{{ loop.index }}">{{ o }}</label>
           {% endfor %}
+          {% if r.kind != 'checkbox' %}<button type="button" class="textbtn clearpick" data-clear="1" aria-label="Clear answer {{ r.n }}"{{ ' disabled' if r.shut }}>Clear</button>{% endif %}
         </div>
+        {% if r.state == 'not_discussed' %}<p class="muted nd">Not discussed. Nothing is picked.</p>{% endif %}
         {% else %}
         <label class="sr" for="{{ ctl }}">Answer {{ r.n }}</label>
-        <textarea id="{{ ctl }}" name="answer_{{ r.n }}" data-answer-text data-limit="{{ r.limit or '' }}" rows="{{ [1 + r.text.count('\n') + r.text|length // 50, 8]|min }}" spellcheck="false" placeholder="No answer yet">{{ r.text }}</textarea>
+        <textarea id="{{ ctl }}" name="answer_{{ r.n }}" data-answer-text data-limit="{{ r.limit or '' }}" rows="{{ [1 + r.text.count('\n') + r.text|length // 50, 8]|min }}" spellcheck="false" placeholder="{{ 'MM/DD/YYYY' if r.kind == 'date' else 'No answer yet' }}"{{ ' disabled' if r.shut }}>{{ r.text }}</textarea>
         {% endif %}
-        <p class="status-msg" data-answer-msg role="status" hidden></p>
         {% else %}
         {% if r.state == 'empty' %}
         <p class="empty"><span>No answer yet.</span></p>

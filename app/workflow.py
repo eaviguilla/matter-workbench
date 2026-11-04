@@ -1209,7 +1209,7 @@ def strip_header_lines(text: str) -> str:
     return re.sub(r"(?:\n[ \t]*)+\Z", "", out)
 
 
-def form_body(check, slug: str, body: str) -> tuple[str, dict]:
+def form_body(check, slug: str, body: str, old: str = "") -> tuple[str, dict]:
     """Read a form reply: (the answers it sent as marker text, {number: answer}). A reply that cannot be saved adds the
     reason to check.bad_answers. What a good reply will do goes to check.form_notes. Nothing is stored here."""
     name = OUTPUT_NAMES[slug]
@@ -1228,6 +1228,10 @@ def form_body(check, slug: str, body: str) -> tuple[str, dict]:
     if kept and got.answers:
         note += f" No answer for {forms.numbers(kept)}. Those keep what they had, or stay empty on a first version."
     check.form_notes.append(note)
+    _, changes = forms.strict(slug, {**(forms.parse(slug, old).answers if old else {}), **got.answers})
+    for n, _kind, why in changes:
+        if n in got.answers:
+            check.form_notes.append(f"{name}: answer {n} {why}.")
     if got.loose and HEADER_RE.sub("", got.loose).strip():
         check.loose_text = True
     return sent, dict(got.answers)
@@ -1282,7 +1286,8 @@ def check_import(store: Store, client_id: str, text: str, tx_id: str | None, kee
         body = strip_header_lines(body)
         answers = {}
         if slug in FORM_SLUGS:
-            body, answers = form_body(check, slug, body)
+            before = store.list_outputs(chosen, slug) if chosen else []
+            body, answers = form_body(check, slug, body, before[-1]["content"] if before else "")
         res = rehydrate(body, registry, client["first_name"], keep_first_names, keep_last_names)
         return OutputPiece(slug, body, res.text, res.unknown, res.unused, res.possible_real,
                            rehydrated_segments(res.text, res.unknown), answers)
@@ -1574,15 +1579,17 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
         text = shown.get(n, "")
         state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
         vis, parent, why = seen[n]
-        got = forms.choice(slug, n, text) if forms.DETAILS[slug][n - 1].kind == "yesno" else None
-        rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
+        q = forms.DETAILS[slug][n - 1]
+        got = forms.choice(slug, n, text) if q.kind in ("yesno", "radio", "checkbox") else None
+        rows.append(dict(kind=q.kind, options=["Yes", "No"] if q.kind == "yesno" else list(q.options),
+                         picks=list(got[0]) if got else [],              # the options this answer names, for the boxes
+                         shut=vis in ("closed", "unset"),n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
                          yesno=forms.DETAILS[slug][n - 1].kind == "yesno", limit=forms.DETAILS[slug][n - 1].limit,
-                         pick=got[0][0].lower() if got and got[1] else "",     # yes or no, only for an exact answer
+                         pick=got[0][0].lower() if got and got[1] and q.kind == "yesno" else "",     # yes or no, only for an exact answer
                          hint=forms.hint(slug, n), over=forms.over(slug, n, text),
                          problem=forms.choice_problem(slug, n, text),
                          vis=vis, parent=parent, why=why, wanted=forms.DETAILS[slug][n - 1].when[1] if vis != "always" else "",
-                         fold=vis == "closed" and state != "answered",      # nothing to lose, so it sits in a closed row
-                         kept=vis == "closed" and state == "answered",     # an answer Clio will not show, never hidden
+                         fold=vis in ("closed", "unset"),       # Clio does not show it, so it sits in a closed row
                          segs=rehydrated_segments(text, res.unknown) if text else [],
                          unknown=sum(1 for u in set(res.unknown) if u in text)))
     return res, rows
@@ -1590,9 +1597,8 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
 
 def forms_listing(rows: list, key: str) -> str:
     """All the answers of a form as one text for Copy all: the question number and question, then the answer. An entry
-    that Clio would not show, because the answer that opens it is a different one, is left out. It stays in the stored
-    version."""
-    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key] and r["vis"] != "closed")
+    that Clio would not show, because the answer that opens it is a different one or is not given, is left out."""
+    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key] and not r["fold"])
 
 
 def form_items(rows: list) -> list:
@@ -1624,12 +1630,11 @@ def form_items(rows: list) -> list:
 
 def form_counts(rows: list) -> dict:
     """The numbers in the header of a form panel. `total` is the entries Clio would show now (every entry that is not
-    closed) and `answered` the ones of those that have any text, Not discussed included. A closed entry with no text
-    is `folded`, a closed entry that holds an answer is `kept`."""
-    live = [r for r in rows if r["vis"] != "closed"]
+    folded) and `answered` the ones of those that have any text, Not discussed included. `folded` is the entries Clio
+    does not show, because the answer that opens them is a different one or is not given."""
+    live = [r for r in rows if not r["fold"]]
     return dict(total=len(live), answered=sum(r["state"] != "empty" for r in live),
-                not_discussed=sum(r["state"] == "not_discussed" for r in live),
-                folded=sum(r["fold"] for r in rows), kept=sum(r["kept"] for r in rows))
+                not_discussed=sum(r["state"] == "not_discussed" for r in live), folded=len(rows) - len(live))
 
 
 def form_diff(slug: str, old_text: str, new_text: str) -> tuple[list, int]:

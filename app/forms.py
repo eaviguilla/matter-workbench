@@ -202,7 +202,7 @@ def choice_problem(slug: str, n: int, text: str) -> str:
     got = choice(slug, n, text)
     if got is None:
         return "Not one of the options, so Clio cannot pick it."
-    return "" if got[1] else "Has extra words. Clio takes only Yes or No here."
+    return "" if got[1] else "Has extra words. Clio takes only Yes or No, so the rest is dropped on the next save."
 
 
 def visibility(slug: str, answers: dict) -> dict:
@@ -220,7 +220,7 @@ def visibility(slug: str, answers: dict) -> dict:
             continue
         text = answers.get(parent, "")
         if not settled(text):
-            out[n] = ("unset", parent, f"answer {parent} is not settled")
+            out[n] = ("unset", parent, f"answer {parent} is not answered yet")
             continue
         got = choice(slug, parent, text)
         if got is None:
@@ -230,6 +230,36 @@ def visibility(slug: str, answers: dict) -> dict:
         else:
             out[n] = ("closed", parent, f"answer {parent} is {' | '.join(got[0])}")
     return out
+
+
+def strict(slug: str, answers: dict) -> tuple[dict, list]:
+    """The answers as Clio can take them, and what was changed to get there, as [(number, kind, text)]. A Yes or No
+    entry holds exactly Yes or No (a leading Yes or No word is kept and the rest dropped, anything else is cleared).
+    An entry that Clio does not show, because the answer that opens it is not the named one or is not given yet, holds
+    nothing. Not discussed and empty stay as they are on an entry that is shown."""
+    clean = {n: t for n, t in answers.items() if 1 <= n <= count(slug)}
+    notes = []
+    for n, q in enumerate(DETAILS[slug], 1):
+        text = clean.get(n, "")
+        if q.kind != "yesno" or not settled(text):
+            continue
+        got = choice(slug, n, text)
+        if got is None:
+            clean.pop(n)
+            notes.append((n, "option", "is not Yes or No, so it is left empty"))
+        else:
+            if not got[1]:
+                notes.append((n, "words", f"has extra words, so only {got[0][0]} is saved"))
+            clean[n] = got[0][0]
+    while True:
+        gone = [n for n, v in visibility(slug, clean).items() if v[0] in ("closed", "unset") and clean.get(n)]
+        if not gone:
+            return clean, notes
+        for n in gone:
+            if settled(clean[n]):
+                parent, wanted = DETAILS[slug][n - 1].when
+                notes.append((n, "closed", f"is not saved, because answer {parent} is not {wanted}"))
+            del clean[n]
 
 
 def schema(slug: str) -> list:
@@ -266,11 +296,11 @@ def render(slug: str, answers: dict) -> str:
 
 
 def merge(slug: str, old: str, new_answers: dict) -> str:
-    """The new answers laid over the latest version. A question the reply did not answer keeps what it had, and an
-    answer is cleared by writing something in it, such as Not discussed."""
+    """The new answers laid over the latest version, made strict (see strict). A question the reply did not answer keeps
+    what it had, and an answer is cleared by writing something in it, such as Not discussed."""
     answers = dict(parse(slug, old).answers) if old else {}
     answers.update(new_answers)
-    return render(slug, answers)
+    return render(slug, strict(slug, answers)[0])
 
 
 def missing(slug: str, answers: dict) -> list:

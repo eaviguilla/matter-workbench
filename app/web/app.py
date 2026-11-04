@@ -913,7 +913,10 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             return []
         shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
         seen = wf.forms.visibility(slug, shown if typed is None else typed)
-        return [(n, q, typed[n] if typed is not None else shown.get(n, ""),
+        def yes_no(n, text):         # a Yes or No box holds only Yes or No, so "Yes, two homes" is shown as Yes
+            got = wf.forms.choice(slug, n, text) if wf.forms.DETAILS[slug][n - 1].kind == "yesno" else None
+            return got[0][0] if got else ("" if wf.forms.DETAILS[slug][n - 1].kind == "yesno" else text)
+        return [(n, q, typed[n] if typed is not None else yes_no(n, shown.get(n, "")),
                  " ".join(x for x in (wf.forms.hint(slug, n),
                                       f"Clio does not show this box now, {seen[n][2]}." if seen[n][0] == "closed" else "") if x),
                  wf.forms.DETAILS[slug][n - 1].kind == "yesno")
@@ -937,7 +940,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             text = str(form.get("content", ""))
             typed = None
             if wf.is_form(slug):
-                typed = {n: str(form.get(f"answer_{n}", "")) for n in range(1, wf.forms.count(slug) + 1)}
+                typed = {n: " | ".join(str(x) for x in form.getlist(f"answer_{n}")) for n in range(1, wf.forms.count(slug) + 1)}
                 text = wf.forms.render(slug, typed)
             try:
                 version, masked = wf.edit_output(s, tx["client_id"], tx_id, slug, text, wf.load_settings(s).keep_first_names)

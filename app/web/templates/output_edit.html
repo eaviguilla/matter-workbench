@@ -16,8 +16,7 @@
       {% if hint %}<p class="ahint muted">{{ hint }}</p>{% endif %}
       {% if yesno %}
       <select id="edit-answer-{{ n }}" name="answer_{{ n }}">
-        {% for o in ['', 'Yes', 'No', 'Not discussed'] %}<option value="{{ o }}"{{ ' selected' if o == answer }}>{{ o or 'No answer' }}</option>{% endfor %}
-        {% if answer and answer not in ['Yes', 'No', 'Not discussed'] %}<option value="{{ answer }}" selected>{{ answer }} (not Yes or No)</option>{% endif %}
+        {% for o in ['', 'Yes', 'No'] %}<option value="{{ o }}"{{ ' selected' if o == answer }}>{{ o or 'No answer' }}</option>{% endfor %}
       </select>
       {% else %}
       <textarea id="edit-answer-{{ n }}" name="answer_{{ n }}" rows="3" spellcheck="false">{{ answer }}</textarea>

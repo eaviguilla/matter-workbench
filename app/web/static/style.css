@@ -428,7 +428,13 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .seg label:hover { border-color: var(--muted); }
 .seg input:checked + label { font-weight: 600; color: var(--text); border-color: currentColor; background: var(--panel, var(--bg)); }
 .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
-.seg label.asis { border-style: dashed; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg.stack { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.seg.stack label { border-radius: var(--radius); }
+.seg .clearpick { align-self: center; font-size: 12px; }
+.seg label::before { content: ""; }
+.arow.shut .aq, .arow.shut .abox { opacity: .55; }
+.arow.shut .seg label, .arow.shut textarea { cursor: not-allowed; }
+.arow .nd { margin: 4px 0 0; font-size: 12px; }
 .abox textarea[data-answer-text] { resize: vertical; min-height: 2.4rem; }
 .savebar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 8px 0; background: var(--panel, var(--bg)); border-bottom: 1px solid var(--line); }
 .savebar.dirty .status-msg { color: var(--text); font-weight: 600; }

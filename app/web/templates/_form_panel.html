@@ -1,7 +1,7 @@
 <article class="fpanel" id="out-{{ b.slug }}">
   <header class="fphead">
     <h3 class="colname">{{ b.name }}</h3>
-    {% if b.current %}{% set c = b.counts %}<p class="muted fpcount" data-answered="{{ c.answered }}">{{ c.answered }} of {{ c.total }} answered{% if c.not_discussed %}, {{ c.not_discussed }} not discussed{% endif %}{% if c.folded %}, {{ c.folded }} follow-up{{ 's' if c.folded != 1 }} not shown in Clio{% endif %}{% if c.kept %}, {{ c.kept }} kept answer{{ 's' if c.kept != 1 }} Clio will not show{% endif %}</p>{% endif %}
+    {% if b.current %}{% set c = b.counts %}<p class="muted fpcount" data-answered="{{ c.answered }}">{{ c.answered }} of {{ c.total }} answered{% if c.not_discussed %}, {{ c.not_discussed }} not discussed{% endif %}{% if c.folded %}, {{ c.folded }} follow-up{{ 's' if c.folded != 1 }} not shown in Clio{% endif %}</p>{% endif %}
   </header>
   {% if b.current %}
   {% set res = b.shown[0] %}

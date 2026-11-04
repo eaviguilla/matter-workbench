@@ -135,7 +135,7 @@ def test_choice_reads_yes_no_radio_and_checkbox_answers_and_flags_what_clio_cann
     assert forms.choice(EST, 12, "None! | A little! We have some documents done.")[0][0] == "None!"
     assert forms.choice(TRU, 2, "Not discussed") is None and forms.choice(TRU, 1, "Ana") is None
     assert forms.choice_problem(TRU, 2, "Mail") == "" and forms.choice_problem(TRU, 2, "Will email it").startswith("Not one of")
-    assert forms.choice_problem(EST, 1, "Yes, married") == "Has extra words. Clio takes only Yes or No here."
+    assert forms.choice_problem(EST, 1, "Yes, married") .startswith("Has extra words. Clio takes only Yes or No")
     assert forms.choice_problem(TRU, 1, "Ana Ruiz") == "" and forms.choice_problem(TRU, 2, "Not discussed") == ""
 
 
@@ -279,8 +279,8 @@ def test_the_forms_show_under_the_board_with_one_copy_box_per_answer(env):
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE]       # only what was asked for is on the page
     assert page.index('class="board"') < page.index("Intake forms") < page.index(f'id="out-{PRO}"')
-    assert "2 of 16 answered" in page and "Jump to:" in page
-    assert page.count("data-answer-text") == 12 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
+    assert "2 of 12 answered, 4 follow-ups not shown in Clio" in page and "Jump to:" in page
+    assert page.count("data-answer-text") == 10 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
     assert "data-answerform" in page and "Save changes" in page and "data-answer-edit" not in page
     assert "Copy all" in page and "Ask Claude to change this form" in page
     assert f'id="out-{EST}"' not in page and "Not requested" not in page and "Ask Claude for this" not in page
@@ -294,7 +294,7 @@ def test_the_estate_plan_form_shows_hints_and_warns_about_an_answer_over_the_cli
     do_import(web, cid, reply(cid, tx, EST, f"[ANSWER: 1]\nYes\n[ANSWER: 2]\n{long}\n[ANSWER: 12]\nNone!"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
     panel = page.split(f'id="out-{EST}"')[1]
-    assert "3 of 18 answered" in panel          # answer 1 is Yes, so entry 3 (only if No) is not counted
+    assert "3 of 13 answered, 6 follow-ups not shown in Clio" in panel     # entry 3 is closed, 9 10 14 16 19 wait for their parent
     assert "Only if answer 1 is Yes. 255 characters at most." in panel and "Only if answer 8 is Yes." in panel
     assert panel.count("5 characters over what the Clio box takes") == 1
     edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
@@ -302,21 +302,23 @@ def test_the_estate_plan_form_shows_hints_and_warns_about_an_answer_over_the_cli
     assert edit.count("<select ") == 12 and edit.count("<textarea ") == 7         # a Yes or No entry is a drop-down
 
 
-def test_a_yes_or_no_entry_shows_as_a_yes_or_no_pick_and_flags_extra_words(env):
-    """Do they have special needs and Are they minors are Yes or No boxes on Clio, so a plain Yes shows as a pick, an
-    answer with detail is flagged, and both can be set with Yes, No or Not discussed."""
+def test_a_yes_or_no_entry_holds_only_yes_or_no_and_the_import_says_what_it_dropped(env):
+    """Do they have special needs and Are they minors are Yes or No boxes on Clio. Extra words are dropped when the
+    reply is saved, and the import check says so before anything is stored."""
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, EST])
-    do_import(web, cid, reply(cid, tx, EST, "[ANSWER: 8]\nYes\n[ANSWER: 9]\nNo\n[ANSWER: 10]\nYes, Clara is 16"))
+    text = reply(cid, tx, EST, "[ANSWER: 8]\nYes\n[ANSWER: 9]\nNo\n[ANSWER: 10]\nYes, Clara is 16\n[ANSWER: 1]\nNot sure")
+    chk, _ = do_import(web, cid, text)
+    assert "answer 10 has extra words, so only Yes is saved." in chk.text
+    assert "answer 1 is not Yes or No, so it is left empty." in chk.text
+    answers = forms.parse(EST, versions(web, tx, EST)[-1]).answers
+    assert answers == {8: "Yes", 9: "No", 10: "Yes"}                # "Not sure" is not Yes or No, so answer 1 stays empty
     panel = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{EST}"')[1]
-    assert re.search(r'name="answer_8" id="[^"]+" value="Yes" checked', panel)
-    assert re.search(r'name="answer_9" id="[^"]+" value="No" checked', panel)
-    assert re.search(r'name="answer_10" id="[^"]+" value="Yes, Clara is 16" checked', panel)     # kept as written, never cleared
-    assert panel.count("Has extra words. Clio takes only Yes or No here.") == 1
-    assert "255 characters at most" not in panel.split('id="q-' + EST + '-9"')[1][:400]
+    for n, o in ((8, "Yes"), (9, "No"), (10, "Yes")):
+        assert re.search(rf'name="answer_{n}" id="[^"]+" value="{o}" checked', panel)
+    assert panel.count('type="radio"') == 2 * 12 and "255 characters at most" not in panel.split('id="q-' + EST + '-9"')[1][:400]
     edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
-    assert '<select id="edit-answer-9"' in edit and '<option value="No" selected>' in edit
-    assert "Yes, Clara is 16 (not Yes or No)" in edit
+    assert '<select id="edit-answer-9"' in edit and '<option value="No" selected>' in edit and "Not discussed" not in edit.split('id="edit-answer-9"')[1][:300]
     for slug, n in ((PRO, 9), (EST, 9), (EST, 10)):
         assert forms.DETAILS[slug][n - 1].kind == "yesno" and forms.DETAILS[slug][n - 1].limit is None
 
@@ -324,12 +326,13 @@ def test_a_yes_or_no_entry_shows_as_a_yes_or_no_pick_and_flags_extra_words(env):
 def test_the_trust_admin_form_saves_and_shows_a_follow_up_opened_by_a_radio_option(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, TRU])
-    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 1]\nAna Ruiz\n[ANSWER: 2]\nNot available\n[ANSWER: 3]\nNext month\n"
-                                            "[ANSWER: 4]\nEmail\n[ANSWER: 5]\nNot discussed"))
-    assert forms.parse(TRU, versions(web, tx, TRU)[-1]).answers == {1: "Ana Ruiz", 2: "Not available", 3: "Next month", 4: "Email", 5: "Not discussed"}
+    chk, _ = do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 1]\nAna Ruiz\n[ANSWER: 2]\nNot available\n[ANSWER: 3]\nNext month\n"
+                                                   "[ANSWER: 4]\nEmail\n[ANSWER: 5]\nIn May"))
+    assert "answer 5 is not saved, because answer 4 is not Not available." in chk.text
+    assert forms.parse(TRU, versions(web, tx, TRU)[-1]).answers == {1: "Ana Ruiz", 2: "Not available", 3: "Next month", 4: "Email"}
     panel = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{TRU}"')[1]
-    assert "4 of 8 answered, 1 follow-up not shown in Clio" in panel and panel.count("Only if answer 2 is Not available. 255 characters at most.") == 1
-    assert "One of: Mail | Drop Off | Email | Not available" in panel
+    assert "4 of 7 answered, 2 follow-ups not shown in Clio" in panel and panel.count("Only if answer 2 is Not available. 255 characters at most.") == 1
+    assert "One of: Mail | Drop Off | Email | Not available" in panel and panel.count('type="radio"') == 2 * 4 + 2     # pick-one boxes, and the disagreements Yes or No
     edit = web.get(f"/transcripts/{tx}/outputs/{TRU}/edit").text
     assert len(re.findall(r'name="answer_\d+"', edit)) == 9 and "Only if answer 4 is Not available." in edit
 
@@ -338,52 +341,64 @@ def panel_of(web, cid, tx, slug):
     return web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{slug}"')[1].split("</article>")[0]
 
 
-def test_a_follow_up_clio_would_not_show_is_folded_when_empty_and_kept_visible_when_it_holds_an_answer(env):
+def test_a_follow_up_clio_would_not_show_is_never_saved_and_sits_in_a_closed_row(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, TRU])
-    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 4]\nEmail\n[ANSWER: 5]\nNot discussed\n[ANSWER: 6]\nNo\n"
-                                            "[ANSWER: 7]\nThey argue about the house"))
+    chk, _ = do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 4]\nEmail\n[ANSWER: 5]\nNot discussed\n[ANSWER: 6]\nNo\n"
+                                                   "[ANSWER: 7]\nThey argue about the house"))
+    assert "answer 7 is not saved, because answer 6 is not Yes." in chk.text and "answer 5" not in chk.text.split("answer 7")[0]
+    assert forms.parse(TRU, versions(web, tx, TRU)[-1]).answers == {4: "Email", 6: "No"}      # the follow-ups hold nothing
     panel = panel_of(web, cid, tx, TRU)
-    assert "1 follow-up Clio does not show, because answer 4 is Email" in panel          # entry 5 sits in a closed row
-    assert "Kept, but Clio shows this box only if answer 6 is Yes, and answer 6 is No. Copy all leaves it out." in panel and "1 kept answer Clio will not show" in panel
-    assert "They argue about the house" in panel and 'id="ans-%s-7"' % TRU in panel     # an answer is never hidden
-    fold = panel.split("<details>")[1].split("</details>")[0]
-    assert 'id="q-%s-5"' % TRU in fold and 'id="q-%s-7"' % TRU not in fold                # entry 5 is inside the fold, entry 7 is not
-    assert "2 of 7 answered" in panel
-    everything = panel.split(f'id="all-{TRU}">')[1].split("</pre>")[0]
-    assert "They argue about the house" not in everything and "Email" in everything       # Copy all leaves out a closed entry
-    assert forms.parse(TRU, versions(web, tx, TRU)[-1]).answers[7] == "They argue about the house"   # stored text is whole
+    assert "1 follow-up Clio does not show, because answer 4 is Email" in panel and "1 follow-up Clio does not show, because answer 6 is No" in panel
+    assert "They argue about the house" not in panel and "kept answer" not in panel
+    folds = [d.split("</details>")[0] for d in panel.split("<details>")[1:]]
+    five = next(d for d in folds if 'id="q-%s-5"' % TRU in d)
+    assert 'id="q-%s-7"' % TRU not in five and "disabled" in five       # a shut box cannot be typed in
+    assert 'data-parent="4" data-wanted="Not available"' in panel
+    assert "2 of 6 answered" in panel
 
 
-def test_changing_a_parent_answer_brings_a_closed_follow_up_back(env):
+def test_changing_a_parent_answer_opens_its_follow_up_in_the_same_save(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, TRU])
     do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 6]\nNo\n[ANSWER: 7]\nA family quarrel"))
-    assert "1 kept answer Clio will not show" in panel_of(web, cid, tx, TRU)
-    r = web.post_json(f"/transcripts/{tx}/outputs/{TRU}/answers", {"n": 6, "text": "Yes", "version": 1})
+    assert 7 not in forms.parse(TRU, versions(web, tx, TRU)[-1]).answers
+    r = web.post_json(f"/transcripts/{tx}/outputs/{TRU}/answers", {"changes": {"6": "Yes", "7": "A family quarrel"}, "version": 1})
     assert r.status_code == 200
     panel = panel_of(web, cid, tx, TRU)
-    assert "kept answer" not in panel and "2 of 9 answered" in panel and "A family quarrel" in panel
+    assert "2 of 7 answered" in panel and "A family quarrel" in panel and "follow-up Clio does not show, because answer 6" not in panel
+    r = web.post_json(f"/transcripts/{tx}/outputs/{TRU}/answers", {"changes": {"6": "No"}, "version": 2})
+    assert r.status_code == 200 and 7 not in forms.parse(TRU, versions(web, tx, TRU)[-1]).answers   # closing the parent clears it
+    assert len(versions(web, tx, TRU)) == 3 and forms.parse(TRU, versions(web, tx, TRU)[1]).answers[7] == "A family quarrel"   # the old version keeps it
 
 
-def test_an_answer_that_is_not_an_option_is_warned_and_an_unsettled_parent_keeps_its_follow_up_listed(env):
+def test_an_answer_that_is_not_an_option_is_warned_and_an_unanswered_parent_shuts_its_follow_up(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, TRU])
     do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 2]\nWill email it\n[ANSWER: 6]\nNot discussed"))
     panel = panel_of(web, cid, tx, TRU)
     assert "Not one of the options, so Clio cannot pick it." in panel
-    assert "Answer 2 is not one of the options, so this box is kept in the list." in panel
-    assert "Answer 6 is not settled, so this box is kept in the list." in panel and "not shown in Clio" not in panel
+    assert "because answer 2 is not one of the options" in panel and "because answer 6 is not answered yet" in panel
+    assert 'name="answer_6" id="ans-%s-6-1" value="Yes" checked' % TRU not in panel and "Not discussed. Nothing is picked." in panel
 
 
-def test_the_edit_page_keeps_every_box_so_saving_it_never_clears_a_closed_answer(env):
+def test_the_edit_page_posts_a_checkbox_question_as_several_values(env):
+    web, cid, tx, tmp = env
+    copy(web, tx, [NOTE, PRO])
+    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna"))
+    page = panel_of(web, cid, tx, PRO)
+    assert page.count('type="checkbox" name="answer_10"') == 4 and page.count('type="checkbox" name="answer_2"') == 4
+    fields = {f"answer_{n}": "" for n in range(1, 17)}
+    fields["answer_10"] = ["Spouse", "Children"]
+    assert web.post(f"/transcripts/{tx}/outputs/{PRO}/edit?v=1", {**fields, "answer_1": "Ana"}, follow_redirects=False).status_code == 303
+    assert forms.parse(PRO, versions(web, tx, PRO)[-1]).answers[10] == "Spouse | Children"
+
+
+def test_the_compare_view_tags_an_entry_that_the_newer_version_no_longer_shows(env):
     web, cid, tx, tmp = env
     copy(web, tx, [NOTE, TRU])
-    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 6]\nNo\n[ANSWER: 7]\nA family quarrel"))
-    edit = web.get(f"/transcripts/{tx}/outputs/{TRU}/edit").text
-    assert len(re.findall(r'name="answer_\d+"', edit)) == 9 and "A family quarrel" in edit
-    assert "Clio does not show this box now, answer 6 is No." in edit
-    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 7]\nA different quarrel"))
+    do_import(web, cid, reply(cid, tx, TRU, "[ANSWER: 6]\nYes\n[ANSWER: 7]\nA family quarrel"))
+    assert web.post_json(f"/transcripts/{tx}/outputs/{TRU}/answers", {"changes": {"6": "No"}, "version": 1}).status_code == 200
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs&{TRU}=2&cmp-{TRU}=1").text
     assert "7. Please explain. (disagreements) (not shown in Clio)" in page.replace('<span class="qn">7.</span> ', "7. ")
 
@@ -477,7 +492,7 @@ def test_the_no_script_edit_page_has_one_box_per_question_and_clearing_a_box_cle
 
 def test_scrub_this_keeps_the_markers_and_compare_lists_changed_questions(env):
     web, cid, tx, tmp = env
-    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nMaria Santos\n[ANSWER: 8]\nHer sister Lupita lives nearby"))
+    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nMaria Santos\n[ANSWER: 7]\nYes\n[ANSWER: 8]\nHer sister Lupita lives nearby"))
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 8]\nHer sister Lupita and brother live nearby"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs&{PRO}=2&cmp-{PRO}=prev").text
     assert "1 question changed, 15 unchanged" in page
@@ -561,10 +576,11 @@ def test_the_answers_endpoint_saves_several_changes_as_one_version_and_returns_t
     r = web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {"1": "Bea", "7": "No"}, "version": 1})
     assert r.status_code == 200 and r.json()["version"] == 2
     assert "1. What was the name of your loved one?\nBea" in r.json()["all"] and "7. Did your loved one own real estate when they died?\nNo" in r.json()["all"]
-    assert "1 Main St" not in r.json()["all"]                         # answer 8 is closed now, so Copy all leaves it out
+    assert "1 Main St" not in r.json()["all"]                         # answer 8 is closed now, so it is cleared
     with store_of(web) as s:
         got = s.list_outputs(tx, PRO)
-        assert len(got) == 2 and forms.parse(PRO, got[-1]["content"]).answers[8] == "1 Main St"     # but it is kept
+        assert len(got) == 2 and 8 not in forms.parse(PRO, got[-1]["content"]).answers
+        assert forms.parse(PRO, got[0]["content"]).answers[8] == "1 Main St"      # the older version keeps it
     stale = web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {"1": "Cy"}, "version": 1})
     assert stale.status_code == 409 and stale.json()["stale"] is True
     assert web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {}, "version": 2}).status_code == 400
@@ -581,3 +597,13 @@ def test_the_form_saves_without_a_script_through_its_save_button(env):
     assert r.status_code == 303
     with store_of(web) as s:
         assert forms.parse(PRO, s.list_outputs(tx, PRO)[-1]["content"]).answers == {1: "Ana Lee", 7: "No"}
+
+
+def test_strict_keeps_yes_or_no_exact_and_empties_what_clio_would_not_show():
+    got, notes = forms.strict(EST, {1: "Yes.", 2: "Ana", 3: "Widowed", 8: "yes, two", 9: "Maybe", 10: "No", 13: "No", 14: "Friday"})
+    assert got == {1: "Yes", 2: "Ana", 8: "Yes", 10: "No", 13: "No"}
+    assert [(n, k) for n, k, _ in notes] == [(8, "words"), (9, "option"), (3, "closed"), (14, "closed")] or \
+           sorted((n, k) for n, k, _ in notes) == [(3, "closed"), (8, "words"), (9, "option"), (14, "closed")]
+    assert forms.strict(EST, {1: "Yes", 2: "Not discussed", 3: "Not discussed"})[0] == {1: "Yes", 2: "Not discussed"}   # silent for Not discussed
+    assert forms.strict(TRU, {2: "Will mail", 3: "Soon"})[0] == {2: "Will mail"}          # a pick-one that is no option opens nothing
+    assert forms.merge(EST, forms.render(EST, {1: "Yes", 2: "Ana"}), {1: "No"}) == forms.render(EST, {1: "No"})
