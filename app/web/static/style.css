@@ -419,11 +419,20 @@ section.request > h2 { margin: 0 0 8px; font-size: 15px; font-weight: 620; }
 .abox textarea { width: 100%; box-sizing: border-box; font: 13px/1.55 var(--mono); }
 .aact { flex-wrap: nowrap; white-space: nowrap; align-items: center; margin: 0; }
 .arow.state-not_discussed pre.answer { color: var(--muted); }
-.abox pre.answer.pick { display: inline-block; min-width: 3.5rem; text-align: center; font: 600 13px/1.4 var(--sans, inherit); border-radius: 999px; padding: 4px 14px; }
-.abox pre.answer.pick-yes { border-color: var(--ok, #2f7d4f); color: var(--ok, #2f7d4f); }
-.abox pre.answer.pick-no { color: var(--muted); }
-.aedit .quick { margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 6px; }
-.aedit .quick button { padding: 3px 12px; font-size: 13px; }
+.abox pre.answer.ynpill { display: inline-block; min-width: 3.5rem; text-align: center; font: 600 13px/1.4 inherit; border-radius: 999px; padding: 4px 14px; }
+.abox pre.answer.ynpill-yes { border-color: var(--text); color: var(--text); }
+.abox pre.answer.ynpill-no { color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg label { border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-size: 13px; line-height: 1.4; cursor: pointer; background: var(--bg); color: var(--muted); }
+.seg label:hover { border-color: var(--muted); }
+.seg input:checked + label { font-weight: 600; color: var(--text); border-color: currentColor; background: var(--panel, var(--bg)); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg label.asis { border-style: dashed; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abox textarea[data-answer-text] { resize: vertical; min-height: 2.4rem; }
+.savebar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 8px 0; background: var(--panel, var(--bg)); border-bottom: 1px solid var(--line); }
+.savebar.dirty .status-msg { color: var(--text); font-weight: 600; }
+.savebar button[disabled] { opacity: .5; }
 .arow.kept .aq { color: var(--muted); }
 .foldgroup { border-top: 1px solid var(--line); padding: 8px 0; }
 .foldgroup > details > summary { cursor: pointer; font-size: 13px; color: var(--muted); }

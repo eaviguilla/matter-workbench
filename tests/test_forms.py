@@ -280,7 +280,8 @@ def test_the_forms_show_under_the_board_with_one_copy_box_per_answer(env):
     assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE]       # only what was asked for is on the page
     assert page.index('class="board"') < page.index("Intake forms") < page.index(f'id="out-{PRO}"')
     assert "2 of 16 answered" in page and "Jump to:" in page
-    assert page.count('class="answer"') == 2 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
+    assert page.count("data-answer-text") == 12 and f'id="ans-{PRO}-1"' in page and f'id="ans-{PRO}-5"' in page
+    assert "data-answerform" in page and "Save changes" in page and "data-answer-edit" not in page
     assert "Copy all" in page and "Ask Claude to change this form" in page
     assert f'id="out-{EST}"' not in page and "Not requested" not in page and "Ask Claude for this" not in page
     assert f"/transcripts/{tx}/outputs/{PRO}/edit" in page and "<script>" not in page.replace("<script src", "")
@@ -308,9 +309,11 @@ def test_a_yes_or_no_entry_shows_as_a_yes_or_no_pick_and_flags_extra_words(env):
     copy(web, tx, [NOTE, EST])
     do_import(web, cid, reply(cid, tx, EST, "[ANSWER: 8]\nYes\n[ANSWER: 9]\nNo\n[ANSWER: 10]\nYes, Clara is 16"))
     panel = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text.split(f'id="out-{EST}"')[1]
-    assert panel.count('class="answer pick pick-yes"') == 1 and panel.count('class="answer pick pick-no"') == 1
+    assert re.search(r'name="answer_8" id="[^"]+" value="Yes" checked', panel)
+    assert re.search(r'name="answer_9" id="[^"]+" value="No" checked', panel)
+    assert re.search(r'name="answer_10" id="[^"]+" value="Yes, Clara is 16" checked', panel)     # kept as written, never cleared
     assert panel.count("Has extra words. Clio takes only Yes or No here.") == 1
-    assert panel.count('data-fill="No"') == 12 and "255 characters at most" not in panel.split('id="q-' + EST + '-9"')[1][:400]
+    assert "255 characters at most" not in panel.split('id="q-' + EST + '-9"')[1][:400]
     edit = web.get(f"/transcripts/{tx}/outputs/{EST}/edit").text
     assert '<select id="edit-answer-9"' in edit and '<option value="No" selected>' in edit
     assert "Yes, Clara is 16 (not Yes or No)" in edit
@@ -512,9 +515,8 @@ def test_a_name_hidden_after_a_form_was_saved_never_leaves_as_raw_text(env):
     assert web.post_json(f"/transcripts/{tx2}/hide-word", {"text": "Hartley Quimby", "client": True}).status_code == 200
     page = web.get(f"/clients/{cid}?tx={tx2}&view=outputs").text
     raw_all = re.search(r'id="allraw-[^"]+">(.*?)</pre>', page, re.S).group(1)
-    starts = re.findall(r'data-start="([^"]*)"', page) + re.findall(r'data-answer-text[^>]*>([^<]*)</textarea>', page)
-    assert "Quimby" not in raw_all and not any("Quimby" in x for x in starts)
-    assert "Quimby" in page.split(f'id="ans-{PRO}-8"')[1].split("</pre>")[0] or "Hartley" in page    # the shown text has the real name
+    assert "Quimby" not in raw_all
+    assert "Quimby" in page.split(f'id="ans-{PRO}-8"')[1].split("</textarea>")[0] or "Hartley" in page    # the shown text has the real name
 
 
 def test_scrub_this_and_unscrub_add_form_versions_that_keep_all_markers(env):
@@ -540,14 +542,42 @@ def test_an_older_form_version_has_no_inline_edit_and_the_select_keeps_its_place
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna"))
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nBea"))
     old = web.get(f"/clients/{cid}?tx={tx}&view=outputs&{PRO}=1").text.split(f'id="out-{PRO}"')[1]
-    assert "data-answer-edit" not in old and "Older version" in old
+    assert "data-live" not in old and "data-answerform" not in old and "Older version" in old
     assert "closest(\"section.col, .fpanel\")" in web.get("/static/app.js").text
 
 
-def test_the_save_and_cancel_buttons_carry_a_value_the_script_can_test(env):
-    """app.js picks a branch with `if (b.dataset.answerSave)`, and an empty attribute value is falsy, so a bare attribute never fires."""
+def test_the_save_and_discard_buttons_carry_a_value_the_script_can_test(env):
+    """app.js picks a branch with `if (b.dataset.discard)`, and an empty attribute value is falsy, so a bare attribute never fires."""
     web, cid, tx, tmp = env
     do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna"))
     page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
-    assert 'data-answer-save="1"' in page and 'data-answer-cancel="1"' in page
-    assert "data-answer-save>" not in page and "data-answer-cancel>" not in page
+    assert 'data-save-all="1"' in page and 'data-discard="1"' in page and 'data-save-first="1"' in page
+    assert "data-save-all>" not in page and "data-discard>" not in page
+
+
+def test_the_answers_endpoint_saves_several_changes_as_one_version_and_returns_the_copy_all_text(env):
+    web, cid, tx, tmp = env
+    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna\n[ANSWER: 7]\nYes\n[ANSWER: 8]\n1 Main St"))
+    r = web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {"1": "Bea", "7": "No"}, "version": 1})
+    assert r.status_code == 200 and r.json()["version"] == 2
+    assert "1. What was the name of your loved one?\nBea" in r.json()["all"] and "7. Did your loved one own real estate when they died?\nNo" in r.json()["all"]
+    assert "1 Main St" not in r.json()["all"]                         # answer 8 is closed now, so Copy all leaves it out
+    with store_of(web) as s:
+        got = s.list_outputs(tx, PRO)
+        assert len(got) == 2 and forms.parse(PRO, got[-1]["content"]).answers[8] == "1 Main St"     # but it is kept
+    stale = web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {"1": "Cy"}, "version": 1})
+    assert stale.status_code == 409 and stale.json()["stale"] is True
+    assert web.post_json(f"/transcripts/{tx}/outputs/{PRO}/answers", {"changes": {}, "version": 2}).status_code == 400
+
+
+def test_the_form_saves_without_a_script_through_its_save_button(env):
+    web, cid, tx, tmp = env
+    do_import(web, cid, reply(cid, tx, PRO, "[ANSWER: 1]\nAna\n[ANSWER: 7]\nYes"))
+    page = web.get(f"/clients/{cid}?tx={tx}&view=outputs").text
+    assert re.search(rf'<form method="post" class="answerform" action="/transcripts/{tx}/outputs/{PRO}/edit\?v=1"', page)
+    fields = {f"answer_{n}": "" for n in range(1, 17)}
+    fields.update(answer_1="Ana Lee", answer_7="No")
+    r = web.post(f"/transcripts/{tx}/outputs/{PRO}/edit?v=1", fields, follow_redirects=False)
+    assert r.status_code == 303
+    with store_of(web) as s:
+        assert forms.parse(PRO, s.list_outputs(tx, PRO)[-1]["content"]).answers == {1: "Ana Lee", 7: "No"}

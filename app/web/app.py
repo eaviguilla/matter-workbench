@@ -951,24 +951,34 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
 
     @router.post("/transcripts/{tx_id}/outputs/{slug}/answers")
     async def save_answer(request: Request, tx_id: str, slug: str):
-        """Save one edited answer of a form as a new version (JSON: number, text, version). version is the one the page
-        showed. If a newer one exists nothing is saved and the answer is 409 stale. Every other answer is copied as
-        stored."""
+        """Save the edited answers of a form as one new version (JSON: changes {number: text}, version, or the older
+        shape n and text for one answer). version is the one the page showed. If a newer one exists nothing is saved
+        and the answer is 409 stale. Every other answer is copied as stored. The reply holds the Copy all texts of
+        the version just saved, so a copy right after a save needs no second request."""
         data = await json_object(request)
-        n, base = data.get("n"), data.get("version")
-        if not wf.is_form(slug) or not isinstance(n, int) or isinstance(n, bool) or not isinstance(base, int) or isinstance(base, bool):
+        base, changes = data.get("version"), data.get("changes")
+        if changes is None and isinstance(data.get("n"), int) and not isinstance(data.get("n"), bool):
+            changes = {data["n"]: data.get("text", "")}
+        try:
+            changes = {int(n): str(t) for n, t in changes.items()} if isinstance(changes, dict) and changes else None
+        except ValueError:
+            changes = None
+        if not wf.is_form(slug) or not changes or not isinstance(base, int) or isinstance(base, bool):
             return JSONResponse({"error": "The request is not a form answer."}, status_code=400)
         with open_store() as s:
             tx = tx_or_404(s, tx_id)
             try:
-                version, masked = wf.edit_answers(s, tx["client_id"], tx_id, slug, {n: str(data.get("text", ""))},
+                version, masked = wf.edit_answers(s, tx["client_id"], tx_id, slug, changes,
                                                   wf.load_settings(s).keep_first_names, base)
             except wf.StaleVersion as e:
                 return JSONResponse({"error": str(e), "stale": True}, status_code=409)
             except wf.ImportProblem as e:
                 return JSONResponse({"error": str(e)}, status_code=400)
-        log.info("answer edited %s %s q%d v%d", tx_id, slug, n, version)
-        return JSONResponse({"ok": True, "version": version, "masked": masked})
+            saved = s.list_outputs(tx_id, slug)[-1]
+            rows = wf.view_form(s, tx["client_id"], slug, saved["content"])[1]
+        log.info("answers edited %s %s q%s v%d", tx_id, slug, ",".join(map(str, sorted(changes))), version)
+        return JSONResponse({"ok": True, "version": version, "masked": masked,
+                             "all": wf.forms_listing(rows, "text"), "allraw": wf.forms_listing(rows, "raw")})
 
     @router.post("/transcripts/{tx_id}/hide", response_class=HTMLResponse)
     async def hide_text(request: Request, tx_id: str):

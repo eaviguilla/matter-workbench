@@ -1576,7 +1576,7 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
         vis, parent, why = seen[n]
         got = forms.choice(slug, n, text) if forms.DETAILS[slug][n - 1].kind == "yesno" else None
         rows.append(dict(n=n, question=question, text=text, raw=raw.get(n, ""), state=state,
-                         yesno=forms.DETAILS[slug][n - 1].kind == "yesno",
+                         yesno=forms.DETAILS[slug][n - 1].kind == "yesno", limit=forms.DETAILS[slug][n - 1].limit,
                          pick=got[0][0].lower() if got and got[1] else "",     # yes or no, only for an exact answer
                          hint=forms.hint(slug, n), over=forms.over(slug, n, text),
                          problem=forms.choice_problem(slug, n, text),

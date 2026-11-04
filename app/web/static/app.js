@@ -67,9 +67,9 @@
     var typed = Array.prototype.some.call(document.querySelectorAll("textarea[data-keep]"), function (t) {
       return t.value.trim() !== "" && t.value !== t.defaultValue;
     });
-    // An answer being edited counts only when it differs from the text it started with.
-    return typed || Array.prototype.some.call(document.querySelectorAll("textarea[data-answer-text]"), function (t) {
-      return !t.closest(".aedit").hidden && t.value !== t.dataset.start;
+    // An answer counts only when it differs from the text it started with.
+    return typed || Array.prototype.some.call(document.querySelectorAll(".arow[data-live]"), function (row) {
+      return answerValue(row) !== answerStart(row);
     });
   }
   // Typed boxes (the pasted reply, directions) are kept in this tab as they are typed, so a reload or a click on a link
@@ -157,12 +157,26 @@
       });
     } else if (b.dataset.copyText) {
       if (Number(b.dataset.unknown || 0) > 0 && !window.confirm("This output has unknown placeholders. Copy anyway?")) { return; }
-      var src = document.querySelector(b.dataset.copyText);
-      copy(src.textContent).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
-    } else if (b.dataset.answerSave) {
-      saveAnswer(b.closest(".arow"));
-    } else if (b.dataset.answerCancel) {
-      closeAnswer(b.closest(".arow"), true);
+      var src = document.querySelector(b.dataset.copyText), live = b.closest(".arow[data-live]");
+      var panel = b.closest(".fpanel");
+      if (b.dataset.saveFirst && panel && dirtyRows(panel).length) {
+        // What is typed is saved first, so the copy holds what the page now shows.
+        var raw = b.dataset.copyText.indexOf("allraw") >= 0;
+        var wasSaved = false, reload = function () {
+          window.setTimeout(function () { window.location.assign(window.location.pathname + window.location.search); }, 900);
+        };
+        var saved = saveRows(panel).then(function (j) { wasSaved = true; return raw ? j.allraw : j.all; });
+        copyLater(saved).then(function () {
+          markClean(panel); say(b, "Saved and copied."); reload();
+        }).catch(function (err) {
+          if (wasSaved) { markClean(panel); say(b, "Saved, but could not copy. Press Copy all again."); reload(); return; }
+          saveFailed(panel, err); say(b, "Not saved, so nothing was copied.");
+        });
+        return;
+      }
+      copy(live ? answerValue(live) : src.textContent).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
+    } else if (b.dataset.discard) {
+      discardRows(b.closest(".fpanel"));
     } else if (b.dataset.hideWord) {
       hideWord(b);
     } else if (b.dataset.all) {
@@ -803,51 +817,106 @@
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-answers]"), paintCopied);
 
-  // Editing one answer in place. Without a script the Edit link opens the edit page at that question.
-  function openAnswer(row) {
-    row.querySelector(".abox > .answer, .abox > .empty") && (row.querySelector(".abox > .answer, .abox > .empty").hidden = true);
-    var ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea");
-    ed.hidden = false; ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
+  // The answers of a form are always editable. One Save button sends every changed answer as one new version.
+  function answerBox(row) { return row.querySelector("textarea[data-answer-text]"); }
+  function answerValue(row) {
+    var ta = answerBox(row);
+    if (ta) { return ta.value; }
+    var c = row.querySelector("input[type=radio]:checked");
+    return c ? c.value : "";
   }
-  function closeAnswer(row, discard) {
-    var ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea"), msg = ed.querySelector("[data-answer-msg]");
-    if (discard) { ta.value = ta.dataset.start; }
-    ed.hidden = true; msg.hidden = true;
-    var shown = row.querySelector(".abox > .answer, .abox > .empty");
-    if (shown) { shown.hidden = false; }
+  function answerStart(row) {
+    var ta = answerBox(row);
+    if (ta) { return ta.defaultValue; }
+    var c = row.querySelector("input[type=radio][checked]");
+    return c ? c.value : "";
   }
-  function saveAnswer(row) {
-    var list = row.closest("[data-answers]"), ed = row.querySelector(".aedit"), ta = ed.querySelector("textarea");
-    var msg = ed.querySelector("[data-answer-msg]");
-    if (ta.value === ta.dataset.start) { closeAnswer(row, true); return; }
-    post(list.dataset.answersUrl, { n: Number(row.dataset.n), text: ta.value, version: Number(list.dataset.version) }).then(function (r) {
+  function dirtyRows(panel) {
+    return Array.prototype.filter.call(panel.querySelectorAll(".arow[data-live]"), function (row) { return answerValue(row) !== answerStart(row); });
+  }
+  function fit(t) { t.style.height = "auto"; t.style.height = (t.scrollHeight + 2) + "px"; }
+  function overNote(row) {
+    var ta = answerBox(row), note = row.querySelector("[data-over]");
+    if (!ta || !note || !ta.dataset.limit) { return; }
+    var over = Math.max(0, ta.value.length - Number(ta.dataset.limit));
+    note.hidden = over === 0;
+    note.textContent = over ? over + " character" + (over === 1 ? "" : "s") + " over what the Clio box takes. Shorten it." : "";
+  }
+  function refreshSave(panel) {
+    var bar = panel.querySelector(".savebar");
+    if (!bar) { return; }
+    var n = dirtyRows(panel).length, msg = bar.querySelector("[data-save-status]");
+    bar.querySelector("[data-save-all]").disabled = n === 0;
+    bar.querySelector("[data-discard]").hidden = n === 0;
+    bar.classList.toggle("dirty", n > 0);
+    msg.textContent = n ? n + " answer" + (n === 1 ? "" : "s") + " changed, not saved yet" : "Type in any box, then save once.";
+  }
+  function saveRows(panel) {
+    var list = panel.querySelector("[data-answers]"), changes = {};
+    dirtyRows(panel).forEach(function (row) { changes[row.dataset.n] = answerValue(row); });
+    return post(list.dataset.answersUrl, { changes: changes, version: Number(list.dataset.version) }).then(function (r) {
       return r.json().then(function (j) {
-        if (r.ok) { ta.dataset.start = ta.value; window.location.assign(window.location.pathname + window.location.search); return; }
-        msg.textContent = j.error || "Not saved."; msg.hidden = false;
-        if (j.stale) { var note = list.closest(".fpanel").querySelector("[data-answer-stale]"); if (note) { note.hidden = false; } }
+        if (!r.ok) { var e = new Error(j.error || "Not saved."); e.stale = !!j.stale; throw e; }
+        return j;
       });
-    }).catch(function () { msg.textContent = "Not saved."; msg.hidden = false; });
+    });
   }
-  document.addEventListener("click", function (e) {
-    var a = e.target.closest("a[data-answer-edit]");
-    if (!a || !a.closest("[data-answers]")) { return; }
-    e.preventDefault();
-    openAnswer(a.closest(".arow"));
+  function markClean(panel) {          // what was just saved is the new starting point, so leaving the page is not blocked
+    Array.prototype.forEach.call(panel.querySelectorAll(".arow[data-live]"), function (row) {
+      var ta = answerBox(row);
+      if (ta) { ta.defaultValue = ta.value; return; }
+      Array.prototype.forEach.call(row.querySelectorAll("input[type=radio]"), function (r) { if (r.checked) { r.setAttribute("checked", ""); } else { r.removeAttribute("checked"); } });
+    });
+    refreshSave(panel);
+  }
+  function saveFailed(panel, err) {
+    var msg = panel.querySelector("[data-save-status]");
+    msg.textContent = err.message || "Not saved.";
+    var note = panel.querySelector("[data-answer-stale]");
+    if (err.stale && note) { note.hidden = false; }
+  }
+  function discardRows(panel) {
+    dirtyRows(panel).forEach(function (row) {
+      var ta = answerBox(row);
+      if (ta) { ta.value = ta.defaultValue; fit(ta); overNote(row); return; }
+      Array.prototype.forEach.call(row.querySelectorAll("input[type=radio]"), function (r) { r.checked = r.hasAttribute("checked"); });
+    });
+    refreshSave(panel);
+  }
+  document.addEventListener("input", function (e) {
+    var row = e.target.closest && e.target.closest(".arow[data-live]");
+    if (!row) { return; }
+    if (e.target.tagName === "TEXTAREA") { fit(e.target); overNote(row); }
+    refreshSave(row.closest(".fpanel"));
   });
-  document.addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-fill]");
-    if (!b) { return; }
-    var ta = b.closest(".aedit").querySelector("textarea");
-    ta.value = b.dataset.fill; ta.focus();
+  document.addEventListener("change", function (e) {
+    var row = e.target.closest && e.target.closest(".arow[data-live]");
+    if (row) { refreshSave(row.closest(".fpanel")); }
+  });
+  document.addEventListener("submit", function (e) {
+    var f = e.target.closest && e.target.closest("form[data-answerform]");
+    if (!f) { return; }
+    e.preventDefault();
+    var panel = f.closest(".fpanel");
+    if (!dirtyRows(panel).length) { return; }
+    saveRows(panel).then(function () {
+      markClean(panel);
+      window.location.assign(window.location.pathname + window.location.search);
+    }).catch(function (err) { saveFailed(panel, err); });
   });
   document.addEventListener("keydown", function (e) {
     var ta = e.target.closest && e.target.closest("textarea[data-answer-text]");
     if (!ta) { return; }
-    var row = ta.closest(".arow");
-    if (e.key === "Escape") { e.preventDefault(); closeAnswer(row, true); }
-    else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveAnswer(row); }
+    var panel = ta.closest(".fpanel");
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      if (dirtyRows(panel).length) { panel.querySelector("[data-save-all]").click(); }
+    } else if (e.key === "Escape") {
+      e.preventDefault(); ta.value = ta.defaultValue; fit(ta); overNote(ta.closest(".arow")); refreshSave(panel);
+    }
   });
+  Array.prototype.forEach.call(document.querySelectorAll(".arow[data-live] textarea[data-answer-text]"), fit);
+  Array.prototype.forEach.call(document.querySelectorAll(".fpanel"), refreshSave);
   // Pick up outputs saved by the optional connector while this page is open.
   var poll = document.querySelector("[data-poll]");
   if (poll) {
