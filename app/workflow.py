@@ -68,7 +68,7 @@ Rules
 - Use only what the transcript says. Never invent, assume or fill in a fact, name, date, amount or answer that was not said. If it was not said, leave it out, or write Not discussed in a form answer.
 - Start every output with the header line of the transcript it is based on.
 {saving}
-- The two intake forms ({forms}) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
+- The intake forms ({forms}) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
 
 Changes
 - A message that starts with "Change request" revises one output for the transcript named in its header. Return the full revised output, not only the changes, and save it the same way as above.
@@ -90,7 +90,7 @@ def project_instructions(connector_on: bool) -> str:
     connector is switched on. It holds the format the app needs to read a reply. How each output is written is set
     in the Project itself, never here."""
     return PROJECT_INSTRUCTIONS.format(saving=PROJECT_SAVE_TOOL if connector_on else PROJECT_SAVE_REPLY,
-                                       forms=" and ".join(f"{slug}, {name}" for slug, name in FORM_OUTPUTS))
+                                       forms="; ".join(f"{slug}, {name}" for slug, name in FORM_OUTPUTS))
 
 
 class ReviewIncomplete(Exception):

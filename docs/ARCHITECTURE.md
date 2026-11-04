@@ -6,7 +6,7 @@ Last updated 4 Nov 2026. 721 tests pass (`.venv/bin/python -m pytest -q`, about 
 
 ## 1. What this is and who uses it
 
-A local web app for one paralegal at a law office. She pastes a client call transcript. The app removes names, emails and street addresses and swaps each for a code such as `[PERSON_1]`. She copies the scrubbed text into a claude.ai Project chat. Claude writes up to five outputs (Clio Note, Overview for Jordan's calendar notes, Clio form note, and the Probate and Estate plan intake forms) using the codes. She pastes Claude's reply back, and the app puts the real values back so she can copy the outputs into Clio.
+A local web app for one paralegal at a law office. She pastes a client call transcript. The app removes names, emails and street addresses and swaps each for a code such as `[PERSON_1]`. She copies the scrubbed text into a claude.ai Project chat. Claude writes up to six outputs (Clio Note, Overview for Jordan's calendar notes, Clio form note, and the Probate, Estate plan and General intake forms) using the codes. She pastes Claude's reply back, and the app puts the real values back so she can copy the outputs into Clio.
 
 The one promise the app makes is that a real name, email or address never reaches Claude. "A miss is a leak" is the guiding rule. Over-scrubbing only costs readability.
 
@@ -45,8 +45,8 @@ Never run `scripts/seed_test_cases.py` against the real data folder unless the o
 | `app/store.py` | File storage, locking, transactions, delete, audit log. |
 | `app/scrub/` | The scrubber. `parse.py`, `regex_rules.py`, `ner.py` (GLiNER via ONNX), `pipeline.py`, `registry.py`, `spans.py`, `evaluate.py`. |
 | `app/rehydrate.py` | Turns codes in text back into real values, and warns about unknown codes and plain real values. |
-| `app/outputs.py` | The five outputs, defined once (slug, name, text or form, `[OUTPUT: slug]` parser). No instruction text. |
-| `app/forms.py` | The two intake forms: question lists, `[ANSWER: n]` parser, canonical `render`, `merge` (a reply patches the latest version), `rows`. |
+| `app/outputs.py` | The six outputs, defined once (slug, name, text or form, `[OUTPUT: slug]` parser). No instruction text. |
+| `app/forms.py` | The three intake forms: question lists, `[ANSWER: n]` parser, canonical `render`, `merge` (a reply patches the latest version), `rows`. |
 | `app/ids.py` | Client and transcript ID formats, the header line `[CLIENT: id | TX: id]`. |
 | `app/paths.py` | Data folder choice and safety checks. |
 | `app/check.py` | `python -m app.check [--fix]`, a report of stored files with no stored values in it. |
@@ -212,7 +212,7 @@ Open decisions and known gaps, roughly by importance.
 - A name added to Hidden names after a call was saved is hidden in every later copy and change request, and shown highlighted on the Transcript tab.
 - Typed reply and directions boxes survive a reload, and unsent text asks before the page is left.
 - The app writes no rules for how outputs are written. Copy for Claude and change requests name only the outputs. The Output instructions section, its routes and the starter text are gone, and an old `instructions.<slug>` setting is ignored. The rules for format live only in Settings under Instructions to save in Claude.
-- Two new outputs, `probate-intake-form` (shown as "Probate Intake Form", 16 entries: 12 questions plus 4 follow-ups, with kinds text, textarea, date, yesno and checkbox) and `estate-plan-intake-form` (shown as "Estate Plan - General Intake form", 19 entries: the 12 questions of the Clio page plus the 7 follow-ups Clio shows after a Yes or No, each its own entry with `Question.when`, a kind of text, yesno or checkbox, and a 255 character limit on text boxes; `forms.hint` and `forms.over` feed the hint and over-limit warning in the panel), each answer in its own copy box under the 3-column board. Decisions: inline edit from the first release, independent checkboxes with none pre-ticked, a reply that skips a question keeps the old answer, Not discussed replaces one, a duplicate or unknown number blocks the whole save, per-question change requests were cut (Ask Claude to change this works on the whole form).
+- Two new outputs, `probate-intake-form` (shown as "Probate Intake Form", 16 entries: 12 questions plus 4 follow-ups, with kinds text, textarea, date, yesno and checkbox) and `estate-plan-intake-form` (shown as "Estate Plan - General Intake form", 19 entries: the 12 questions of the Clio page plus the 7 follow-ups Clio shows after a Yes or No, each its own entry with `Question.when`, a kind of text, yesno or checkbox, and a 255 character limit on text boxes; `forms.hint` and `forms.over` feed the hint and over-limit warning in the panel), each answer in its own copy box under the 3-column board. A third form, `general-intake-form` ("General Intake Form", 5 entries, with a radio kind for pick-one options), came later. Decisions: inline edit from the first release, independent checkboxes with none pre-ticked, a reply that skips a question keeps the old answer, Not discussed replaces one, a duplicate or unknown number blocks the whole save, per-question change requests were cut (Ask Claude to change this works on the whole form).
 
 ## 15. How to work in this repo
 

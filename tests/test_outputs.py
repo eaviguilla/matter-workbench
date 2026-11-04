@@ -142,17 +142,17 @@ def test_the_page_disables_copy_until_something_is_ticked_and_boxes_follow_the_l
     web, cid, tx, tmp = env
     page = web.get(f"/transcripts/{tx}").text
     assert re.search(r'<button type="button" data-copy-url="[^"]*" disabled>Copy for Claude', page)
-    assert page.count('name="output"') == 5 and " checked" not in page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
+    assert page.count('name="output"') == 6 and " checked" not in page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
     assert copy(web, tx, [FORM, NOTE]).status_code == 200
     fields = web.get(f"/transcripts/{tx}").text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], "")]
     assert re.search(r'data-copy-url="[^"]*">Copy for Claude', web.get(f"/transcripts/{tx}").text)
     # a later call starts from the last choice
     r = web.post(f"/clients/{cid}/intake", {"text": fixture_text(1).replace("Hello", "Hi there"), "call_date": "2026-11-01"})
     tx2 = saved_tx(web.post(f"/clients/{cid}/intake/save", review_form(r.text), follow_redirects=False))
     assert tx2 != tx
     fields = web.get(f"/transcripts/{tx2}").text.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields) == [(NOTE, " checked"), (CAL, ""), (FORM, " checked"), (FORM_SLUGS[0], ""), (FORM_SLUGS[1], ""), (FORM_SLUGS[2], "")]
 
 
 def test_the_copied_text_names_the_ticked_outputs_then_the_header_then_the_transcript_and_no_writing_rules(env):
@@ -433,7 +433,7 @@ def test_an_import_with_a_header_and_markers_stores_no_header_in_any_file(env):
             f"[OUTPUT: {CAL}]\nCalendar body.\n[CLIENT: {cid} | TX: {tx}]\n[OUTPUT: {FORM}]\n\nForm body.")
     do_import(web, cid, text)
     got = stored_texts(web, tx)
-    assert got == {NOTE: ["Note body."], CAL: ["Calendar body."], FORM: ["Form body."], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
+    assert got == {NOTE: ["Note body."], CAL: ["Calendar body."], FORM: ["Form body."], FORM_SLUGS[0]: [], FORM_SLUGS[1]: [], FORM_SLUGS[2]: []}
     assert HEADER_TEXT not in all_output_text(tmp)
 
 
@@ -448,7 +448,7 @@ def test_a_section_with_only_a_header_counts_as_empty_and_nothing_is_saved(env):
         for c in (check, plain):
             with pytest.raises(wf.ImportProblem):
                 wf.save_import(s, cid, c)
-    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
+    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: [], FORM_SLUGS[2]: []}
 
 
 def test_the_connector_stores_no_header(env):
@@ -478,7 +478,7 @@ def test_a_mismatched_header_is_still_refused_and_stores_nothing(env):
                 wf.save_import(s, cid, check)
     chk = web.post(f"/clients/{cid}/import", {"text": f"[CLIENT: {other} | TX: {tx}]\nText.", "output": NOTE})
     assert f"This reply is for client {other}" in chk.text
-    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: []}
+    assert stored_texts(web, tx) == {NOTE: [], CAL: [], FORM: [], FORM_SLUGS[0]: [], FORM_SLUGS[1]: [], FORM_SLUGS[2]: []}
 
 
 def test_a_hand_edit_never_stores_a_header(env):

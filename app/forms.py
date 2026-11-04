@@ -18,7 +18,7 @@ class Question:
     """One entry of a form, as it is on the Clio page. A follow-up that Clio shows only after a Yes or No is its own
     entry, with `when` naming the earlier answer that opens it."""
     text: str
-    kind: str = "text"                      # text, textarea, date, yesno or checkbox
+    kind: str = "text"                      # text, textarea, date, yesno, radio (pick one option) or checkbox
     when: tuple | None = None               # (question number, answer) that makes Clio show this one
     options: tuple = ()                     # checkbox: the exact option texts
     clio: str = ""                          # the title on the Clio page, when it is not the same as text
@@ -86,8 +86,20 @@ PROBATE_FORM = (
     Question("Is there anything else you would like us to know?", "textarea"),
 )
 PROBATE = tuple(q.text for q in PROBATE_FORM)
-QUESTIONS = {"probate-intake-form": PROBATE, "estate-plan-intake-form": ESTATE_PLAN}
-DETAILS = {"probate-intake-form": PROBATE_FORM, "estate-plan-intake-form": ESTATE_PLAN_FORM}
+
+GENERAL_FORM = (
+    Question("Matter Type:", "checkbox", options=("Estate Planning", "Probate", "Trust Administration", "Other")),
+    Question("Brief Description of the Situation:", limit=CLIO_TEXT),
+    Question("Preferred Method of Communication:", "radio", options=("Phone Call", "Email", "Text Message")),
+    Question("How did you hear about us?", "checkbox", options=("Referral", "Online", "Other")),
+    Question("Next Steps: The lead attorney, Jordan, will review this information, and we will follow up within one "
+             "business day. Thank you again for calling!", limit=CLIO_TEXT),
+)
+GENERAL = tuple(q.text for q in GENERAL_FORM)
+
+QUESTIONS = {"probate-intake-form": PROBATE, "estate-plan-intake-form": ESTATE_PLAN, "general-intake-form": GENERAL}
+DETAILS = {"probate-intake-form": PROBATE_FORM, "estate-plan-intake-form": ESTATE_PLAN_FORM,
+           "general-intake-form": GENERAL_FORM}
 
 ANSWER_RE = re.compile(r"^[ \t]*[*#>]*[ \t]*\[ANSWER:[ \t]*(?P<n>\d{1,3})[ \t]*\][ \t]*\**[ \t]*(?P<rest>.*)$", re.M | re.I)
 NOT_DISCUSSED = "not discussed"
@@ -117,6 +129,8 @@ def hint(slug: str, n: int) -> str:
         parts.append("Yes or No.")
     elif q.kind == "checkbox":
         parts.append("Any of: " + " | ".join(q.options))
+    elif q.kind == "radio":
+        parts.append("One of: " + " | ".join(q.options))
     elif q.kind == "date":
         parts.append(f"A date as {DATE_FORMAT}.")
     elif q.limit:

@@ -153,9 +153,9 @@ def test_the_board_always_has_three_columns_in_fixed_order(env):
     for page in pages:
         assert re.findall(r'<section class="col" id="out-([a-z-]+)">', page) == [NOTE, CAL, FORM]
     states = re.findall(r'<section class="col" id="out-[a-z-]+">', pages[0])
-    assert len(states) == 3 and "Waiting for Claude" not in pages[0] and pages[0].count("Not requested") == 5
-    assert pages[1].count("Not requested") == 3 and "Waiting for Claude" not in pages[1]
-    assert pages[4].count("Waiting for Claude") == 1 and pages[4].count("Not requested") == 4
+    assert len(states) == 3 and "Waiting for Claude" not in pages[0] and pages[0].count("Not requested") == 6
+    assert pages[1].count("Not requested") == 4 and "Waiting for Claude" not in pages[1]
+    assert pages[4].count("Waiting for Claude") == 1 and pages[4].count("Not requested") == 5
     assert "Waiting for Claude" in column(pages[4], FORM)
 
 
@@ -194,7 +194,7 @@ def test_a_reply_pasted_on_the_call_page_is_saved_to_this_call(env):
     page = web.get(f"/transcripts/{tx}").text
     form = re.search(r'<form method="post" action="/clients/[^"]+/import"[^>]*>(.*?)</form>', page, re.S).group(1)
     assert f'name="tx_id" value="{tx}"' in form and 'name="kind" value="output"' in form and 'name="text"' in form
-    assert page.count('name="output"') == 5                   # only the checkboxes of Request more outputs
+    assert page.count('name="output"') == 6                   # only the checkboxes of Request more outputs
     plain = "A reply with no header and no markers."
     chk = web.post(f"/clients/{cid}/import", {"text": plain, "kind": "output", "tx_id": tx, "output": FORM})
     assert "Will save 1 output" in chk.text and re.search(r"Belongs to Untitled, \d+ \w{3} \d{4}\.", chk.text) and tx not in re.search(r"Belongs to[^<]*", chk.text).group()

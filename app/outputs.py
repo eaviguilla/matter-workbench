@@ -17,6 +17,7 @@ TEXT_OUTPUTS = (
 FORM_OUTPUTS = (
     ("probate-intake-form", "Probate Intake Form"),
     ("estate-plan-intake-form", "Estate Plan - General Intake form"),
+    ("general-intake-form", "General Intake Form"),
 )
 OUTPUTS = TEXT_OUTPUTS + FORM_OUTPUTS
 TEXT_SLUGS = tuple(slug for slug, _ in TEXT_OUTPUTS)
@@ -24,7 +25,8 @@ FORM_SLUGS = tuple(slug for slug, _ in FORM_OUTPUTS)
 SLUGS = tuple(slug for slug, _ in OUTPUTS)
 NAMES = dict(OUTPUTS)
 SHORT_NAMES = {"clio-note": "Note", "jordan-calendar-overview": "Overview", "clio-form-note": "Form note",
-               "probate-intake-form": "Probate", "estate-plan-intake-form": "Estate plan"}   # for tight lists
+               "probate-intake-form": "Probate", "estate-plan-intake-form": "Estate plan",
+               "general-intake-form": "General"}   # for tight lists
 MARKER_RE = re.compile(r"^[ \t]*\[OUTPUT:[ \t]*(?P<slug>[^\]\n]*?)[ \t]*\][ \t]*$", re.M | re.I)
 
 

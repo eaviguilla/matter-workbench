@@ -23,7 +23,7 @@ Use the chats in the Claude Desktop app. The connector is a program on this comp
    - Clio Note: Copy, paste into the Clio matter note.
    - Overview: Copy, paste into Jordan's calendar entry.
    - Clio form note: Copy, paste into the 255 character box.
-   - Probate and estate plan forms: copy one answer at a time, or Copy all. The Clio extension in `docs/CLIO-EXTENSION-PLAN.md` will fill these automatically later.
+   - The three intake forms (Probate, Estate Plan - General, General): copy one answer at a time, or Copy all. The Clio extension in `docs/CLIO-EXTENSION-PLAN.md` will fill these automatically later.
 6. To change something, type in that column's "Ask Claude to change this" box and Copy for Claude again. Paste it in the same chat. The new text arrives as a new version, and older versions stay.
 
 Where the files end up: `%LOCALAPPDATA%\MatterWorkbench\clients\<client ID>\transcripts\<transcript ID>\`, one JSON file per output. Do not open or share `client.json`, it holds the real names.
@@ -74,13 +74,14 @@ Example: Beth [PERSON_1.rest] - EP review + trust funding. Referral from Megan A
 clio-form-note (Clio form note)
 The Clio box takes 255 characters, one paragraph. Same fragment style as the overview, shortened: client, matter type, the key facts, any deadline or time pressure, contact preference. No line breaks, no headers, no bullets. Count the characters, spaces included, and keep it at 250 or fewer. Cut the least important fragments first.
 
-probate-intake-form (Probate Intake Form) and estate-plan-intake-form (Estate Plan - General Intake form)
+probate-intake-form (Probate Intake Form), estate-plan-intake-form (Estate Plan - General Intake form) and general-intake-form (General Intake Form)
 These are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <number>] with nothing else on that line, for example [ANSWER: 5]. Use the numbers below. Each form is a copy of a Clio page, and the kind of each entry is in square brackets.
 - Answer only from what the caller said. Never guess, infer or fill in. If the question was not covered, or does not apply, write Not discussed. Do not write N/A. A Not discussed answer leaves that Clio field empty, which is what I want.
 - [Yes or No]: write exactly Yes or No and nothing else. Never write No unless the caller said no. Put any detail in the follow-up entry.
 - [only if ...]: a follow-up that Clio shows only after a Yes or No. Answer it only if the answer it depends on is the one named, and only with what the caller said. If that answer is different, or the caller did not say, write Not discussed. Example: if the caller is married but never said the spouse's name, that answer is Not discussed.
 - [255]: a single-line Clio box that takes 255 characters. Count the characters and keep the answer at 250 or fewer. Never cut a fact in half; cut the least important words instead.
 - [checkbox]: write the exact option text, character for character. If more than one fits, separate them with " | ". If it is unclear which fits, write Not discussed and put what the caller said in the form's notes entry.
+- [radio]: choose exactly one of the listed options and write its exact text. If the caller did not say, or named several, write Not discussed.
 - [long text]: a text area with no practical limit.
 - [date MM/DD/YYYY]: write the date in that format, only if the caller gave the day, month and year. If part is missing, write Not discussed and put what was said in the form's notes entry. Do not work out a year or a day.
 - Keep answers short, in plain words. Names as placeholders. Dates and places as said. Do not infer a county from a city.
@@ -93,6 +94,13 @@ Probate Intake Form notes
 
 Estate Plan - General Intake form notes
 - Entry 18 is Yes only if the call held something important that no other question asks about, and then entry 19 gives it in the clio-form-note style. Otherwise write Not discussed.
+
+General Intake Form notes
+- Entry 1 (Matter Type): tick the matter type or types the call is about, from the four options only. If the matter fits none of Estate Planning, Probate or Trust Administration (a deed or real estate matter, for example), write Other. If it is unclear, write Not discussed.
+- Entry 2 (Brief Description): one or two short fragments of what the caller wants, from the transcript only, 250 characters or fewer, no legal conclusions.
+- Entry 3 (Preferred Method of Communication): only if the caller said how they prefer to be reached. Write exactly one option. If they ruled one out ("email, not text"), write the one they chose.
+- Entry 4 (How did you hear about us?): Referral if a person or organization referred them, Online if they said they found the firm online, Other for anything else they said. The referrer's name has no box here, so leave it out. Not discussed if they did not say.
+- Entry 5 (Next Steps): the Clio label is a standing message to the caller. Write only next steps that were actually stated on the call, such as who will do what and by when, in 250 characters or fewer. If none was stated, write Not discussed.
 
 Probate Intake Form questions:
 1 What was the name of your loved one? [255]
@@ -140,6 +148,13 @@ Estate Plan - General Intake form questions:
 18 Anything else you want us to know? [Yes or No]
 19 Please explain. (anything else) [only if 18 is Yes] [255]
 
+General Intake Form questions:
+1 Matter Type: [checkbox, any of: Estate Planning | Probate | Trust Administration | Other]
+2 Brief Description of the Situation: [255]
+3 Preferred Method of Communication: [radio, one of: Phone Call | Email | Text Message]
+4 How did you hear about us? [checkbox, any of: Referral | Online | Other]
+5 Next Steps: The lead attorney, Jordan, will review this information, and we will follow up within one business day. Thank you again for calling! [255]
+
 CHANGES
 A message that starts with "Change request" revises one output for the transcript in its header. Return the full revised text (for the forms, only the answers that change) and save it the same way, as a new version.
 
@@ -151,19 +166,20 @@ If I ask for a running summary of the chat, keep every placeholder exactly as wr
 
 - Added the placeholder rules and the header line, which the app needs to match a reply to a client and call.
 - Added the saving rules for the connector, with a pasted `[OUTPUT: id]` reply as the fallback.
-- Added all five outputs with their exact IDs. The forms use the question numbers from `app/forms.py`. If the questions in the app change, this list must change too.
+- Added all six outputs with their exact IDs. The forms use the question numbers from `app/forms.py`. If the questions in the app change, this list must change too.
 - The overview no longer asks for a bold title line. The app shows and stores plain text, so asterisks would appear literally. Make the title bold in the calendar by hand if you want it.
 - The Clio form note now says the 255 character limit and to count, because Claude is poor at counting by feel.
 - "Tell me about identifying information" became a check for the things the app does not hide (phone numbers, account numbers, a real name left in plain text).
 - Note for Jules is kept out of the saved content.
 - A rule that Claude answers only from the transcript and never invents or fills a gap, for every output and every form field.
-- Both forms follow their Clio pages: Yes or No entries take exactly Yes or No, follow-ups are answered only when they apply, checkboxes take the exact option text, the date takes MM/DD/YYYY only when day, month and year were all said, and single-line text stays at 250 characters or fewer.
+- All three forms follow their Clio pages: Yes or No entries take exactly Yes or No, follow-ups are answered only when they apply, checkboxes take the exact option text, the date takes MM/DD/YYYY only when day, month and year were all said, and single-line text stays at 250 characters or fewer.
 
 ## Confirmed from Jules's notes
 
 - Clio form notes have a 255 character limit and need one paragraph, with no line breaks or headers. So the Clio form note is the overview shortened to fit.
 - The probate form's note box takes more than 255 characters, so the full overview for Jordan goes there. On the Clio page it is entry 16, a long text area with no practical limit.
 - The Probate Intake Form was rebuilt from the Clio page Jules pasted on 2026-11-04: 12 questions, 4 follow-ups, 16 entries in all. Two are checkboxes (estate planning done, with 4 options; family members, with Spouse, Children, Parent, Sibling), one is a date in MM/DD/YYYY, and two are long text areas. The official name is Probate Intake Form.
+- The General Intake Form was added from the Clio page Jules pasted on 2026-11-04: 5 entries, with two checkboxes (Matter Type, How did you hear about us?), one pick-one choice (Preferred Method of Communication) and two 255 character text boxes. The "Next Steps" entry is a standing message on the Clio page with a text box under it. It is treated as a box for next steps stated on the call. Change that rule if the office uses it differently.
 - The Estate Plan - General Intake form was rebuilt from the Clio page Jules pasted on 2026-11-04: 12 questions, 7 follow-ups that Clio shows only after a Yes or No, 19 entries in all. Every text box on that page takes 255 characters, which settles the earlier question about the last estate plan box (now entries 18 and 19).
 - Jules asked that Claude answer only from the transcript, in every output and every form field, and never invent anything.
 

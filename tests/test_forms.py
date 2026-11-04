@@ -1,4 +1,4 @@
-"""The two intake form outputs: reading answers, saving them as versions, the page, inline edits and the connector."""
+"""The intake form outputs: reading answers, saving them as versions, the page, inline edits and the connector."""
 import json
 import re
 
@@ -10,7 +10,7 @@ from app.outputs import FORM_SLUGS, TEXT_SLUGS
 from mcp_server.server import save_output
 from tests.test_outputs import copy, do_import, env, store_of, textarea  # noqa: F401  (env is a fixture)
 
-PRO, EST = FORM_SLUGS
+PRO, EST, GEN = FORM_SLUGS
 NOTE = TEXT_SLUGS[0]
 
 
@@ -26,7 +26,7 @@ def versions(web, tx, slug):
 # ---- the parser ---------------------------------------------------------------------------------------
 
 def test_the_forms_have_the_question_counts_asked_for():
-    assert forms.count(PRO) == 16 and forms.count(EST) == 19
+    assert forms.count(PRO) == 16 and forms.count(EST) == 19 and forms.count(GEN) == 5
 
 
 def test_the_estate_plan_form_follows_the_clio_page():
@@ -65,7 +65,23 @@ def test_the_probate_form_follows_the_clio_page():
     assert q[10].clio.endswith("loved one’s belongings or affairs?") and q[11].clio == "Please explain."
 
 
+def test_the_general_intake_form_follows_the_clio_page():
+    q = forms.DETAILS[GEN]
+    assert [x.text for x in q] == list(forms.QUESTIONS[GEN]) and len(q) == forms.count(GEN)
+    assert [x.kind for x in q] == ["checkbox", "text", "radio", "checkbox", "text"]
+    assert q[0].options == ("Estate Planning", "Probate", "Trust Administration", "Other")
+    assert q[2].options == ("Phone Call", "Email", "Text Message")
+    assert q[3].options == ("Referral", "Online", "Other")
+    assert [x.limit for x in q] == [None, 255, None, None, 255] and not any(x.when for x in q)
+    assert q[4].text.startswith("Next Steps: The lead attorney, Jordan, will review")
+    from app.outputs import NAMES
+    assert NAMES[GEN] == "General Intake Form" and wf.is_form(GEN)
+
+
 def test_hints_say_when_a_question_is_asked_and_what_it_takes():
+    assert forms.hint(GEN, 1) == "Any of: Estate Planning | Probate | Trust Administration | Other"
+    assert forms.hint(GEN, 3) == "One of: Phone Call | Email | Text Message"
+    assert forms.hint(GEN, 2) == "255 characters at most."
     assert forms.hint(EST, 1) == "Yes or No."
     assert forms.hint(EST, 2) == "Only if answer 1 is Yes. 255 characters at most."
     assert forms.hint(EST, 12).startswith("Any of: Yes! A full estate plan") and forms.hint(EST, 12).endswith("None!")
@@ -178,7 +194,7 @@ def test_forms_are_never_ticked_unless_the_call_asked_for_them(env):
     copy(web, tx, [NOTE, PRO])
     page = web.get(f"/clients/{cid}?tx={tx}").text
     fields = page.split("<legend>Ask Claude for</legend>")[1].split("</fieldset>")[0]
-    assert re.findall(r'value="([a-z-]+)"( checked)?', fields)[3:] == [(PRO, " checked"), (EST, "")]
+    assert re.findall(r'value="([a-z-]+)"( checked)?', fields)[3:] == [(PRO, " checked"), (EST, ""), (GEN, "")]
 
 
 def test_the_total_version_count_includes_the_forms(env):
