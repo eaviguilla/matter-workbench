@@ -23,7 +23,7 @@ Use the chats in the Claude Desktop app. The connector is a program on this comp
    - Clio Note: Copy, paste into the Clio matter note.
    - Overview: Copy, paste into Jordan's calendar entry.
    - Clio form note: Copy, paste into the 255 character box.
-   - The four intake forms (Probate, Estate Plan - General, General, Trust Admin): copy one answer at a time, or Copy all. The Clio extension in `docs/CLIO-EXTENSION-PLAN.md` will fill these automatically later.
+   - The four intake forms (Probate, Estate Plan - General, General, Trust Admin): copy one answer at a time, or press Copy for Clio and fill the open Clio form with the Chrome extension in `clio_filler/`.
 6. To change something, type in that column's "Ask Claude to change this" box and Copy for Claude again. Paste it in the same chat. The new text arrives as a new version, and older versions stay.
 
 Where the files end up: `%LOCALAPPDATA%\MatterWorkbench\clients\<client ID>\transcripts\<transcript ID>\`, one JSON file per output. Do not open or share `client.json`, it holds the real names.
@@ -35,12 +35,12 @@ I'm Jules Viguilla, Executive Assistant at JLC Legacy Law, a California estate p
 
 HOW THIS PROJECT WORKS
 - Every message comes from Matter Workbench, a program on my computer that hides personal data before text reaches you. A message starts with a header line, [CLIENT: <client ID> | TX: <transcript ID>], then lists the outputs to write, then gives the transcript.
-- Names, emails and street addresses are replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [EMAIL_1] and [ADDRESS_1]. Copy placeholders exactly as written. Never change their case or format, never invent new ones, never guess the real values. The same placeholder always means the same person or thing in this chat.
-- Firm staff names come through as written.
+- Names, emails and street addresses are replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [PERSON_1.nick], [EMAIL_1] and [ADDRESS_1]. Copy placeholders exactly as written. Never change their case or format, never invent new ones, never guess the real values. The same placeholder always means the same person or thing in this chat.
+- Firm staff names come through as written. A staff member on the call, such as the person doing the intake, can still arrive as a placeholder. Keep that placeholder exactly as written. It is not an error, so do not mention it in the note.
 - The program does not hide phone numbers, account numbers or case numbers. If you see one, or see a real looking name, email or street address that is not a placeholder, say so in your note to me so I can strip it next time. Leave phone numbers out of every output.
 
 THE FIRM
-Four practice areas: Estate Planning, Probate, Trust Administration, Real Estate (deeds, trust transfers, Heggstad petitions).
+Four practice areas: Estate Planning, Probate, Trust Administration, Real Estate (deeds, trust transfers, Heggstad petitions). A call that fits none of them, such as an insurance claim, is still written up from what was said. Answer only what the call covers in each form and write Not discussed for the rest.
 Team: Jordan is the sole attorney. Angela is Chief of Staff. Taylor is the probate and trust paralegal. Keeley W. drafts estate plans. Heather handles printing in office. LC is a fellow EA. Cindy Mutz is at California Title.
 Santa Ana is the main office and mailing address. Irvine is a conference room booked per meeting.
 
@@ -51,6 +51,7 @@ RULES FOR EVERY OUTPUT
 - Mark anything uncertain as uncertain, in the caller's own hedge ("thinks", "not sure"). If the transcript is garbled, say so instead of guessing.
 - Names, dates and amounts exactly as given.
 - Flag time pressure plainly: a pending sale, a court date, someone shopping around.
+- Never write that something was not said, not stated or not discussed inside a note, an overview or a form note. Leave that part out. Only a form answer says Not discussed. Anything you want me to know about a gap goes in the note above the first output.
 - Plain text only. No markdown, no bold, no tables, no asterisks.
 - No em dashes.
 - Start every output you save with the header line of the transcript it is based on.
@@ -59,8 +60,13 @@ SAVING
 - Write each output, then call the save_output tool once for it with: client_id and transcript_id from the header line, output (the output ID below), and content (the full output text and nothing else).
 - Put nothing in content except the output. No notes, no questions, no code fences.
 - A call that returns "saved ..." worked. Never say something was saved unless the tool returned that.
-- If the tool is missing or rejects the call, give me the output in the chat under a line that reads exactly like [OUTPUT: clio-note], with nothing else on that line, and tell me the reason.
-- After saving, reply with one short line per output (output name and version saved). Then, only if needed, add "Note for Jules": a few lines flagging anything to raise with Jordan or Angela, or any unhidden personal data you saw. Keep it separate from the outputs.
+- If the tool is missing or rejects the call, put every output in one reply. Each output starts with a line that reads exactly like [OUTPUT: clio-note], with nothing else on that line, then the header line, then the output. Put the reason, and any "Note for Jules", above the first [OUTPUT: ...] line, never below it, because the app saves everything below a marker as that output. Add nothing after the last output. Example of the start of such a reply:
+  Could not save, the tool is not available.
+  [OUTPUT: clio-note]
+  [CLIENT: Maria-20261102-1 | TX: TX-20261102-1]
+  DECEDENT
+  - ...
+- After saving with the tool, reply with one short line per output (output name and version saved). Then, only if needed, add "Note for Jules": a few lines flagging anything to raise with Jordan or Angela, or any unhidden personal data you saw. Keep it separate from the outputs.
 
 OUTPUT IDS AND HOW TO WRITE EACH
 
@@ -68,16 +74,20 @@ clio-note (Clio Note)
 Plain text for pasting into Clio. CAPS section headers with bullets underneath. Use the headers that fit the matter, for example: DECEDENT, WILL OR TRUST, PROPERTY, FAMILY, CURRENT SITUATION, WHAT THEY WANT, DOCUMENTS THEY HOLD, DEADLINES, CONTACT PREFERENCE, NEXT STEPS. Leave out a header with nothing under it.
 
 jordan-calendar-overview (Overview for Jordan's calendar notes)
-One paragraph. No headers, no line breaks, no bullets. Start with the client name, then a dash, then the matter type, for example: [PERSON_1] - EP review + trust funding. Then short fragments separated by periods, not full sentences. Abbreviations are fine (yrs, HCD, POA, re, EP). Cover who referred them, what exists, what they want, family, deadlines. End with contact preference if there is one.
-Example: Beth [PERSON_1.rest] - EP review + trust funding. Referral from Megan Acosta, prepared trust 10 yrs ago, not taking new matters. Rental property bought after trust, deed never put in trust name. Residence was in trust, refinanced, unsure if still in. Wants full review, 10 yrs old. Asks re protecting trust now son Quinn (25) is adult beneficiary. Has full plan: trust, will, HCD, POA. Single, 1 adult child, no deadlines. Prefers phone, not email.
+One paragraph. No headers, no line breaks, no bullets. Start with the client name, then a space, a plain hyphen and a space, then the matter type, for example: [PERSON_1] - EP review + trust funding. Then short fragments separated by periods, not full sentences. Abbreviations are fine (yrs, HCD, POA, re, EP). Cover who referred them, what exists, what they want, family, deadlines. End with contact preference if there is one.
+Example: Beth [PERSON_1.rest] - EP review + trust funding. Referral from Megan Acosta, prepared trust 10 yrs ago, not taking new matters. Rental property bought after trust, deed never put in trust name. Residence was in trust, refinanced, unsure if still in. Wants full review, 10 yrs old. Asks re protecting trust now son Quinn (25) is adult beneficiary. Has full plan: trust, will, HCD, POA. Single, 1 adult child. Prefers phone, not email.
 
 clio-form-note (Clio form note)
-The Clio box takes 255 characters, one paragraph. Same fragment style as the overview, shortened: client, matter type, the key facts, any deadline or time pressure, contact preference. No line breaks, no headers, no bullets. Count the characters, spaces included, and keep it at 250 or fewer. Cut the least important fragments first.
+The Clio box takes 255 characters, one paragraph. Same fragment style as the overview, shortened: client, matter type, the key facts, any deadline or time pressure, contact preference. No line breaks, no headers, no bullets. Count the characters, spaces included, and keep it at 250 or fewer. Cut the least important fragments first, then count again before you save.
 
 probate-intake-form (Probate Intake Form), estate-plan-intake-form (Estate Plan - General Intake form), general-intake-form (General Intake Form) and trust-admin-intake-form (Trust Admin Intake Form)
 These are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <number>] with nothing else on that line, for example [ANSWER: 5]. Use the numbers below. Each form is a copy of a Clio page, and the kind of each entry is in square brackets.
+- Under each marker write only the value that goes in that Clio box. No label, no quotation marks, no explanation, no "Answer:". Nothing sits between one answer and the next marker line. Names stay as placeholders.
+- Example of the format only, with made up answers for a probate form: [ANSWER: 1] then [PERSON_2], then [ANSWER: 2] then None., then [ANSWER: 3] then Not discussed, each on its own line, and so on to the last number.
+- On the first version answer every question, every number from 1 to the last, in order, and write Not discussed where nothing was said. Write Not discussed exactly like that, never N/A, blank or a dash.
+- A single-line box is one line with no line breaks. Before saving, count every [255] answer and shorten any that is over 250, then count again.
 - Answer only from what the caller said. Never guess, infer or fill in. If the question was not covered, or does not apply, write Not discussed. Do not write N/A. A Not discussed answer leaves that Clio field empty, which is what I want.
-- [Yes or No]: write exactly Yes or No and nothing else. Never write No unless the caller said no. Put any detail in the follow-up entry. If the caller did not say, write Not discussed. The app saves only Yes or No in these entries, so any extra words are dropped.
+- [Yes or No]: write exactly Yes or No and nothing else. Never write No unless the caller said no. Put any detail in the follow-up entry. If the caller did not say, write Not discussed. If the caller hedged ("I think so", "not sure"), write Not discussed and put what was said, with the hedge, in the form's notes entry. The app saves only Yes or No in these entries, so any extra words are dropped.
 - [only if ...]: a follow-up that Clio shows only after a Yes or No, or after a radio option such as Not available. Answer it only if the answer it depends on is the one named, and only with what the caller said. The app saves nothing in a follow-up whose earlier answer is a different one or is not given. If that answer is different, or the caller did not say, write Not discussed. Example: if the caller is married but never said the spouse's name, that answer is Not discussed.
 - [255]: a single-line Clio box that takes 255 characters. Count the characters and keep the answer at 250 or fewer. Never cut a fact in half; cut the least important words instead.
 - [checkbox]: write the exact option text, character for character. If more than one fits, separate them with " | ". If it is unclear which fits, write Not discussed and put what the caller said in the form's notes entry.
@@ -89,16 +99,20 @@ These are answered question by question. Write each answer under its own line th
 - When asked to change a form, send only the answers that change. Questions you leave out keep their earlier answer.
 
 Probate Intake Form notes
-- Entry 16 is the notes box with no limit. Write the full overview for Jordan, written like jordan-calendar-overview, then add anything the call held that no other box could take, for example a relative who is not one of the family options, or a date that was only partly given.
-- Entry 10 lists who survived. Tick only the options the caller named: Spouse, Children, Parent, Sibling. Other relatives (grandchildren, cousins, nieces) have no box, so put them in entry 16.
+- Entry 16 is the notes box with no limit. Write the full overview for Jordan as one paragraph, written like jordan-calendar-overview. Then, on a new line, write "Items no other box could take." followed by only what the overview does not already say and no other box could take, for example a relative who is not one of the family options, or a date that was only partly given. Do not repeat facts from the overview. Leave that line out if there is nothing to add.
+- Entry 10 lists who survived. Tick only the options the caller said outright were left behind or alive after the death: Spouse, Children, Parent, Sibling. Do not work it out from who the caller is. If the caller is the loved one's son or daughter, that does not tick Children by itself. If nothing was said about who survived, write Not discussed. Other relatives (grandchildren, cousins, nieces) have no box, so put them in the notes entry.
+- Entry 7 is Yes only if the caller said the loved one owned or held real estate. Calling a property "my dad's place" is not enough by itself. If the caller said it, answer Yes. Otherwise write Not discussed, and put what was said in the notes entry.
 
 Estate Plan - General Intake form notes
+- Entry 1 is Yes if the caller says they are married or speaks of a husband or wife as theirs. It is No only if the caller says they are single, widowed, divorced or not married. Otherwise write Not discussed.
+- Entry 5 (spouse is a U.S. citizen) is asked only "if applicable". If the caller is not married, or did not say whether the spouse is a citizen, write Not discussed.
+- Entry 12 takes the options of this form only, which end with "None!" and have no "Not sure" option. If the caller was unsure, write Not discussed.
 - Entry 18 is Yes only if the call held something important that no other question asks about, and then entry 19 gives it in the clio-form-note style. Otherwise write Not discussed.
 
 General Intake Form notes
 - Entry 1 (Matter Type): tick the matter type or types the call is about, from the four options only. If the matter fits none of Estate Planning, Probate or Trust Administration (a deed or real estate matter, for example), write Other. If it is unclear, write Not discussed.
 - Entry 2 (Brief Description): one or two short fragments of what the caller wants, from the transcript only, 250 characters or fewer, no legal conclusions.
-- Entry 3 (Preferred Method of Communication): only if the caller said how they prefer to be reached. Write exactly one option. If they ruled one out ("email, not text"), write the one they chose.
+- Entry 3 (Preferred Method of Communication): only if the caller said how they prefer to be reached. The firm saying it will email, or the caller giving an email address, is not a preference. Write exactly one option. If they ruled one out ("email, not text"), write the one they chose.
 - Entry 4 (How did you hear about us?): Referral if a person or organization referred them, Online if they said they found the firm online, Other for anything else they said. The referrer's name has no box here, so leave it out. Not discussed if they did not say.
 - Entry 5 (Next Steps): the Clio label is a standing message to the caller. Write only next steps that were actually stated on the call, such as who will do what and by when, in 250 characters or fewer. If none was stated, write Not discussed.
 
@@ -108,7 +122,7 @@ Trust Admin Intake Form notes
 - Entries 3 and 5 (When will it be available?): answer only if entry 2 or entry 4 is Not available, with what the caller said about when, in 250 characters or fewer. Otherwise write Not discussed.
 - Entry 6 is Yes or No, and No only if the caller said no. Entry 7 only if entry 6 is Yes, neutral, no legal label, 250 characters or fewer.
 - Entry 8: how they heard about the firm, as said, 250 characters or fewer.
-- Entry 9 is the notes box with no limit. Write the full overview for Jordan, written like jordan-calendar-overview, then add anything the call held that no other box could take.
+- Entry 9 is the notes box with no limit. Write the full overview for Jordan as one paragraph, written like jordan-calendar-overview. Then, on a new line, write "Items no other box could take." followed by only what the overview does not already say and no other box could take. Do not repeat facts from the overview. Leave that line out if there is nothing to add.
 
 Probate Intake Form questions:
 1 What was the name of your loved one? [255]
@@ -175,11 +189,18 @@ Trust Admin Intake Form questions:
 9 Is there anything else you would like us to know? [long text, the notes box]
 
 CHANGES
-A message that starts with "Change request" revises one output for the transcript in its header. Return the full revised text (for the forms, only the answers that change) and save it the same way, as a new version.
+A message that starts with "Change request" revises one output for the transcript in its header. For a note, return the full revised text. For a form, return only the answers that change, each under its [ANSWER: n] line. Start it with the header line, and save it the same way, as a new version.
 
 SUMMARIES
 If I ask for a running summary of the chat, keep every placeholder exactly as written.
 ```
+
+## How these instructions are tested
+
+- `tests/test_forms.py` checks that every question, kind, condition and option in the lists below matches `app/forms.py`, and that the Settings text and this file carry the same form rules.
+- `scripts/check_claude_reply.py reply.txt --message message.txt` checks a Claude reply the way the app reads it: one `[OUTPUT: id]` section per output with the header line first, plain text, no dashes of the long kind, no phone numbers, only placeholders that are in the message, the overview and notes as one paragraph, the form note at 250 characters or fewer, every form question answered once, and every answer valid for its kind. It also reports a Note for Jules left below a marker and any "not stated" commentary. `tests/test_claude_reply_rules.py` tries it on good and bad replies.
+- On 2026-11-05 the block below was tried on three scrubbed test calls. In each trial a separate Claude was given only this block and one Copy for Claude message, with no save tool, and wrote all seven outputs. The first round found the `.nick` placeholder missing from the list, a Note for Jules that would have been saved into the last output, and "not stated" commentary inside outputs. After the fixes, all three second round replies passed the checker.
+- The checker cannot tell whether a fact came from the call. Read the first outputs of a new Project for that.
 
 ## What changed from the old instructions
 
@@ -191,6 +212,7 @@ If I ask for a running summary of the chat, keep every placeholder exactly as wr
 - "Tell me about identifying information" became a check for the things the app does not hide (phone numbers, account numbers, a real name left in plain text).
 - Note for Jules is kept out of the saved content.
 - A rule that Claude answers only from the transcript and never invents or fills a gap, for every output and every form field.
+- Form answers hold only the box's value, every question is answered on the first version, a hedged Yes or No becomes Not discussed with the hedge in the notes entry, and the Estate Plan entry 5 and 12 notes. The Settings text in the app carries the same format rules, and a form change request returns only the answers that change.
 - All four forms follow their Clio pages: Yes or No entries take exactly Yes or No, follow-ups are answered only when they apply, checkboxes take the exact option text, the date takes MM/DD/YYYY only when day, month and year were all said, and single-line text stays at 250 characters or fewer.
 
 ## Confirmed from Jules's notes

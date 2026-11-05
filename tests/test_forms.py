@@ -640,3 +640,56 @@ def test_copy_for_clio_leaves_out_a_closed_follow_up_that_an_older_version_still
     text = wf.clio_text(EST, rows, "Maria", "2026-11-02", 1)
     assert "--- 1. Are you legally married?\nNo" in text and "--- 3." in text
     assert "--- 2." not in text and "Elena Whitfield" not in text
+
+
+def test_both_instruction_texts_tell_claude_the_form_rules_the_app_depends_on():
+    from pathlib import Path
+    doc = (Path(__file__).resolve().parent.parent / "docs" / "claude-project" / "JLC-CASE-NOTES-V2.md")
+    if not doc.exists():
+        pytest.skip("the Project notes are not in this copy")
+    settings = wf.project_instructions(True)
+    for text in (settings, doc.read_text(encoding="utf-8")):
+        for phrase in ("exactly Yes or No", "MM/DD/YYYY", '" | "', "Not discussed", "250 characters or fewer",
+                       "answer every question", "only the answers that change"):
+            assert phrase.lower() in text.lower(), phrase
+        assert "Copy all" not in text
+
+
+def test_a_not_discussed_answer_never_reaches_a_copy_for_clio_or_the_listing(env):
+    web, cid, tx, tmp = env
+    store = store_of(web)
+    content = forms.render(EST, {1: "Not discussed", 4: "Yes", 6: "Not discussed. Caller unsure.", 8: "Not discussed - will check",
+                                 11: "no", 17: "not discussed"})
+    _, rows = wf.view_form(store, cid, EST, content)
+    assert {r["n"] for r in rows if r["state"] == "not_discussed"} == {1, 6, 8, 17}
+    for text in (wf.clio_text(EST, rows, "Maria", "2026-11-02", 1), wf.forms_listing(rows, "text"), wf.forms_listing(rows, "raw")):
+        assert "Are you a U.S. Citizen?" in text and "Do you currently own your home?" in text
+        assert not re.search(r"(?i)not discussed|caller unsure|will check", text)
+        for question in ("Are you legally married?", "Are you a California resident?", "Do you have children?", "How did you hear about us?"):
+            assert question not in text
+
+
+def test_the_answer_copy_button_refuses_a_not_discussed_answer_and_the_extension_drops_one():
+    from pathlib import Path
+    js = (Path(__file__).resolve().parent.parent / "app" / "web" / "static" / "app.js").read_text(encoding="utf-8")
+    assert "Not discussed, so nothing to paste." in js
+    assert "not discussed" in (Path(__file__).resolve().parent.parent / "clio_filler" / "parse.js").read_text(encoding="utf-8")
+
+
+def test_the_claude_project_lists_every_option_exactly_and_names_every_output():
+    from pathlib import Path
+    from app.outputs import NAMES, SLUGS
+    doc = Path(__file__).resolve().parent.parent / "docs" / "claude-project" / "JLC-CASE-NOTES-V2.md"
+    if not doc.exists():
+        pytest.skip("the Project notes are not in this copy")
+    text = doc.read_text(encoding="utf-8")
+    block = text[text.index("## Paste this into the Project instructions"):text.index("## What changed from the old instructions")]
+    for slug in SLUGS:
+        assert f"{slug} ({NAMES[slug]})" in block or slug in block and NAMES[slug] in block, slug
+    heads = {PRO: "Probate Intake Form questions:", EST: "Estate Plan - General Intake form questions:",
+             GEN: "General Intake Form questions:", TRU: "Trust Admin Intake Form questions:"}
+    for slug, head in heads.items():
+        section = block[block.index(head):].split("\n\n")[0]
+        for n, q in enumerate(forms.DETAILS[slug], 1):
+            for option in q.options:
+                assert option in section, (slug, n, option)

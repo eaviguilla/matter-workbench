@@ -177,7 +177,10 @@
         });
         return;
       }
-      copy(live ? answerValue(live) : src.textContent).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
+      var wanted = live ? answerValue(live) : src.textContent;
+      if (!wanted.trim()) { say(b, "Nothing to copy."); return; }
+      if (/^not discussed\b/i.test(wanted.trim())) { say(b, "Not discussed, so nothing to paste."); return; }
+      copy(wanted).then(function () { say(b, "Copied."); if (b.dataset.copiedKey) { markCopied(b); } }).catch(function () { say(b, "Could not copy."); });
     } else if (b.dataset.discard) {
       discardRows(b.closest(".fpanel"));
     } else if (b.dataset.hideWord) {

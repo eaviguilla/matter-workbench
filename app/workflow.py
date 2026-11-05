@@ -59,7 +59,7 @@ SUMMARY_PROMPT = ("Please write a running summary of everything we have covered 
 
 PROJECT_INSTRUCTIONS = """You help a law office with client intake. Every message starts with a header line, [CLIENT: <client ID> | TX: <transcript ID>].
 
-Personal data has been replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [EMAIL_1] and [ADDRESS_1].
+Personal data has been replaced with placeholders such as [PERSON_1], [PERSON_1.first], [PERSON_1.last], [PERSON_1.rest], [PERSON_1.nick], [EMAIL_1] and [ADDRESS_1].
 
 Rules
 - Copy placeholders exactly as written. Never change their case or format, never invent new ones, and never guess the real values.
@@ -68,10 +68,11 @@ Rules
 - Use only what the transcript says. Never invent, assume or fill in a fact, name, date, amount or answer that was not said. If it was not said, leave it out, or write Not discussed in a form answer.
 - Start every output with the header line of the transcript it is based on.
 {saving}
-- The intake forms ({forms}) are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Leave out a question you have nothing for, or write Not discussed.
+- The intake forms ({forms}) each copy a Clio page and are answered question by question. Write each answer under its own line that reads exactly [ANSWER: <question number>], for example [ANSWER: 5], with nothing else on that line. Use the question numbers of the form. Under it put only the value for that box, with no label, quotation marks or explanation, on one line unless the box is a long text box. On the first version answer every question in order, and write Not discussed where the call did not cover it. Never write N/A.
+- Follow the kind of each question. A Yes or No question takes exactly Yes or No. A pick-one or tick-any question takes the exact option text, and several options are separated by " | ". A date takes MM/DD/YYYY, only when the day, month and year were all said. A single-line text box takes 250 characters or fewer. A follow-up that Clio shows only after an earlier answer takes an answer only when that earlier answer is the one that opens it, and Not discussed otherwise.
 
 Changes
-- A message that starts with "Change request" revises one output for the transcript named in its header. Return the full revised output, not only the changes, and save it the same way as above.
+- A message that starts with "Change request" revises one output for the transcript named in its header. For a note, return the full revised text. For a form, return only the answers that change, and the others keep their earlier answer. Save it the same way as above.
 
 Summaries
 - If asked for a running summary of the chat, keep every placeholder exactly as written."""
@@ -79,10 +80,10 @@ Summaries
 _IDS = ", ".join(slug for slug, _ in TEXT_OUTPUTS[:-1]) + " or " + TEXT_OUTPUTS[-1][0]
 PROJECT_SAVE_TOOL = ("- Saving. When you have the save_output tool, call it once for each output with the client ID, the transcript ID, "
                      f"the output ID ({_IDS}, {', '.join(slug for slug, _ in FORM_OUTPUTS)}) and the full text. If you cannot call it, "
-                     "reply with each output under a line that reads exactly like [OUTPUT: clio-note], with nothing else on that line.")
+                     "reply with each output under a line that reads exactly like [OUTPUT: clio-note], with nothing else on that line. Put any note to the person above the first such line, because everything below a marker is saved as that output.")
 PROJECT_SAVE_REPLY = ("- Saving. Reply with each output under a line that reads exactly like [OUTPUT: clio-note], using the output ID "
-                      f"({_IDS}, {', '.join(slug for slug, _ in FORM_OUTPUTS)}), with nothing else on that line. The person saves your "
-                      "reply into the app.")
+                      f"({_IDS}, {', '.join(slug for slug, _ in FORM_OUTPUTS)}), with nothing else on that line. Put any note to the person above the first such line, because everything below a marker is saved "
+                      "as that output. The person saves your reply into the app.")
 
 
 def project_instructions(connector_on: bool) -> str:
@@ -793,7 +794,22 @@ def save_transcript(store: Store, client_id: str, text: str, call_date: date, ne
         iso, same = call_date.isoformat(), _same_call_text(intake.scrubbed)
         for row in store.list_transcripts(client_id):
             if row["call_date"] == iso and _same_call_text(row["scrubbed_text"]) == same:
-                return row["id"]
+                # The call is already saved, but this review may have added a title, ticked outputs or directions.
+                # Those are kept, so the second save is not a silent no-op. Nothing the call already has is cleared.
+                tx = row["id"]
+                if title_text:
+                    store.set_transcript_title(tx, title_text)
+                if planned:
+                    store.set_planned_outputs(tx, planned)
+                    store.set_setting("last_outputs", ",".join(planned))
+                if scrubbed_dirs:
+                    for ent in made["here"]:
+                        ent.only, ent.via = [tx], tx
+                    for ent in made["wide"]:
+                        ent.via = tx
+                    store.save_registry(client_id, intake.registry, tx)
+                    store.set_transcript_directions(tx, scrubbed_dirs, [w for w in confirm if w in scrubbed_dirs])
+                return tx
         tx = store.add_transcript(client_id, intake.scrubbed, call_date, title_text)
         for ent in made["here"]:        # a word hidden here belongs to this transcript, and was added from its directions
             ent.only, ent.via = [tx], tx
@@ -1352,16 +1368,22 @@ def save_import(store: Store, client_id: str, check: ImportCheck, kind: str = "o
         saved = []
         for p in check.pieces:
             content = p.content
+            versions = store.list_outputs(check.tx_id, p.slug)
             if p.slug in FORM_SLUGS:          # the answers sent are laid over the latest version, the rest keep what they had
-                versions = store.list_outputs(check.tx_id, p.slug)
                 content = forms.merge(p.slug, versions[-1]["content"] if versions else "", p.answers)
+            if versions and versions[-1]["content"] == content:
+                # The same text again, such as a double click on Save or Claude saving twice: no second copy of it.
+                saved.append(f"{p.slug} v{versions[-1]['version']} (unchanged)")
+                continue
             saved.append(f"{p.slug} v{store.add_output(client_id, check.tx_id, p.slug, content, source)}")
     return ", ".join(saved)
 
 
-def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, keep_first_names: bool) -> tuple[int, int]:
+def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, keep_first_names: bool,
+                base: int | None = None) -> tuple[int, int]:
     """Save a hand edit of an output as a new version. The text is placeholder text, and known real values typed into
-    it are replaced like in an import. Returns (version, how many values were replaced)."""
+    it are replaced like in an import. base: the version the editor started from. If a newer one exists the edit is
+    refused (StaleVersion), so it never overwrites a version saved meanwhile. Returns (version, values replaced)."""
     row = store.get_transcript(tx_id)
     if row is None or row["client_id"] != client_id or slug not in OUTPUT_NAMES:
         raise ImportProblem("Unknown output for this transcript.")
@@ -1370,7 +1392,7 @@ def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, 
         if got.dupes or got.unknown:
             raise ImportProblem("The form has a repeated or unknown question number.")
         return edit_answers(store, client_id, tx_id, slug, {n: got.answers.get(n, "") for n in range(1, forms.count(slug) + 1)},
-                            keep_first_names)
+                            keep_first_names, base)
     text = strip_header_lines(clean_text(text).strip("\n"))
     if not text.strip():
         raise ImportProblem("The output is empty.")
@@ -1380,12 +1402,23 @@ def edit_output(store: Store, client_id: str, tx_id: str, slug: str, text: str, 
                                         _keep_plain(store.get_client(client_id), *keep_flags(store, client_id, keep_first_names)))
     with store.transaction():
         versions = store.list_outputs(tx_id, slug)
+        if base is not None and (not versions or versions[-1]["version"] != base):
+            raise StaleVersion("A newer version was saved after this page opened, so nothing was saved. Reload to see it.")
         if versions and versions[-1]["content"] == content:
             raise ImportProblem("Nothing changed, so no new version was saved.")
         return store.add_output(client_id, tx_id, slug, content, "edit"), masked
 
 
 MAX_ANSWER = 20_000
+
+
+def same_answer(slug: str, n: int, typed: str, shown: str) -> bool:
+    """True when what a form box posts is what the page showed, so the answer was not changed. Line breaks and edge
+    spacing do not count, and a tick-box answer is the same whatever order its options are listed in."""
+    a, b = clean_text(typed).strip(), clean_text(shown).strip()
+    if forms.DETAILS[slug][n - 1].kind == "checkbox":
+        return sorted(forms._norm(x) for x in a.split("|") if x.strip()) == sorted(forms._norm(x) for x in b.split("|") if x.strip())
+    return a == b
 
 
 def edit_answers(store: Store, client_id: str, tx_id: str, slug: str, changes: dict, keep_first_names: bool,
@@ -1577,7 +1610,7 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
     rows = []
     for n, question in enumerate(forms.QUESTIONS[slug], 1):
         text = shown.get(n, "")
-        state = "empty" if not text else ("not_discussed" if text.strip(" .").lower() == forms.NOT_DISCUSSED else "answered")
+        state = "empty" if not text else ("not_discussed" if forms.not_discussed(text) else "answered")
         vis, parent, why = seen[n]
         q = forms.DETAILS[slug][n - 1]
         got = forms.choice(slug, n, text) if q.kind in ("yesno", "radio", "checkbox") else None
@@ -1597,8 +1630,9 @@ def view_form(store: Store, client_id: str, slug: str, content: str):
 
 def forms_listing(rows: list, key: str) -> str:
     """All the answers of a form as one text for Copy with hidden names: the question number and question, then the answer. An entry
-    that Clio would not show, because the answer that opens it is a different one or is not given, is left out."""
-    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r[key] and not r["fold"])
+    that Clio would not show, because the answer that opens it is a different one or is not given, is left out, and so is
+    one that is empty or Not discussed."""
+    return "\n\n".join(f"{r['n']}. {r['question']}\n{r[key]}" for r in rows if r["state"] == "answered" and r[key] and not r["fold"])
 
 
 CLIO_FORMAT = "Matter Workbench answers for Clio, format 1"
@@ -1613,7 +1647,7 @@ def clio_text(slug: str, rows: list, client: str, call_date: str, version: int) 
     one = lambda t: " ".join(str(t).split())
     head = [CLIO_FORMAT, f"Form: {slug}", f"Client: {one(client)}", f"Call: {one(call_date)}", f"Version: {version}",
             f"Copied: {COPIED_STAMP}"]
-    blocks = [f"--- {r['n']}. {one(r['question'])}\n" + re.sub(r"(?m)^(-{3,})", r" \1", r["text"].strip())
+    blocks = [f"--- {r['n']}. {one(r['question'])}\n" + re.sub(r"(?m)^( *-{3,})", r" \1", r["text"].strip())      # one space more, so the reader can take one off
               for r in rows if r["state"] == "answered" and not r["fold"]]
     return "\n".join(head + blocks + ["--- End of answers"])
 

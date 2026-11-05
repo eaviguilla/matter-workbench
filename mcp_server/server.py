@@ -27,7 +27,7 @@ TOOL = {
             "transcript_id": {"type": "string", "description": "The transcript ID from the header line."},
             "output": {"type": "string", "enum": list(SLUGS),
                        "description": "Which output this is: " + "; ".join(f"{slug} is {name}" for slug, name in NAMES.items()) + "."},
-            "content": {"type": "string", "description": "The full output, placeholders unchanged. For the intake forms,"
+            "content": {"type": "string", "description": "The full output, placeholders unchanged. For the intake forms, "
                            "write each answer under a line that reads exactly [ANSWER: <question number>]. Questions left out keep "
                            "their earlier answer."},
         },
@@ -67,13 +67,19 @@ def save_output(open_store: Callable[[], Store], args: dict) -> tuple[str, bool]
             if check.problem:
                 return "rejected: the header line in content does not match these IDs", True
             version = wf.save_import(store, client_id, check, "output", "mcp")
-        except (wf.ImportProblem, Busy, Damaged):
-            return "rejected: could not save", True
+        except wf.ImportProblem as e:            # workflow messages are written by the app and never hold submitted text
+            return f"rejected: {str(e)[:300]}", True
+        except (Busy, Damaged):
+            return "rejected: could not save, the workbench data is busy or damaged", True
         return f"saved {version}", False
 
 
+def _error(mid, code: int, message: str) -> dict:
+    return {"jsonrpc": "2.0", "id": mid, "error": {"code": code, "message": message}}
+
+
 def handle(message: dict, open_store: Callable[[], Store]) -> dict | None:
-    """One JSON-RPC message in, one reply out (None for notifications)."""
+    """One JSON-RPC message in, one reply out (None for notifications). A reply always carries the request's id."""
     method, mid = message.get("method"), message.get("id")
     if mid is None:
         return None
@@ -87,12 +93,18 @@ def handle(message: dict, open_store: Callable[[], Store]) -> dict | None:
     if method == "tools/list":
         return ok({"tools": [TOOL]})
     if method == "tools/call":
-        params = message.get("params") or {}
-        if params.get("name") != TOOL["name"]:
-            return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32602, "message": "unknown tool"}}
-        text, is_error = save_output(open_store, params.get("arguments") or {})
+        params = message.get("params")
+        args = params.get("arguments") if isinstance(params, dict) else None
+        if not isinstance(params, dict) or not isinstance(params.get("name"), str) or not (args is None or isinstance(args, dict)):
+            return _error(mid, -32602, "params must be an object with a tool name and an arguments object")
+        if params["name"] != TOOL["name"]:
+            return _error(mid, -32602, "unknown tool")
+        try:
+            text, is_error = save_output(open_store, args or {})
+        except Exception:                      # one bad call must not end the session; the reply holds no details
+            return _error(mid, -32603, "internal error while saving")
         return ok({"content": [{"type": "text", "text": text}], "isError": is_error})
-    return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32601, "message": "method not found"}}
+    return _error(mid, -32601, "method not found")
 
 
 def serve(open_store: Callable[[], Store], stdin: TextIO = sys.stdin, stdout: TextIO = sys.stdout) -> None:
@@ -100,9 +112,18 @@ def serve(open_store: Callable[[], Store], stdin: TextIO = sys.stdin, stdout: Te
         if not line.strip():
             continue
         try:
-            reply = handle(json.loads(line), open_store)
-        except (ValueError, AttributeError):
-            reply = {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "parse error"}}
+            message = json.loads(line)
+        except ValueError:
+            reply = _error(None, -32700, "parse error")
+        else:
+            if not isinstance(message, dict):
+                reply = _error(None, -32600, "invalid request")
+            else:
+                try:
+                    reply = handle(message, open_store)
+                except Exception:
+                    mid = message.get("id")
+                    reply = _error(mid if isinstance(mid, (int, str)) else None, -32603, "internal error")
         if reply is not None:
             stdout.write(json.dumps(reply) + "\n")
             stdout.flush()

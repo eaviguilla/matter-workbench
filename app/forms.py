@@ -9,6 +9,7 @@ The app does not tell Claude how to answer. It only reads what Claude sends back
 line, and the person puts that in the Claude Project (Settings has the text to paste).
 """
 import re
+from datetime import date
 from dataclasses import dataclass, field
 
 from .outputs import MARKER_RE
@@ -166,9 +167,14 @@ def over(slug: str, n: int, text: str) -> int:
     return max(0, len(text) - limit) if limit else 0
 
 
+def not_discussed(text: str) -> bool:
+    """True when an answer is Not discussed, with or without words after it. Such an answer leaves the Clio field empty."""
+    return re.match(NOT_DISCUSSED + r"\b", text.strip(), re.I) is not None
+
+
 def settled(text: str) -> bool:
     """True when an answer says something a follow-up can depend on: it is not empty and not Not discussed."""
-    return bool(text.strip()) and text.strip(" .").lower() != NOT_DISCUSSED
+    return bool(text.strip()) and not not_discussed(text)
 
 
 def _norm(x: str) -> str:
@@ -194,9 +200,20 @@ def choice(slug: str, n: int, text: str):
     return None
 
 
+def _is_date(text: str) -> bool:
+    """True for a real calendar date written as month/day/year, the one shape the Clio extension can enter."""
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", text.strip())
+    try:
+        return bool(m) and date(int(m[3]), int(m[1]), int(m[2])) is not None
+    except ValueError:
+        return False
+
+
 def choice_problem(slug: str, n: int, text: str) -> str:
     """A short warning when a Yes or No, pick-one or checkbox answer is not what Clio can pick, else an empty text."""
     q = DETAILS[slug][n - 1]
+    if q.kind == "date" and settled(text):
+        return "" if _is_date(text) else f"Not a date Clio can read. Use {DATE_FORMAT}, for example 03/14/2024."
     if q.kind not in ("yesno", "radio", "checkbox") or not settled(text):
         return ""
     got = choice(slug, n, text)

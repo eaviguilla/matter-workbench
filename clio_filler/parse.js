@@ -43,8 +43,8 @@
     if (!ended) { return { ok: false, reason: "cut-off" }; }
     var out = [];
     answers.forEach(function (a) {
-      var value = a.lines.join("\n").replace(/^ (-{3,})/gm, "$1").trim();
-      if (value !== "") { out.push({ n: a.n, question: a.question, text: value }); }
+      var value = a.lines.join("\n").replace(/^ ( *-{3,})/gm, "$1").trim();
+      if (value !== "" && !/^not discussed\b/i.test(value)) { out.push({ n: a.n, question: a.question, text: value }); }
     });
     var copied = meta.copied ? new Date(meta.copied) : null;
     return {

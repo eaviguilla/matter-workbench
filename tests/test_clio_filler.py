@@ -156,3 +156,16 @@ def test_the_layout_copy_holds_titles_and_no_typed_values(report):
     assert "What was the name of your loved one?" in s and "<script" not in s and "<style" not in s
     assert "TYPED-VALUE" not in s and "Sample answer" not in s and " checked" not in s and "aria-checked" not in s and 'id="note"' in s
 
+
+
+def test_an_answer_for_a_follow_up_with_a_shared_title_lands_in_its_own_box(report):
+    """Clio shows "Please explain." (and "When will it be available?") twice. The later answer must not fill the earlier
+    box when that one is open but has no answer."""
+    twins = [r for r in report if r["name"] in ("twins", "twins-trust")]
+    assert len(twins) == 3
+    for r in twins:
+        assert mismatches(r) == [], (r["slug"], r["layout"], r["back"])
+    estate = next(r for r in twins if r["slug"] == "estate-plan-intake-form")
+    assert estate["back"]["14"] == "" and estate["back"]["19"] == "Second box text"
+    trust = next(r for r in twins if r["slug"] == "trust-admin-intake-form")
+    assert trust["back"]["3"] == "" and trust["back"]["5"] == "Next week for the certificate"

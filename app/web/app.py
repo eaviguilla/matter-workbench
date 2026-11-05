@@ -480,8 +480,13 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         choice = str(form.get("client") or ("new" if name else ""))
         with open_store() as s:
             if not choice:
-                return render(request, "choose_client.html", text=text, call_date=day,
-                              found=wf.detect_client(s, text, app.state.ner, wf.load_settings(s)),
+                try:
+                    found = wf.detect_client(s, text, app.state.ner, wf.load_settings(s))
+                except (ValueError, NerUnavailable) as e:      # includes TranscriptFormatError, e.g. an empty paste
+                    issues = [f"Line {i.line}: {i.message}" if i.line else i.message for i in getattr(e, "issues", [])]
+                    return render(request, "intake_new.html", text=text, today=day,
+                                  **({"issues": issues} if issues else {"error": str(e)}))
+                return render(request, "choose_client.html", text=text, call_date=day, found=found,
                               error="Choose a client above, or type a first name for a new client.")
             if choice != "new":
                 picked = client_or_404(s, choice)
@@ -491,7 +496,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             try:
                 found = wf.detect_client(s, text, app.state.ner, wf.load_settings(s)) if not name else None
                 cid = s.create_client(name, pending=True) if name else None
-            except (ValueError, NerUnavailable):
+            except (ValueError, NerUnavailable):      # includes TranscriptFormatError, e.g. an empty paste
                 found, cid = None, None
             if cid is None:
                 return render(request, "choose_client.html", text=text, call_date=day,
@@ -835,12 +840,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     async def request_change(request: Request, tx_id: str, slug: str):
         """Copy text that asks Claude to change one output. The typed request is scrubbed first. Words the scrubber
         flags are listed, and the copy waits until each one is confirmed. Only the scrubbed text is stored."""
-        try:
-            data = await request.json()
-        except ValueError:
-            raise bad_form("The request body is not valid JSON.") from None
-        if not isinstance(data, dict):
-            raise bad_form("The request body must be a JSON object.")
+        data = await json_object(request)
         confirmed = data.get("confirm")
         confirmed = {c for c in confirmed if isinstance(c, str)} if isinstance(confirmed, list) else set()
         with open_store() as s:
@@ -865,7 +865,7 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
     async def json_object(request) -> dict:
         try:
             data = await request.json()
-        except ValueError:
+        except (ValueError, RuntimeError):      # a form body was already read by the CSRF guard
             raise bad_form("The request body is not valid JSON.") from None
         if not isinstance(data, dict):
             raise bad_form("The request body must be a JSON object.")
@@ -916,8 +916,13 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
         shown = wf.forms.parse(slug, wf.placeholder_text(s, cid, content)).answers
         seen = wf.forms.visibility(slug, shown if typed is None else typed)
         def yes_no(n, text):         # a Yes or No box holds only Yes or No, so "Yes, two homes" is shown as Yes
-            got = wf.forms.choice(slug, n, text) if wf.forms.DETAILS[slug][n - 1].kind == "yesno" else None
-            return got[0][0] if got else ("" if wf.forms.DETAILS[slug][n - 1].kind == "yesno" else text)
+            if wf.forms.DETAILS[slug][n - 1].kind != "yesno":
+                return text
+            got = wf.forms.choice(slug, n, text)
+            if got:
+                return got[0][0]
+            # Not discussed is shown as itself, so saving the page never turns it into "no answer"
+            return "Not discussed" if text.strip(" .").lower() == wf.forms.NOT_DISCUSSED else ""
         return [(n, q, typed[n] if typed is not None else yes_no(n, shown.get(n, "")),
                  " ".join(x for x in (wf.forms.hint(slug, n),
                                       f"Clio does not show this box now, {seen[n][2]}." if seen[n][0] == "closed" else "") if x),
@@ -941,11 +946,20 @@ def create_app(data_dir: Path | None = None, env=None, home=None,
             tx, base = editable(s, tx_id, slug, v)
             text = str(form.get("content", ""))
             typed = None
+            want = maybe_int(v)                 # the version the page started from; a newer one makes the save stale
+            keep_first = wf.load_settings(s).keep_first_names
             if wf.is_form(slug):
                 typed = {n: " | ".join(str(x) for x in form.getlist(f"answer_{n}")) for n in range(1, wf.forms.count(slug) + 1)}
                 text = wf.forms.render(slug, typed)
             try:
-                version, masked = wf.edit_output(s, tx["client_id"], tx_id, slug, text, wf.load_settings(s).keep_first_names)
+                if typed is not None:
+                    # Only the answers the person changed are saved. Every other one is copied from the latest
+                    # version as stored, so an answer nobody touched is never rewritten.
+                    shown = {n: t for n, _q, t, _h, _y in form_fields(s, tx["client_id"], slug, base["content"])}
+                    changes = {n: t for n, t in typed.items() if not wf.same_answer(slug, n, t, shown[n])}
+                    version, masked = wf.edit_answers(s, tx["client_id"], tx_id, slug, changes, keep_first, want)
+                else:
+                    version, masked = wf.edit_output(s, tx["client_id"], tx_id, slug, text, keep_first, want)
             except wf.ImportProblem as e:
                 return workspace(request, s, tx["client_id"], "output_edit.html", tab="overview", tx=tx, slug=slug,
                                  out_name=wf.OUTPUT_NAMES[slug], base=base, text=text, error=str(e),

@@ -11,8 +11,16 @@
   function say(text) { $("message").textContent = text; }
   function warn(text) { var w = $("warning"); w.hidden = !text; w.textContent = text || ""; }
 
+  // A copy with no time, an old one, or one stamped well in the future (a wrong clock) cannot be trusted to be recent.
+  function isStale(copied) {
+    if (!copied) { return true; }
+    var gap = Date.now() - copied.getTime();
+    return gap > STALE_MS || gap < -5 * 60 * 1000;
+  }
+
   function age(date) {
     var minutes = Math.round((Date.now() - date.getTime()) / 60000);
+    if (minutes < -5) { return "time unknown"; }
     if (minutes < 1) { return "just now"; }
     if (minutes < 60) { return minutes + " minute" + (minutes === 1 ? "" : "s") + " ago"; }
     var hours = Math.round(minutes / 60);
@@ -32,7 +40,7 @@
         : "The clipboard does not hold answers from Copy for Clio. In Matter Workbench, press Copy for Clio on a form, then open this again.");
       return;
     }
-    form = FORMS[parsed.form];
+    form = Object.prototype.hasOwnProperty.call(FORMS, parsed.form) ? FORMS[parsed.form] : null;
     if (!form) { say("This copy is for a form this version does not know (" + parsed.form + "). Update the extension."); return; }
     $("s-form").textContent = form.name;
     $("s-client").textContent = parsed.client || "Not named";
@@ -40,11 +48,18 @@
     $("s-answers").textContent = parsed.answers.length + " answered" + (parsed.version ? ", version " + parsed.version : "");
     $("s-age").textContent = parsed.copied ? age(parsed.copied) : "time unknown";
     $("summary").hidden = false;
-    say("Ready. Open the blank " + form.name + " in Clio, then press Fill this page.");
-    if (!parsed.copied || Date.now() - parsed.copied.getTime() > STALE_MS) {
-      warn("This copy is more than 30 minutes old. Check the client above is the one whose matter is open in Clio.");
+    if (!parsed.answers.length) {
+      say("This copy holds no answers, so there is nothing to fill. Answer some questions in Matter Workbench, then press Copy for Clio again.");
+      return;
     }
-    if (parsed.repeated.length) { warn("Question " + parsed.repeated.join(", ") + " appears twice in the copy. The first one is used."); }
+    say("Ready. Open the blank " + form.name + " in Clio, then press Fill this page.");
+    var warnings = [];
+    if (isStale(parsed.copied)) {
+      warnings.push((parsed.copied && parsed.copied.getTime() > Date.now() ? "The time on this copy is in the future, so its age is unknown." : "This copy is more than 30 minutes old.")
+        + " Check the client above is the one whose matter is open in Clio.");
+    }
+    if (parsed.repeated.length) { warnings.push("Question " + parsed.repeated.join(", ") + " appears twice in the copy. The first one is used."); }
+    warn(warnings.join(" "));
     $("fill").disabled = false;
   }
 
@@ -57,8 +72,7 @@
   }
 
   async function fill() {
-    var stale = !parsed.copied || Date.now() - parsed.copied.getTime() > STALE_MS;
-    if (stale && !confirmedStale) { confirmedStale = true; $("fill").textContent = "Fill anyway"; return; }
+    if (isStale(parsed.copied) && !confirmedStale) { confirmedStale = true; $("fill").textContent = "Fill anyway"; return; }
     $("fill").disabled = true;
     var tab = await activeTab();
     if (!tab) { say("No tab is open."); $("fill").disabled = false; return; }

@@ -48,6 +48,16 @@
   await scenario("orphan", "probate-intake-form", "B", function (form) {
     return [{ n: 8, text: "2217 Vista Alegre Drive" }];
   });
+  // two follow-ups with the same title on Clio: an answer for the second must not land in the first one's box
+  await scenario("twins", "estate-plan-intake-form", "A", function () {
+    return [{ n: 13, text: "Yes" }, { n: 18, text: "Yes" }, { n: 19, text: "Second box text" }];
+  });
+  await scenario("twins", "estate-plan-intake-form", "B", function () {
+    return [{ n: 13, text: "Yes" }, { n: 18, text: "Yes" }, { n: 19, text: "Second box text" }];
+  });
+  await scenario("twins-trust", "trust-admin-intake-form", "A", function () {
+    return [{ n: 2, text: "Not available" }, { n: 4, text: "Not available" }, { n: 5, text: "Next week for the certificate" }];
+  });
   // a page that is not this form is refused
   document.body.replaceChildren(el("p", { textContent: "Nothing to see here." }));
   report.push({ name: "wrongpage", run: await window.MWBFill.run(FORMS["probate-intake-form"], sampleAnswers(FORMS["probate-intake-form"])) });

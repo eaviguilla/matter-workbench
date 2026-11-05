@@ -154,6 +154,8 @@
   function isoDate(text) {
     var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text.trim());
     if (!m) { return ""; }
+    var d = new Date(Date.UTC(+m[3], +m[1] - 1, +m[2]));      // 13/45/2020 and 02/30/2020 are not dates
+    if (d.getUTCFullYear() !== +m[3] || d.getUTCMonth() !== +m[1] - 1 || d.getUTCDate() !== +m[2]) { return ""; }
     return m[3] + "-" + ("0" + m[1]).slice(-2) + "-" + ("0" + m[2]).slice(-2);
   }
   function pickFromSelect(sel, answer) {
@@ -186,12 +188,21 @@
     return false;
   }
 
+  // Two follow-ups can carry the same title on Clio ("Please explain."). A follow-up belongs to the box that comes after
+  // its own parent question, so an answer for the later one never lands in the earlier one's box.
+  function followsParent(entry, el, snap, form) {
+    var parent = form.entries.filter(function (e) { return e.n === entry.when[0]; })[0];
+    var at = parent ? matchesIn(snap, parent)[0] : null;
+    return !at || !!(at.compareDocumentPosition(el) & 4);
+  }
+
   // ---- filling one entry ----------------------------------------------------------------------------------------
   async function fillEntry(entry, answer, snap, form, used) {
     var title = null;
     var start = Date.now();
     for (;;) {
       var hits = matchesIn(snap, entry).filter(function (el) { return used.indexOf(el) < 0; });
+      if (entry.when) { hits = hits.filter(function (el) { return followsParent(entry, el, snap, form); }); }
       title = hits[0] || null;
       if (title || !entry.when || Date.now() - start > WAIT_FOR_FOLLOW_UP_MS) { break; }
       await sleep(POLL_MS);

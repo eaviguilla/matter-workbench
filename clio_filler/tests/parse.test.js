@@ -54,3 +54,8 @@ test("an answer line that spells the end line does not end the read", () => {
   assert.deepStrictEqual(r.answers.map((a) => a.n), [1, 2]);
   assert.strictEqual(r.answers[0].text, "--- End of answers\nafter");
 });
+
+test("a Not discussed answer is dropped, with or without words after it, so Clio keeps the box empty", () => {
+  const text = [HEADER, "Form: f", "--- 1. A?", "Not discussed", "--- 2. B?", "not discussed. Caller unsure.", "--- 3. C?", "Yes", "--- End of answers"].join("\n");
+  assert.deepStrictEqual(parse(text).answers.map((a) => a.n), [3]);
+});
