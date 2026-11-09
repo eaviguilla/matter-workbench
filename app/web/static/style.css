@@ -10,7 +10,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #8794a1;
+  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #95a2af;
   --soft: #262c34; --active: #262c34; --grey-btn: #2d343c;
   --accent: #57ab5a; --accent-text: #06170a; --accent-soft: #14361f;
   --data: #6cb6ff; --signal: #e0a53a; --signal-bg: #352a0f;
@@ -19,7 +19,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #8794a1;
+  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #95a2af;
   --soft: #262c34; --active: #262c34; --grey-btn: #2d343c;
   --accent: #57ab5a; --accent-text: #06170a; --accent-soft: #14361f;
   --data: #6cb6ff; --signal: #e0a53a; --signal-bg: #352a0f;
@@ -490,7 +490,7 @@ section.col.folded, .fpanel.folded { align-self: start; }
 .clients li a { padding: 5px 8px; }
 .clients li.current a { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .clients .cid, .cid, .poslabel, .fcount, .oldnote { font-family: var(--mono); }
-input, select, textarea { min-height: 28px; padding: 3px 8px; border-color: var(--line-2); background: var(--raise); }
+input:not([type=checkbox]):not([type=radio]), select, textarea { min-height: 28px; padding: 3px 8px; border-color: var(--line-2); background: var(--raise); }
 textarea { font-size: 12.5px; }
 section, .optrow, details.transcript, .more details, details.request, details.hideout { background: var(--panel); }
 h1 { font-size: 19px; }
@@ -536,3 +536,10 @@ pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; 
 @media (min-width: 721px) {
   .clients { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; }
 }
+@media (max-width: 960px) {
+  .jump { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
+  .jump::-webkit-scrollbar { display: none; }
+  .jchip { flex: none; white-space: nowrap; }
+  .jchip.more { margin-left: 0; }
+}
+.jump .jlabel { white-space: nowrap; flex: none; }
