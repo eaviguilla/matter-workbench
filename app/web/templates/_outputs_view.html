@@ -4,7 +4,7 @@
 {% set forms_on = blocks|selectattr('on_page')|selectattr('is_form')|list %}
 <div class="outview" data-poll="/transcripts/{{ sel.id }}/latest" data-version="{{ total_versions }}">
 {% if text_on or forms_on %}
-<nav class="jump muted" aria-label="On this page">Jump to: {% for b in forms_on %}<a href="#out-{{ b.slug }}">{{ b.name }}</a>, {% endfor %}<a href="#request-more" data-ask-more="1">Request more outputs</a></nav>
+<nav class="jump muted" aria-label="On this page"><span class="jlabel">Jump to:</span> {% for b in text_on + forms_on %}<a class="jchip {{ 'got' if b.current else 'wait' }}" href="#out-{{ b.slug }}">{{ b.name }}<span class="sr"> ({{ 'received' if b.current else 'waiting' }})</span></a>{% endfor %}<a class="jchip more" href="#request-more" data-ask-more="1">Request more outputs</a></nav>
 {% else %}
 <p class="empty" role="status"><span><strong>Nothing asked for on this call yet.</strong> Tick outputs below and click Copy for Claude.</span></p>
 {% endif %}
