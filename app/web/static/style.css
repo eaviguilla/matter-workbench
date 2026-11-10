@@ -264,8 +264,8 @@ details.transcript[open] > summary, .more > details[open] > summary, details.req
 .fcount { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pickform { flex: 1; min-width: 0; display: flex; gap: 6px; margin: 0; }
 .pickform select, .vrow select, .crow select { flex: 1; min-width: 0; width: 100%; text-overflow: ellipsis; }
-.pickform select { min-height: 36px; }
-.arrow { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--text); text-decoration: none; }
+.pickform select { min-height: 32px; }
+.arrow { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--text); text-decoration: none; }
 a.arrow:hover { background: var(--soft); }
 .arrow.off { color: var(--muted); opacity: .45; cursor: not-allowed; }
 .poslabel { flex: 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 4.8em; text-align: right; }
@@ -500,6 +500,7 @@ h1 { font-size: 19px; }
 .viewswitch a { padding: 3px 14px; }
 button.secondary, .button.secondary { background: var(--grey-btn); color: var(--text); border-color: var(--line-2); }
 button.textbtn, a.textbtn, button.linkbtn { font-family: var(--mono); font-size: 12px; }
+a.textbtn { display: inline-flex; align-items: center; min-height: 28px; }
 .status { font: 600 11.5px var(--mono); padding: 1px 8px; }
 .colname, section.request > h2, .hideform legend { font: 700 13px var(--mono); }
 pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; }
@@ -508,7 +509,7 @@ pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; 
 /* the jump bar: one chip per output, a filled square once it has a version, an empty one while it is waiting */
 .jump { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 6px 0; background: var(--bg); font-size: 12px; }
 .jump .jlabel { font: 11.5px var(--mono); color: var(--muted); margin-right: 2px; }
-.jchip { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 9px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); color: var(--text); font: 500 12px var(--mono); text-decoration: none; }
+.jchip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); color: var(--text); font: 500 12px var(--mono); text-decoration: none; }
 .jchip:hover { border-color: var(--accent); }
 .jchip.got::after, .jchip.wait::after { content: ""; width: 9px; height: 9px; flex: none; border: 1.5px solid var(--accent); border-radius: 2px; }
 .jchip.got::after { background: var(--accent); }
@@ -526,7 +527,7 @@ pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; 
 .abox pre.answer { padding: 4px 8px; background: transparent; border-color: transparent; }
 .abox pre.answer.ynpill { border-radius: var(--radius); }
 .seg { gap: 4px; }
-.seg label { border-color: var(--line-2); border-radius: var(--radius); padding: 3px 12px; font-size: 12.5px; background: var(--raise); color: var(--muted); }
+.seg label { display: inline-flex; align-items: center; min-height: 28px; border-color: var(--line-2); border-radius: var(--radius); padding: 0 12px; font-size: 12.5px; background: var(--raise); color: var(--muted); }
 .seg label:hover { border-color: var(--accent); color: var(--text); }
 .seg input:checked + label { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
 .seg input:disabled + label { opacity: .5; cursor: not-allowed; }
@@ -543,3 +544,14 @@ pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; 
   .jchip.more { margin-left: 0; }
 }
 .jump .jlabel { white-space: nowrap; flex: none; }
+
+/* anchor jumps land below the sticky jump bar */
+[id^="out-"], #request-more { scroll-margin-top: 84px; }
+@media (max-width: 960px) { [id^="out-"], #request-more { scroll-margin-top: 52px; } }
+
+/* a form row followed by its submit button, and a textarea followed by a row, keep room between them */
+form textarea + .row { margin-top: 12px; }
+form .row + p { margin-top: 12px; }
+form .row + label { margin-top: 12px; }
+form h3 + pre.text { margin-top: 6px; }
+form pre.text ~ p.actions { margin-top: 12px; }
