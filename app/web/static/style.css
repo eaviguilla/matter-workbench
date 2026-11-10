@@ -572,3 +572,7 @@ form pre.text ~ p.actions { margin-top: 12px; }
 .manage form + form, .manage form + p, .manage p + form { margin-top: 10px; }
 details[open] > summary + * { margin-top: 8px; }
 main label + textarea, main label + input:not([type=checkbox]):not([type=radio]) { margin-top: 6px; }
+
+/* the Copy bar under an editable text box keeps room above it */
+.textbox + .actions, .textbox + .notice { margin-top: 10px; }
+.textbar { margin-top: 10px; }

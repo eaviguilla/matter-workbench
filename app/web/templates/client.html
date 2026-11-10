@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m %}
 {% block title %}{{ cid }} · Matter Workbench{% endblock %}
-{% block mainclass %}{{ 'wide' if view == 'outputs' and sel else '' }}{% endblock %}
+{% block mainclass %}{{ 'wide' if sel else '' }}{% endblock %}
 {% block main %}
 {% include "_workspace.html" %}
 {% if just_saved %}
