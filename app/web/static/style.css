@@ -555,3 +555,20 @@ form .row + p { margin-top: 12px; }
 form .row + label { margin-top: 12px; }
 form h3 + pre.text { margin-top: 6px; }
 form pre.text ~ p.actions { margin-top: 12px; }
+
+/* transcript view: on a wide window the transcript is a tall column and the request controls sit beside it */
+@media (min-width: 1200px) {
+  .tgrid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(380px, 1fr); gap: 16px; align-items: start; }
+  .tgrid .tview { margin-bottom: 0; }
+  .tgrid .tview pre.text { max-height: none; height: calc(100vh - 17rem); min-height: 22rem; }
+  .tgrid .tside > :last-child { margin-bottom: 0; }
+  .tgrid .tside p { max-width: none; }
+  .tgrid .optrow legend { float: none; width: 100%; margin: 0 0 6px; }
+}
+
+/* bars of buttons never touch the control above them */
+.savebar { margin-top: 8px; }
+.fpanel .savebar { margin-bottom: 4px; }
+.manage form + form, .manage form + p, .manage p + form { margin-top: 10px; }
+details[open] > summary + * { margin-top: 8px; }
+main label + textarea, main label + input:not([type=checkbox]):not([type=radio]) { margin-top: 6px; }

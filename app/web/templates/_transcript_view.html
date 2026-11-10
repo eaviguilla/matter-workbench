@@ -1,3 +1,5 @@
+<div class="tgrid">
+<div class="tmain">
 <section class="tview">
   <div class="tviewhead">
     <h2>Transcript <span class="muted">{{ tx.scrubbed_text.split()|length }} words</span></h2>
@@ -6,8 +8,12 @@
   <p class="muted">Real values are shown here. Highlighted words are replaced before Claude gets the text. Plain text goes as written.</p>
   <div data-hide-source><pre class="text" id="scrubbed-view">{{ m.segs(segs) }}</pre></div>
 </section>
+</div>
+<div class="tside">
 {% set opt_tx = sel.id %}{% set opt_back = "transcript" %}{% include "_options_row.html" %}
 <section class="barbox">
   {{ m.copy_box(sel.id, output_choices, ticked, sel.status == 'draft', 'send', href_after_copy, directions, directions_ok) }}
 </section>
 {% include "_hide_form.html" %}
+</div>
+</div>

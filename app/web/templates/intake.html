@@ -3,6 +3,8 @@
 {% block title %}Add transcript · {{ cid }}{% endblock %}
 {% block main %}
 {% include "_workspace.html" %}
+<div class="tgrid">
+<div class="tmain">
 <section>
   <h2>Add a transcript</h2>
   {{ m.layout_help() }}
@@ -17,5 +19,9 @@
     <p><button type="submit"{% if not model_ok %} disabled{% endif %}>Scrub and review</button></p>
   </form>
 </section>
+</div>
+<div class="tside">
 {% set opt_tx = "" %}{% set opt_back = "intake" %}{% include "_options_row.html" %}
+</div>
+</div>
 {% endblock %}
