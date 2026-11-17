@@ -1,30 +1,33 @@
-/* Slate Console design system. A compact tool console: ruled rows, mono labels, one green signal. Blue marks placeholders, amber marks things that need a decision. */
+/* Case file design system. Warm paper surfaces, serif headings, one slate blue accent. Blue also marks placeholders, amber marks things that need a decision. Light and dark share the same token names. */
 :root {
-  --bg: #e9ece7; --panel: #f6f7f3; --line: #cfd5cb; --text: #101a14; --muted: #44554a;
-  --soft: #dfe3dc; --active: #dfe3dc; --grey-btn: #d7ddd3;
-  --accent: #0c7443; --accent-text: #ffffff; --accent-soft: #d3e9dc;
-  --data: #0a5fa0; --signal: #8a5300; --signal-bg: #f2e2c4;
-  --danger: #a52f22; --warn-bg: var(--signal-bg); --warn-text: var(--signal); --err-bg: var(--signal-bg); --ok: #0c7443;
-  --line-2: #b4bdb0; --raise: #ffffff;
-  --radius: 3px; --font: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif; --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --bg: #f4f2ed; --panel: #fbfaf7; --line: #ddd9cf; --text: #1a1d21; --muted: #666b73;
+  --soft: #efece5; --active: #e1eaf3; --grey-btn: #efece5;
+  --accent: #1f4e79; --accent-text: #ffffff; --accent-soft: #e1eaf3;
+  --data: #1f4e79; --signal: #8a5a12; --signal-bg: #f3e6c8;
+  --danger: #9a3b2b; --warn-bg: var(--signal-bg); --warn-text: var(--signal); --err-bg: var(--signal-bg); --ok: #2f7d5b;
+  --line-2: #cbc6b9; --raise: #ffffff;
+  --radius: 6px; --radius-lg: 10px;
+  --font: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Iowan Old Style", "Charter", "Georgia", "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #95a2af;
-  --soft: #262c34; --active: #262c34; --grey-btn: #2d343c;
-  --accent: #57ab5a; --accent-text: #06170a; --accent-soft: #14361f;
-  --data: #6cb6ff; --signal: #e0a53a; --signal-bg: #352a0f;
-  --danger: #ff7b72; --ok: #57ab5a;
-  --line-2: #444c56; --raise: #262c34;
+  --bg: #14171c; --panel: #1b1f26; --line: #2e343d; --text: #e8eaed; --muted: #98a0ab;
+  --soft: #222730; --active: #1d2d40; --grey-btn: #222730;
+  --accent: #6fa8dc; --accent-text: #0b1a2a; --accent-soft: #1d2d40;
+  --data: #6fa8dc; --signal: #e0a53a; --signal-bg: #352a0f;
+  --danger: #f0897a; --ok: #5fbf95;
+  --line-2: #3b424d; --raise: #222730;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151a21; --panel: #1c2128; --line: #333a43; --text: #e6eee8; --muted: #95a2af;
-  --soft: #262c34; --active: #262c34; --grey-btn: #2d343c;
-  --accent: #57ab5a; --accent-text: #06170a; --accent-soft: #14361f;
-  --data: #6cb6ff; --signal: #e0a53a; --signal-bg: #352a0f;
-  --danger: #ff7b72; --ok: #57ab5a;
-  --line-2: #444c56; --raise: #262c34;
+  --bg: #14171c; --panel: #1b1f26; --line: #2e343d; --text: #e8eaed; --muted: #98a0ab;
+  --soft: #222730; --active: #1d2d40; --grey-btn: #222730;
+  --accent: #6fa8dc; --accent-text: #0b1a2a; --accent-soft: #1d2d40;
+  --data: #6fa8dc; --signal: #e0a53a; --signal-bg: #352a0f;
+  --danger: #f0897a; --ok: #5fbf95;
+  --line-2: #3b424d; --raise: #222730;
 }
 :root { color-scheme: light dark; accent-color: var(--accent); }
 :root[data-theme="light"] { color-scheme: light; }
@@ -482,34 +485,38 @@ section.col.folded, .fpanel.folded { align-self: start; }
 .requestbar .pick .pickgroup { clear: both; margin: 6px 0 4px; }
 
 
-/* ---- Slate Console skin: ruled rows, mono labels, 28px controls, filled squares for received outputs --- */
-.topbar { padding: 6px 12px; gap: 12px; }
-.brand { font: 700 13px var(--mono); letter-spacing: 0; }
-.local { font: 11.5px var(--mono); }
-.clients { padding: 10px; }
-.clients li a { padding: 5px 8px; }
-.clients li.current a { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+/* ---- Case file skin: paper surfaces, serif headings, soft rounded cards, filled squares for received outputs --- */
+.topbar { padding: 8px 14px; gap: 12px; }
+.brand { font: 600 16px var(--serif); letter-spacing: 0; }
+.local { font: 12px var(--font); }
+.clients { padding: 12px; }
+.clients li a { padding: 6px 10px; }
+.clients li.current a { background: var(--accent-soft); box-shadow: none; }
+.clients li.current .cname { color: var(--accent); }
 .clients .cid, .cid, .poslabel, .fcount, .oldnote { font-family: var(--mono); }
-input:not([type=checkbox]):not([type=radio]), select, textarea { min-height: 28px; padding: 3px 8px; border-color: var(--line-2); background: var(--raise); }
+input:not([type=checkbox]):not([type=radio]), select, textarea { min-height: 28px; padding: 3px 10px; border-color: var(--line-2); background: var(--raise); border-radius: var(--radius); }
 textarea { font-size: 12.5px; }
-section, .optrow, details.transcript, .more details, details.request, details.hideout { background: var(--panel); }
-h1 { font-size: 19px; }
-.tabs a, .viewswitch a { font-family: var(--mono); font-size: 12.5px; }
+section, .optrow, details.transcript, .more details, details.request, details.hideout { background: var(--panel); border-radius: var(--radius-lg); }
+h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -.005em; }
+h1 { font-size: 26px; }
+h2 { font-size: 18px; }
+.tabs a, .viewswitch a { font-family: var(--font); font-size: 13.5px; font-weight: 500; }
 .tabs a.on { border-bottom-color: var(--accent); }
-.viewswitch { padding: 2px; background: var(--bg); border-color: var(--line-2); }
-.viewswitch a { padding: 3px 14px; }
-button.secondary, .button.secondary { background: var(--grey-btn); color: var(--text); border-color: var(--line-2); }
-button.textbtn, a.textbtn, button.linkbtn { font-family: var(--mono); font-size: 12px; }
+.viewswitch { padding: 3px; background: var(--soft); border-color: var(--line); border-radius: var(--radius-lg); }
+.viewswitch a { padding: 4px 16px; border-radius: var(--radius); }
+button, .button { font: 600 13px/1.4 var(--font); }
+button.secondary, .button.secondary { background: var(--raise); color: var(--text); border-color: var(--line-2); }
+button.textbtn, a.textbtn, button.linkbtn { font-family: var(--font); font-size: 12.5px; }
 a.textbtn { display: inline-flex; align-items: center; min-height: 28px; }
-.status { font: 600 11.5px var(--mono); padding: 1px 8px; }
-.colname, section.request > h2, .hideform legend { font: 700 13px var(--mono); }
-pre.text { background: var(--bg); border-color: var(--line); font-size: 12.5px; }
-.empty { background: var(--bg); }
+.status { font: 600 12px var(--font); padding: 1px 10px; }
+.colname, section.request > h2, .hideform legend { font: 600 14px var(--serif); }
+pre.text { background: var(--soft); border-color: var(--line); font-size: 12.5px; border-radius: var(--radius); }
+.empty { background: var(--soft); }
 
 /* the jump bar: one chip per output, a filled square once it has a version, an empty one while it is waiting */
 .jump { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding: 6px 0; background: var(--bg); font-size: 12px; }
-.jump .jlabel { font: 11.5px var(--mono); color: var(--muted); margin-right: 2px; }
-.jchip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); color: var(--text); font: 500 12px var(--mono); text-decoration: none; }
+.jump .jlabel { font: 12px var(--font); color: var(--muted); margin-right: 2px; }
+.jchip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); color: var(--text); font: 500 12.5px var(--font); text-decoration: none; }
 .jchip:hover { border-color: var(--accent); }
 .jchip.got::after, .jchip.wait::after { content: ""; width: 9px; height: 9px; flex: none; border: 1.5px solid var(--accent); border-radius: 2px; }
 .jchip.got::after { background: var(--accent); }
