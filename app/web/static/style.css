@@ -524,6 +524,16 @@ pre.text { background: var(--soft); border-color: var(--line); font-size: 12.5px
 .jchip.wait::after { border-color: var(--muted); }
 .jchip.more { margin-left: auto; color: var(--muted); }
 
+/* the jump bar is always one scrolling row, so its height is a fixed 40px and the titles below can stick under it */
+.jump { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.jump::-webkit-scrollbar { display: none; }
+.jchip { flex: none; white-space: nowrap; }
+/* an output's title row sticks under the jump bar (28px chips plus 6px padding above and below) while its card is on screen */
+.col > .foldhead, .fpanel > .fphead { position: sticky; top: 40px; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.col > .foldhead { margin: -14px -16px 8px; padding: 10px 16px; }
+.fpanel > .fphead { margin: -10px -12px 6px; padding: 8px 12px; }
+.col.folded > .foldhead, .fpanel.folded > .fphead { border-bottom-color: transparent; }
+
 /* intake form answers: ruled rows and selection buttons */
 .fpanel { padding: 10px 12px; }
 .arow { padding: 7px 0; gap: 4px 14px; }
