@@ -532,7 +532,15 @@ pre.text { background: var(--soft); border-color: var(--line); font-size: 12.5px
 .col > .foldhead, .fpanel > .fphead { position: sticky; top: 40px; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
 .col > .foldhead { margin: -14px -16px 8px; padding: 10px 16px; }
 .fpanel > .fphead { margin: -10px -12px 6px; padding: 8px 12px; }
-.col.folded > .foldhead, .fpanel.folded > .fphead { border-bottom-color: transparent; }
+/* A folded card is only its title row, which would have no room to stick in. So the title row becomes the card, and the box around it is
+   either as tall as the row it sits in (two columns, the title sticks while the taller neighbour scrolls) or gone (one column, the title
+   sticks for the whole list). */
+.col.folded > .foldhead, .fpanel.folded > .fphead { margin: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.col.folded, .fpanel.folded { background: none; border-color: transparent; padding: 0; box-shadow: none; }
+.col.folded > .foldhead { padding: 10px 16px; }
+.fpanel.folded > .fphead { padding: 8px 12px; }
+@media (min-width: 1200px) { section.col.folded, .fpanel.folded { align-self: stretch; } }
+@media (max-width: 1199px) { section.col.folded, .fpanel.folded { display: contents; } }
 
 /* intake form answers: ruled rows and selection buttons */
 .fpanel { padding: 10px 12px; }
