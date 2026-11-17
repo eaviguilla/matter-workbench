@@ -532,6 +532,10 @@ pre.text { background: var(--soft); border-color: var(--line); font-size: 12.5px
 .col > .foldhead, .fpanel > .fphead { position: sticky; top: 40px; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
 .col > .foldhead { margin: -14px -16px 8px; padding: 10px 16px; }
 .fpanel > .fphead { margin: -10px -12px 6px; padding: 8px 12px; }
+/* A form panel's title row is one fixed 42px line, so the Copy bar under it can stick right below it (40px jump bar + 42px) and never slide beneath the title. */
+.fpanel > .fphead { height: 42px; flex-wrap: nowrap; align-items: center; overflow: hidden; }
+.fpanel > .fphead .fpcount { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fpanel .savebar { top: 82px; z-index: 1; }
 /* A folded card is only its title row, which would have no room to stick in. So the title row becomes the card, and the box around it is
    either as tall as the row it sits in (two columns, the title sticks while the taller neighbour scrolls) or gone (one column, the title
    sticks for the whole list). */
